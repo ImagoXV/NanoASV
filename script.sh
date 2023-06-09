@@ -8,11 +8,11 @@
 
 # Manual entries - Arguments
 # Set default values
-DEFAULT_DIR="default/path/to/directory"
 DEFAULT_QUAL=8
 DEFAULT_MINL=1400
 DEFAULT_MAXL=1600
 DEFAULT_ID=0.7
+DEFAULT_NUM_PROCESSES=6
 
 # Read the arguments passed to the script
 while [[ $# -gt 0 ]]; do
@@ -43,8 +43,13 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    -i|--Id_vsearch)
+    -i|--id_vsearch)
       ID="$2"
+      shift
+      shift
+      ;;
+    -p|--num_process)
+      NUM_PROCESSES="$2"
       shift
       shift
       ;;
@@ -56,11 +61,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Assign default values if variables are empty
-OUT="${OUT:-$DEFAULT_OUT}"
+DIR="/data"
 QUAL="${QUAL:-$DEFAULT_QUAL}"
 MINL="${MINL:-$DEFAULT_MINL}"
 MAXL="${MAXL:-$DEFAULT_MAXL}"
 ID="${ID:-$DEFAULT_ID}"
+NUM_PROCESSES="${NUM_PROCESS:-$DEFAULT_NUM_PROCESSES}"
 
 
 
@@ -71,45 +77,49 @@ if [[ -z $DIR ]]; then
 fi
 
 
-
-# Clean and create the Data directory
-rm -vrf "$data_dir"
-mkdir -vp "$data_dir"
-
 # Create temporary directory
-
-rm -vr ~/.tmp_NanoASV
+ls 
+#rm -vr /data/.tmp_NanoASV
 
 date
-echo Creating temporary directory at ~/.
-mkdir ~/.tmp_NanoASV
-TMP="~/.tmp_NanoASV"
+echo Creating temporary directory at ./.
+mkdir -v .tmp_NanoASV
+TMP=".tmp_NanoASV"
 
 
 #Concatenation of fastq files
-echo Concatenation step
-(cd ${DIR} # I really need to prompt this variable as a launching option
-  for BARCODE in barcode* ; do
-     date
-     cat ${BARCODE}/*fastq.gz > TMP/${BARCODE}.fastq.gz         
-     echo ${BARCODE} concatenated
- done
-)
+# echo Concatenation step
+# (cd ${DIR} # I really need to prompt this variable as a launching option
+#   for BARCODE in barcode* ; do
+#      date
+#      zcat ${BARCODE}/*fastq.gz > TMP/${BARCODE}.fastq         
+#      echo ${BARCODE} concatenated
+#  done
+# )
 
 # Filtering sequences based on quality with NanoFilt
 echo NanoFilt step
 date
-(cd ${TMP} # I really need to prompt this variable as a launching option
+cp ${DIR}/barcode*.fastq ${TMP}
+echo following stdout is ls TMP
+ls ${TMP}
+
+#NanoFilt --help
+
+(cd ${TMP} 
+ pwd
  N_FIRST_LINES=1000000 #For optimization purposes
  for FASTQ_FILE in barcode*.fastq ; do
-     head -n ${N_FIRST_LINES} "${FASTQ_FILE}" | \
-         NanoFilt -q ${QUAL} -l ${MINL} --maxlength ${MAXL} > "${TMP}/FILTERED_${FASTQ_FILE}" #The length bondaries help to narrow the analysis
+ echo Concerned file is ${FASTQ_FILE}
+     head -n ${N_FIRST_LINES} ${FASTQ_FILE} | \
+         NanoFilt -q ${QUAL} -l ${MINL} --maxlength ${MAXL} > FILTERED_${FASTQ_FILE} #The length bondaries help to narrow the analysis
      echo ${FASTQ_FILE} filtered
  done
 )
 echo Unfiltered files are being deleted
-rm -v ${TMP}/barcode*.fastq.gz
+rm -v ${TMP}/barcode*.fastq
 date
+
 
 # Chimera detection
 # Work in progress
@@ -125,7 +135,7 @@ date
 )
 
 echo Unchoped files are being deleted
-rm -v ${TMP}FILTERED*
+rm -v ${TMP}/FILTERED*
 
 # Subsampling
 echo Barcodes 50000 firsts quality checked sequences subsampling
@@ -137,59 +147,66 @@ date
  done
 )
 
+
 echo Full size datasets are being deleted
 rm -v ${TMP}/CHOPED*
 
 # Bwa alignments
 
-SILVA="/data/SILVA_138.1_SSURef_tax_silva.fasta"
+SILVA="/SILVA_138.1_SSURef_tax_silva.fasta"
 
 # Check if the index exists
-if [[ $(ls /data/*.amb 2>/dev/null | wc -l) -eq 0 ]]; then
+if [[ $(ls *.amb 2>/dev/null | wc -l) -eq 0 ]]; then
   # Create the index
   echo Indexing SILVA
-  bwa index ${SILVA}
+  #bwa index ${SILVA}
 fi
 
-echo Create SILVA Taxonomy file
 
-grep ">" /data/SILVA_138.1_SSURef_tax_silva.fasta | sed 's/.//' > /data/Taxonomy_SILVA138.1.csv
+grep ">" /SILVA_138.1_SSURef_tax_silva.fasta | sed 's/.//' > /Taxonomy_SILVA138.1.csv
 
-TAX=/data/Taxonomy_SILVA138.1.csv
+TAX=/Taxonomy_SILVA138.1.csv
 
-echo Starting alignments with bwa and SILVA138.1
-(cd ${TMP}
- for FILE in SUB_*.fastq ; do
-     echo ${FILE} alignment
-     bwa mem ${SILVA} ${FILE} > ${FILE}.sam
 
-     samtools fastq -f 4 ${FILE}.sam > ${FILE}_unmatched.fastq # Will extract fasta file of unlmatched sequences
-     
-     grep -v '^@' ${FILE}.sam > ${FILE}.sam2 # Getting rid of header
-     rm -v ${FILE}.sam # Remove tmp file
+# Define a function to process each file
+process_file() {
+    FILE="$1"
+    date
+    echo "${FILE} alignment"
+    cd "${TMP}"
+    bwa mem "${SILVA}" "${FILE}" > "${FILE}.sam"
+    samtools fastq -f 4 "${FILE}.sam" > "${FILE}_unmatched.fastq"
+    grep -v '^@' "${FILE}.sam" | \
+    grep -v '[[:blank:]]2064[[:blank:]]' | \ 
+    grep -v '[[:blank:]]2048[[:blank:]]' | \
+    tee >(cut -f 1,2,3 > "${FILE}_Exact_affiliations.tsv") | \
+    cut -f3 | sort | uniq -c | awk '$1 != 1' | sort -nr > "${FILE}.tsv"
 
-     grep -v '[[:blank:]]2064[[:blank:]]' ${FILE}.sam2 > ${FILE}.sam3 # To get rid of supp alignements
-     rm -v ${FILE}.sam2 # Remove tmp file
+    sed -i 's/^[[:space:]]*//' "${FILE}.tsv"
 
-     grep -v    '[[:blank:]]2048[[:blank:]]' ${FILE}.sam3 > ${FILE}.sam # To get rid of other supp alignements
-     rm -v ${FILE}.sam3 # Remove tmp file
+    grep -o '[^ ]\+$' "${FILE}.tsv" > "${FILE}_ASV.txt"
 
-     #Pour obtenir la table d'abondance du barcode sans les singlotons
-     cat ${FILE}.sam | cut -f3 | sort | uniq -c | cut -f1 | grep -v '^      1 ' | sort -nr > ${FILE}.tsv
-     sed --in-place 's/^[[:space:]]*//' ${FILE}.tsv #Removing leading spaces
-     cat ${FILE}.sam | cut -f 1,2,3 > ${FILE}_Exact_affiliations.tsv #To extract exact results of alignments
-          
-     #Scaffold names are second field delimiter will change
-     grep -o '[^ ]\+$' ${FILE}.tsv > ${FILE}_ASV.txt
-     echo construction de la taxonomy de ${FILE}
-     grep -f ${FILE}_ASV.txt ${TAX} > ${FILE}_Taxonomy.csv
- done
-)
+    echo "Construction de la taxonomy de ${FILE}"
+    grep -f "${FILE}_ASV.txt" "${TAX}" > "${FILE}_Taxonomy.csv"
+
+}
+
+
+
+# Export the function
+export -f process_file
+
+# Iterate over the files in parallel
+find "${TMP_DIR}" -maxdepth 1 -name "SUB_*.fastq" | parallel -j "${NUM_PROCESSES}" process_file
+
 
 # Clustering step
 
 (cd ${TMP}
- for FILE in  *_umatched.fastq ; do
- echo ${FILE} clustering with vsearch
-vsearch --cluster_fast ${FILE} --centroids ${FILE}_unmatched_Clustered.fasta --id 0.7 --sizeout
-)
+ find . -maxdepth 1 -name "*_unmatched.fastq" | parallel -j "${NUM_PROCESSES}" cluster_file {}
+
+cluster_file() {
+  FILE="$1"
+  echo "${FILE}" clustering with vsearch
+  vsearch --cluster_fast "${FILE}" --centroids "${FILE}_unmatched_Clustered.fasta" --id 0.7 --sizeout
+}
