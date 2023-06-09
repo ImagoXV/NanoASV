@@ -8,7 +8,6 @@
 
 # Manual entries - Arguments
 # Set default values
-DEFAULT_DIR="default/path/to/directory"
 DEFAULT_QUAL=8
 DEFAULT_MINL=1400
 DEFAULT_MAXL=1600
@@ -62,11 +61,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Assign default values if variables are empty
-OUT="${OUT:-$DEFAULT_OUT}"
+DIR="/data"
 QUAL="${QUAL:-$DEFAULT_QUAL}"
 MINL="${MINL:-$DEFAULT_MINL}"
 MAXL="${MAXL:-$DEFAULT_MAXL}"
 ID="${ID:-$DEFAULT_ID}"
+NUM_PROCESSES="${NUM_PROCESS:-$DEFAULT_NUM_PROCESSES}"
 
 
 
@@ -77,45 +77,49 @@ if [[ -z $DIR ]]; then
 fi
 
 
-
-# Clean and create the Data directory
-rm -vrf "$data_dir"
-mkdir -vp "$data_dir"
-
 # Create temporary directory
-
-rm -vr ~/.tmp_NanoASV
+ls 
+#rm -vr /data/.tmp_NanoASV
 
 date
-echo Creating temporary directory at ~/.
-mkdir ~/.tmp_NanoASV
-TMP="~/.tmp_NanoASV"
+echo Creating temporary directory at ./.
+mkdir -v .tmp_NanoASV
+TMP=".tmp_NanoASV"
 
 
 #Concatenation of fastq files
-echo Concatenation step
-(cd ${DIR} # I really need to prompt this variable as a launching option
-  for BARCODE in barcode* ; do
-     date
-     cat ${BARCODE}/*fastq.gz > TMP/${BARCODE}.fastq.gz         
-     echo ${BARCODE} concatenated
- done
-)
+# echo Concatenation step
+# (cd ${DIR} # I really need to prompt this variable as a launching option
+#   for BARCODE in barcode* ; do
+#      date
+#      zcat ${BARCODE}/*fastq.gz > TMP/${BARCODE}.fastq         
+#      echo ${BARCODE} concatenated
+#  done
+# )
 
 # Filtering sequences based on quality with NanoFilt
 echo NanoFilt step
 date
-(cd ${TMP} # I really need to prompt this variable as a launching option
+cp ${DIR}/barcode*.fastq ${TMP}
+echo following stdout is ls TMP
+ls ${TMP}
+
+#NanoFilt --help
+
+(cd ${TMP} 
+ pwd
  N_FIRST_LINES=1000000 #For optimization purposes
  for FASTQ_FILE in barcode*.fastq ; do
-     head -n ${N_FIRST_LINES} "${FASTQ_FILE}" | \
-         NanoFilt -q ${QUAL} -l ${MINL} --maxlength ${MAXL} > "${TMP}/FILTERED_${FASTQ_FILE}" #The length bondaries help to narrow the analysis
+ echo Concerned file is ${FASTQ_FILE}
+     head -n ${N_FIRST_LINES} ${FASTQ_FILE} | \
+         NanoFilt -q ${QUAL} -l ${MINL} --maxlength ${MAXL} > FILTERED_${FASTQ_FILE} #The length bondaries help to narrow the analysis
      echo ${FASTQ_FILE} filtered
  done
 )
 echo Unfiltered files are being deleted
-rm -v ${TMP}/barcode*.fastq.gz
+rm -v ${TMP}/barcode*.fastq
 date
+
 
 # Chimera detection
 # Work in progress
@@ -131,7 +135,7 @@ date
 )
 
 echo Unchoped files are being deleted
-rm -v ${TMP}FILTERED*
+rm -v ${TMP}/FILTERED*
 
 # Subsampling
 echo Barcodes 50000 firsts quality checked sequences subsampling
@@ -143,25 +147,25 @@ date
  done
 )
 
+
 echo Full size datasets are being deleted
 rm -v ${TMP}/CHOPED*
 
 # Bwa alignments
 
-SILVA="/data/SILVA_138.1_SSURef_tax_silva.fasta"
+SILVA="/SILVA_138.1_SSURef_tax_silva.fasta"
 
 # Check if the index exists
-if [[ $(ls /data/*.amb 2>/dev/null | wc -l) -eq 0 ]]; then
+if [[ $(ls *.amb 2>/dev/null | wc -l) -eq 0 ]]; then
   # Create the index
   echo Indexing SILVA
-  bwa index ${SILVA}
+  #bwa index ${SILVA}
 fi
 
-echo Create SILVA Taxonomy file
 
-grep ">" /data/SILVA_138.1_SSURef_tax_silva.fasta | sed 's/.//' > /data/Taxonomy_SILVA138.1.csv
+grep ">" /SILVA_138.1_SSURef_tax_silva.fasta | sed 's/.//' > /Taxonomy_SILVA138.1.csv
 
-TAX=/data/Taxonomy_SILVA138.1.csv
+TAX=/Taxonomy_SILVA138.1.csv
 
 
 # Define a function to process each file
