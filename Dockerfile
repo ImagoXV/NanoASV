@@ -22,7 +22,8 @@ RUN apt-get update && \
     zlib1g-dev \
     python3-pip \
     r-base \
-    parallel
+    parallel \
+    cowsay
 
 # Install NanoFilt
 RUN pip3 install NanoFilt
@@ -49,7 +50,8 @@ RUN wget http://www.microbesonline.org/fasttree/FastTree && \
 
 # Download SILVA138.1
 RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    gunzip SILVA_138.1_SSURef_tax_silva.fasta.gz
+    gunzip SILVA_138.1_SSURef_tax_silva.fasta.gz \
+    chmod ugo+wrx SILVA_138.1_SSURef_tax_silva.fasta
 
 # Install R packages 
 RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"

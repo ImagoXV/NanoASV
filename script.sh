@@ -4,16 +4,13 @@
 # Authors : Arthur Cousson, Frederic Mahe
 # 08/03/2023
 
-
-Rscript -e "source('script.r')" --
-
-
+cowsay NanoASV is a workflow created by Arthur Cousson with useful contribution from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. && cowsay -f dragon Death To Epi2Me !
 
 # Manual entries - Arguments
 # Set default values
 DEFAULT_QUAL=8
-DEFAULT_MINL=1400
-DEFAULT_MAXL=1600
+DEFAULT_MINL=1300
+DEFAULT_MAXL=1700
 DEFAULT_ID=0.7
 DEFAULT_NUM_PROCESSES=6
 DEFAULT_R_CLEANING=1
@@ -87,7 +84,7 @@ fi
 
 
 # Create temporary directory
-rm -vr .tmp_NanoASV
+######ddd#rm -vr .tmp_NanoASV
 
 date
 echo Creating temporary directory at ./.
@@ -99,51 +96,81 @@ TMP=".tmp_NanoASV"
 echo Concatenation step
 (cd ${DIR} # I really need to prompt this variable as a launching option
   for BARCODE in barcode* ; do
+  pwd
      date
-     zcat ${BARCODE}/*fastq.gz > ${TMP}/${BARCODE}.fastq         
+     zcat -v ${BARCODE}/*fastq.gz > ${BARCODE}.fastq         
      echo ${BARCODE} concatenated
  done
 )
 
+
+
+
+
 # Filtering sequences based on quality with NanoFilt
 echo NanoFilt step
 date
-cp ${DIR}/barcode*.fastq ${TMP}
+cp ${DIR}/barcode*.fastq ${TMP}/
 echo following stdout is ls TMP
-ls ${TMP}
+rm ${DIR}/barcode*.fastq
 
-#NanoFilt --help
+chmod ugo+wrx ${TMP}/*
 
-(cd ${TMP} 
- pwd
- N_FIRST_LINES=1000000 #For optimization purposes
- for FASTQ_FILE in barcode*.fastq ; do
- echo Concerned file is ${FASTQ_FILE}
-     head -n ${N_FIRST_LINES} ${FASTQ_FILE} | \
-         NanoFilt -q ${QUAL} -l ${MINL} --maxlength ${MAXL} > FILTERED_${FASTQ_FILE} #The length bondaries help to narrow the analysis
-     echo ${FASTQ_FILE} filtered
- done
-)
+
+filter_file() {
+  (
+  pwd
+  N_FIRST_LINES=1000000 # For optimization purposes
+  echo "Concerned file is $1"
+  filename=$(basename "$1")
+  output_file="FILTERED_$filename"
+  head -n "${N_FIRST_LINES}" "$1" | \
+   NanoFilt -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" > "${TMP}/${output_file}"
+  echo "$1 filtered"
+  )
+}
+
+export -f filter_file
+
+# Iterate over the files in parallel
+find "${TMP}" -maxdepth 1 -name "barcode*.fastq" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"  parallel -j "${NUM_PROCESSES}" filter_file  
+
+
+
 echo Unfiltered files are being deleted
-rm -v ${TMP}/barcode*.fastq
+#rm -v ${TMP}/barcode*.fastq
 date
+
+
+
+
 
 
 # Chimera detection
 # Work in progress
 
-# Trim adapaters with Porechop
-echo Porechop step
-date
-(cd ${TMP}
- for TRIMMED_FILE in FILTERED*.fastq ; do
-     porechop -i "${TRIMMED_FILE}" -o CHOPED${TRIMMED_FILE}.fastq -t 16
-         echo ${TRIMMED_FILE} choped
- done
-)
+#Prochop part is working great, trying to parallel it
 
-echo Unchoped files are being deleted
-rm -v ${TMP}/FILTERED*
+# Trim adapaters with Porechop
+
+
+chop_file() {
+  (
+      echo "Concerned file is $1"
+  filename=$(basename "$1")
+  output_file="CHOPED_$filename"
+  porechop -i $1 -o ${TMP}/${output_file} -t 16
+  echo "$1 filtered"
+  )
+}
+
+export -f chop_file
+
+# Iterate over the files in parallel
+find "${TMP}" -maxdepth 1 -name "FILTERED_barcode*.fastq" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
+
+
+
 
 # Subsampling
 echo Barcodes 50000 firsts quality checked sequences subsampling
@@ -157,23 +184,28 @@ date
 
 
 echo Full size datasets are being deleted
-rm -v ${TMP}/CHOPED*
+#rm -v ${TMP}/CHOPED*
 
 # Bwa alignments
 
-SILVA="/SILVA_138.1_SSURef_tax_silva.fasta"
+cp /SILVA_138.1_SSURef_tax_silva.fasta ${TMP}/SILVA.fasta
+
+SILVA="SILVA.fasta"
+
+chmod ugo+wrx ${TMP}/${SILVA}
 
 # Check if the index exists
-if [[ $(ls *.amb 2>/dev/null | wc -l) -eq 0 ]]; then
+if [[ $(ls ${TMP}/*.amb 2>/dev/null | wc -l) -eq 0 ]]; then
   # Create the index
   echo Indexing SILVA
-  #bwa index ${SILVA}
+  date
+  bwa index ${TMP}/${SILVA}
 fi
 
 
-grep ">" /SILVA_138.1_SSURef_tax_silva.fasta | sed 's/.//' > /Taxonomy_SILVA138.1.csv
+grep ">" ${TMP}/${SILVA} | sed 's/.//' > ${TMP}/Taxonomy_SILVA138.1.csv
 
-TAX=/Taxonomy_SILVA138.1.csv
+TAX=${TMP}/Taxonomy_SILVA138.1.csv
 
 
 # Define a function to process each file
@@ -181,135 +213,147 @@ process_file() {
     FILE="$1"
     date
     echo "${FILE} alignment"
-    cd "${TMP}"
-    bwa mem "${SILVA}" "${FILE}" > "${FILE}.sam"
+    filename=$(basename "$1")
+    output_file="Abundance_ASV_$filename"
+    bwa mem ${TMP}/${SILVA} "${FILE}" > "${FILE}.sam"
     samtools fastq -f 4 "${FILE}.sam" > "${FILE}_unmatched.fastq"
     grep -v '^@' "${FILE}.sam" | \
     grep -v '[[:blank:]]2064[[:blank:]]' | \ 
     grep -v '[[:blank:]]2048[[:blank:]]' | \
     tee >(cut -f 1,2,3 > "${FILE}_Exact_affiliations.tsv") | \
-    cut -f3 | sort | uniq -c | awk '$1 != 1' | sort -nr > "${FILE}.tsv"
+    cut -f3 | sort | uniq -c | awk '$1 != 1' | sort -nr > "${output_file}.tsv"
 
     sed -i 's/^[[:space:]]*//' "${FILE}.tsv"
 
-    grep -o '[^ ]\+$' "${FILE}.tsv" > "${FILE}_ASV.txt"
+    grep -o '[^ ]\+$' "${FILE}.tsv" > "${FILE}_ASV.tsv"
 
     echo "${FILE} taxonomy export"
-    grep -f "${FILE}_ASV.txt" "${TAX}" > "${FILE}_Taxonomy.csv"
-
+    output_file="Taxonomy_$filename.csv"
+    grep -f "${FILE}_ASV.txt" "${TAX}" > "${output_file}.csv"
+    
 }
 
 # Export the function
 export -f process_file
 
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "SUB_*.fastq" | parallel -j "${NUM_PROCESSES}" process_file
+find "${TMP}" -maxdepth 1 -name "SUB_CHOPEDFILTERED_barcode*.fastq.fastq" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
 
-# Homogenization of exact affiliations file names
-(cd ${TMP}
-for file in SUB_CHOPEDFILTERED_barcode*.fastq.fastq_Exact_affiliations.tsv; do mv "$file" "$(echo "$file" |\
- sed 's/SUB_CHOPEDFILTERED_\(barcode.*\)\.fastq\.fastq_Exact_affiliations\.tsv/\1_Exact_affiliations.tsv/')"; \
- done
-)
+# # Homogenization of exact affiliations file names
+# (cd ${TMP}
+# for file in SUB_CHOPEDFILTERED_barcode*.fastq.fastq_Exact_affiliations.tsv; do mv "$file" "$(echo "$file" |\
+#  sed 's/SUB_CHOPEDFILTERED_\(barcode.*\)\.fastq\.fastq_Exact_affiliations\.tsv/\1_Exact_affiliations.tsv/')"; \
+#  done
+# )
 
-# Clustering step
+# # Clustering step
 
-# This function to hemomogeneize names
-(cd ${TMP}
-for file in SUB_CHOPEDFILTERED_barcode*.fastq.fastq_unmatched.fastq; \
-do mv "$file" "$(echo "$file" | \
-sed 's/SUB_CHOPEDFILTERED_barcode\([0-9]\+\)\.fastq\.fastq_unmatched\.fastq/barcode\1_unmatched.fastq/')"; \
-done
-)
+# # This function to hemomogeneize names
+# (cd ${TMP}
+# for file in SUB_CHOPEDFILTERED_barcode*.fastq.fastq_unmatched.fastq; \
+# do mv "$file" "$(echo "$file" | \
+# sed 's/SUB_CHOPEDFILTERED_barcode\([0-9]\+\)\.fastq\.fastq_unmatched\.fastq/barcode\1_unmatched.fastq/')"; \
+# done
+# )
+# _Taxonomy.csv
+# #This function to add barcode identifier to fasta header to retrieve abundance after clustering
+# (cd ${TMP}
+# for file in barcode*_unmatched.fastq; do \
+# sample=$(echo "$file" | \
+# sed 's/barcode\(.*\)_unmatched.fastq/\1/');\
+# awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"} else print $0}' "$file" >\
+# "$file.tmp" && mv "$file.tmp" "$file"; done
+# )
 
-#This function to add barcode identifier to fasta header to retrieve abundance after clustering
-(cd ${TMP}
-for file in barcode*_unmatched.fastq; do \
-sample=$(echo "$file" | \
-sed 's/barcode\(.*\)_unmatched.fastq/\1/');\
-awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"} else print $0}' "$file" >\
-"$file.tmp" && mv "$file.tmp" "$file"; done
-)
+# # Vsearch Unknown sequences clustering step
 
-# Vsearch Unknown sequences clustering step
+# UNIQ_ID=uuidgen
+# (cd ${TMP}
+# cat barcode*_unmatched.fastq > data
 
-UNIQ_ID=uuidgen
-(cd ${TMP}
-cat barcode*_unmatched.fastq > data
+# vsearch \
+#         --cluster_size data \
+#         --minsize 8 \
+#         --id 0.7 \
+#         --relabel ${UNIQ_ID}_Unknown_cluster_ \
+#         --sizeout \
+#         --otutabout unknown_clusters.tsv \
+#         --biomout unknown_clusters.biom \
+#         --clusterout_id \
+#         --clusterout_sort \
+#         --consout Consensus_seq_OTU.fasta
 
-vsearch \
-        --cluster_size data \
-        --minsize 8 \
-        --id 0.7 \
-        --relabel ${UNIQ_ID}_Unknown_cluster_ \
-        --sizeout \
-        --otutabout unknown_clusters.tsv \
-        --biomout unknown_clusters.biom \
-        --clusterout_id \
-        --clusterout_sort \
-        --consout Consensus_seq_OTU.fasta
+# rm data
 
-rm data
+# )
 
-)
-
-mkdir Results
-
-(cd ${TMP}
-mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom
-)
-
-# # Multialignement step
-
-# align_file() {
-#   FILE="$1"
-#   echo "${FILE}" Multialignement step
-#   mafft ${FILE} > ALIGN_${FILE}
-# }
-
-# export -f align_file
+# mkdir Results
 
 # (cd ${TMP}
+# mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom *Exact_affiliations.tsv *_Taxonomy.csv *_ASV.tsv ~/Results/
+# )
 
-# cat barcode*_unmatched.fastq |\
-# awk 'NR%4==1 {printf ">%s\n", substr($0,2)} NR%4==2 {print}' | \
-#  sed -e '/^$/d' > all_barcodes.fasta
+# # Production of phyloseq object
+# echo R step
+# Rscript -e "source('script.r')"
+
+# # # Multialignement step
+
+# # align_file() {
+# #   FILE="$1"
+# #   echo "${FILE}" Multialignement step
+# #   mafft ${FILE} > ALIGN_${FILE}
+# # }
+
+# # export -f align_file
+
+# # (cd ${TMP}
+
+# # cat barcode*_unmatched.fastq |\
+# # awk 'NR%4==1 {printf ">%s\n", substr($0,2)} NR%4==2 {print}' | \
+# #  sed -e '/^$/d' > all_barcodes.fasta
  
-# cat all_barcodes.fasta Consensus_seq_OTU.fasta > data
+# # cat all_barcodes.fasta Consensus_seq_OTU.fasta > data
 
-#  find . -maxdepth 1 -name "data" | parallel -j "${NUM_PROCESSES}" align_file {}
+# #  find . -maxdepth 1 -name "data" | parallel -j "${NUM_PROCESSES}" align_file {}
 
-#  rm data
-# )
-
-
-# # Tree construction
-
-# tree_construction() {
-#   FILE="$1"
-#   echo "${FILE}" 1500bp 16S phylogenetic tree construction step
-#   echo Start by homogenize fasta headers 
-#   mafft ${FILE} > ALIGN_${FILE}
-# }
-
-# export -f align_file
-
-# (cd ${TMP}
-#  find . -maxdepth 1 -name "ALIGN_*" | parallel -j "${NUM_PROCESSES}" align_file {}
-# )
+# #  rm data
+# # )
 
 
+# # # Tree construction
 
-# Ongoing work 
+# # tree_construction() {
+# #   FILE="$1"
+# #   echo "${FILE}" 1500bp 16S phylogenetic tree construction step
+# #   echo Start by homogenize fasta headers 
+# #   mafft ${FILE} > ALIGN_${FILE}
+# # }
 
-# The following will give abundance of clusters and their id
-# This version doesn't accept singleton nor doublon
-grep ">" clusters.fasta | grep -v "size=1" | grep -v "size=2" | grep -o '[^>]\+$' | sed 's/.$//'
-# This version takes all of them 
-grep ">" clusters.fasta | grep -v "size=1" | grep -v "size=2" | grep -o '[^>]\+$' | sed 's/.$//'
+# # export -f align_file
 
-# The following will homogenize the name of the files
+# # (cd ${TMP}
+# #  find . -maxdepth 1 -name "ALIGN_*" | parallel -j "${NUM_PROCESSES}" align_file {}
+# # )
 
-for file in SUB_CHOPEDFILTERED_barcode*.fastq.fastq.tsv; do mv "$file" "$(echo "$file" | sed 's/SUB_CHOPEDFILTERED_\(barcode[0-9]*\)\.fastq\.fastq\.tsv/\1.tsv/')"; done
+
+
+# # Ongoing work 
+
+# # The following will give abundance of clusters and their id
+# # This version doesn't accept singleton nor doublon
+# #grep ">" clusters.fasta | grep -v "size=1" | grep -v "size=2" | grep -o '[^>]\+$' | sed 's/.$//'
+# # This version takes all of them 
+# #grep ">" clusters.fasta | grep -v "size=1" | grep -v "size=2" | grep -o '[^>]\+$' | sed 's/.$//'
+
+# # The following will homogenize the name of the files
+
+# #for file in SUB_CHOPEDFILTERED_barcode*.fastq.fastq.tsv; do mv "$file" "$(echo "$file" | sed 's/SUB_CHOPEDFILTERED_\(barcode[0-9]*\)\.fastq\.fastq\.tsv/\1.tsv/')"; done
+
+
+
+
+
+
 
