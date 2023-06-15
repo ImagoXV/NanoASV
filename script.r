@@ -1,4 +1,6 @@
 #Script d'analyses écologiques NanoASV
+install.packages('dplyr', repos='http://cran.rstudio.com/')
+BiocManager::install('phyloseq')
 
 metadata <- read.csv("metadata.csv", row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
