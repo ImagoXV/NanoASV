@@ -9,6 +9,9 @@ RUN touch /etc/timezone
 # Set the timezone
 RUN ln -snf /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime && echo $(cat /etc/timezone) > /etc/timezone
 
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
 # Install required packages
 RUN apt-get update && \
     apt-get install -y \
@@ -23,7 +26,8 @@ RUN apt-get update && \
     python3-pip \
     r-base \
     parallel \
-    cowsay
+    cowsay \
+    uuid-runtime
 
 # Install NanoFilt
 RUN pip3 install NanoFilt
@@ -50,8 +54,7 @@ RUN wget http://www.microbesonline.org/fasttree/FastTree && \
 
 # Download SILVA138.1
 RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    gunzip SILVA_138.1_SSURef_tax_silva.fasta.gz \
-    chmod ugo+wrx SILVA_138.1_SSURef_tax_silva.fasta
+    gunzip SILVA_138.1_SSURef_tax_silva.fasta.gz
 
 # Install R packages 
 RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
