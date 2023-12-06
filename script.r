@@ -8,12 +8,15 @@ barcodes <- rownames(metadata)
 #Phylosequization
 library(phyloseq)
 library(dplyr) #For mget() function
+library(tidyverse)
 
 U_OTU <- read.csv("Unknown_clusters/unknown_clusters.tsv", sep = "\t", header = T, row.names = 1)
 
 U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
 
 unknown_taxonomy <- rep("Unknown", times = 7) #Adapt taxonomy dataframe so it fits later on with bad entries for cleaning
+
+inpu %>% read_csv() %>% filter(rowSums()>5) -> U_OTU
 
 #Taking care of unknown taxonomy table
 U_TAX <- data.frame(matrix(nrow = nrow(U_OTU), ncol = 7))
@@ -132,7 +135,7 @@ for(i in 1:length(temp_TAX)) {
 }
 
 
-
+#Essaye de merge deux a deux sur une liste 
 NanoASV <- merge_phyloseq(barcode01,barcode02,barcode03,barcode04,barcode05,barcode06,barcode07,barcode08,barcode09,barcode10,barcode11,barcode12,barcode13,barcode14,barcode15,barcode16,barcode17,barcode18,barcode19,barcode20,barcode21,barcode22,barcode23,barcode24)
 
 
