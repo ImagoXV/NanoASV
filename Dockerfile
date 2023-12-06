@@ -30,7 +30,7 @@ RUN apt-get update && \
     uuid-runtime
 
 # Install NanoFilt
-RUN pip3 install NanoFilt
+RUN pip3 install NanoFilt #A changer
 
 # Install Porechop
 RUN wget https://github.com/rrwick/Porechop/archive/refs/tags/v0.2.4.tar.gz && \
@@ -45,7 +45,7 @@ RUN wget https://mafft.cbrc.jp/alignment/software/mafft-7.475-with-extensions-sr
     rm mafft-7.475-with-extensions-src.tgz && \
     cd mafft-7.475-with-extensions/core && \
     make && \
-    cp mafft /usr/local/bin
+    mv mafft /usr/local/bin
 
 # Install FastTree
 RUN wget http://www.microbesonline.org/fasttree/FastTree && \
@@ -56,9 +56,14 @@ RUN wget http://www.microbesonline.org/fasttree/FastTree && \
 RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
     gunzip SILVA_138.1_SSURef_tax_silva.fasta.gz
 
-# Install R packages 
-RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
-RUN R -e "BiocManager::install('phyloseq')"
+    #mv Silva /data/database/Silva
+    echo Ca va etre long
+
+    #bwa-mem index SILVA
+
+# # Install R packages 
+# RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
+# RUN R -e "BiocManager::install('phyloseq')"
 
 
 # Copy the script into the container

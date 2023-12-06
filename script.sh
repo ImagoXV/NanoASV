@@ -4,6 +4,8 @@
 # Authors : Arthur Cousson, Frederic Mahe
 # 08/03/2023
 
+START=$(date +%s) #Nombre de secondes depuis le debut d'Unix
+
 /usr/games/cowsay -TU NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. && /usr/games/cowsay -f dragon Death To Epi2Me !
 
 # Manual entries - Arguments
@@ -74,11 +76,18 @@ MAXL="${MAXL:-$DEFAULT_MAXL}"
 ID="${ID:-$DEFAULT_ID}"
 NUM_PROCESSES="${NUM_PROCESS:-$DEFAULT_NUM_PROCESSES}"
 R_CLEANING="${R_CLEANING:-$DEFAULT_R_CLEANING}"
+# OUT="${OUT:-/dev/stdout}"
 
 
 # Check if DIR is empty and no default value is provided
 if [[ -z $DIR ]]; then
-  echo "/usr/games/cowsay -d Error: -d needs an argument, I don't know where your sequences are."
+  /usr/games/cowsay -d "Error: -d needs an argument, I don't know where your sequences are." >&2
+  exit 1
+fi
+
+# Check if OUT is empty and no default value is provided
+if [[ -z $OUT ]]; then
+  /usr/games/cowsay -d "Error: -o needs an argument. You don't want me to print to stdout" >&2
   exit 1
 fi
 
@@ -107,6 +116,7 @@ echo Concatenation step
 
 
 
+
 # Filtering sequences based on quality with NanoFilt
 echo NanoFilt step
 date
@@ -114,7 +124,7 @@ cp ${DIR}/barcode*.fastq ${TMP}/
 echo following stdout is ls TMP
 rm ${DIR}/barcode*.fastq
 
-chmod ugo+wrx ${TMP}/*
+chmod ugo+rwx ${TMP}/*
 
 
 filter_file() {
@@ -240,7 +250,7 @@ export -f process_file
 find "${TMP}" -maxdepth 1 -name "CHOPED_FILTERED_barcode*.fastq" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
 
-Homogenization of exact affiliations file names
+# Homogenization of exact affiliations file names
 
 for file in ${TMP}/CHOPED_FILTERED_barcode*.fastq_Exact_affiliations.tsv; do
     newname=$(echo "$file" | sed 's/CHOPED_FILTERED_\(barcode[0-9]\+\)\.fastq_Exact_affiliations/\1_Exact_affiliations/')
@@ -277,7 +287,7 @@ awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"}
 "$file.tmp" && mv "$file.tmp" "$file"; done
 )
 
-Vsearch Unknown sequences clustering step
+# Vsearch Unknown sequences clustering step
 
 UNIQ_ID=uuidgen
 (cd ${TMP}
@@ -371,7 +381,6 @@ mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ../Result
 # # The following will homogenize the name of the files
 
 # #for file in SUB_CHOPEDFILTERED_barcode*.fastq.fastq.tsv; do mv "$file" "$(echo "$file" | sed 's/SUB_CHOPEDFILTERED_\(barcode[0-9]*\)\.fastq\.fastq\.tsv/\1.tsv/')"; done
-
 
 
 
