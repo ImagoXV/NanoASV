@@ -17,9 +17,10 @@ singularity build --sandbox nanoasv docker-archive://NanoASV.tar
 ```
 # Usage
 ## With Singularity
-```
+```sh
 singularity exec nanoasv workflow -d path/to/sequences [--options]
-
+```
+```
 | Option    | Description                            |
 | --------- | -------------------------------------- |
 | `-h`, `--help` | Show help message                 |
@@ -30,9 +31,6 @@ singularity exec nanoasv workflow -d path/to/sequences [--options]
 | `-L`, `--maxlength` | Maximum amplicon lmength for Nanofilt, default 1700
 | `-i`, `--id_vsearch | Identity threshold for vsearch unknown sequences clustering step, default 0.7
 | `-p`, '--num_process` | Number of core for parallelization, default = 6
-
-
-
 ```
 # How it works 
 ## Data preparation
