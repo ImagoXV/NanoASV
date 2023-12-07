@@ -1,3 +1,6 @@
+#Command to run with Docker 
+############"sudo docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv_dev -d /data/Minimal -o OUTPUT
+
 # Use a base image with Ubuntu and necessary dependencies
 FROM ubuntu:latest
 
@@ -63,10 +66,10 @@ RUN wget http://www.microbesonline.org/fasttree/FastTree && \
     chmod +x FastTree && \
     mv FastTree /usr/local/bin/
 
-# Download SILVA138.1
-RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    mkdir database && \
-    mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
+# # Download SILVA138.1
+# RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+#     mkdir database && \
+#     mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
 
     # Check if the index exists
 # RUN echo && \
@@ -79,9 +82,11 @@ RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Export
 #     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv) && \
 #     fi
 
-RUN cd database && \
-    bwa index SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
+# RUN echo "Building the index, grab a cup of coffe, it's the longest part" 
+
+# RUN cd database && \
+#     bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+#     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
 
 # # Install R packages 
 # RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
