@@ -66,27 +66,27 @@ RUN wget http://www.microbesonline.org/fasttree/FastTree && \
     chmod +x FastTree && \
     mv FastTree /usr/local/bin/
 
-# # Download SILVA138.1
-# RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-#     mkdir database && \
-#     mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
+# Download SILVA138.1
+RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+    mkdir database && \
+    mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
 
-    # Check if the index exists
-# RUN echo && \
-#     if [[ $(ls database/SILVA_138.1_SSURef_tax_silva.amb 2>/dev/null | wc -l) -eq 0 ]]; then && \
-#     (cd database && \
-#     # Create the index
-#     echo Indexing SILVA && \
-#     date && \
-#     bwa index SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-#     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv) && \
-#     fi
+    Check if the index exists
+RUN echo && \
+    if [[ $(ls database/SILVA_138.1_SSURef_tax_silva.amb 2>/dev/null | wc -l) -eq 0 ]]; then && \
+    (cd database && \
+    # Create the index
+    echo Indexing SILVA && \
+    date && \
+    bwa index SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv) && \
+    fi
 
-# RUN echo "Building the index, grab a cup of coffe, it's the longest part" 
+RUN echo "Building the index, grab a cup of coffe, it's the longest part" 
 
-# RUN cd database && \
-#     bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-#     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
+RUN cd database && \
+    bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
 
 # # Install R packages 
 # RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
