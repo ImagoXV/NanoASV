@@ -6,7 +6,8 @@
 
 START=$(date +%s) #Nombre de secondes depuis le debut d'Unix
 
-/usr/games/cowsay -TU NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. && /usr/games/cowsay -f dragon Death To Epi2Me !
+#/usr/games/cowsay -TU NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. && /usr/games/cowsay -f dragon Death To Epi2Me !
+echo NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. && /usr/games/cowsay -f dragon Death To Epi2Me !
 
 # Manual entries - Arguments
 # Set default values
@@ -152,10 +153,6 @@ echo Unfiltered files are being deleted
 date
 
 
-
-
-
-
 # Chimera detection
 # Work in progress
 
@@ -198,25 +195,23 @@ echo Full size datasets are being deleted
 
 # Bwa alignments
 
-cp /SILVA_138.1_SSURef_tax_silva.fasta ${TMP}/SILVA.fasta
-
- SILVA="SILVA.fasta"
+ SILVA="database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
 
 
-# Check if the index exists
-echo
-if [[ $(ls ${TMP}/*.amb 2>/dev/null | wc -l) -eq 0 ]]; then
-  # Create the index
-  echo Indexing SILVA
-  date
-  bwa index ${TMP}/${SILVA}
-  grep ">" ${TMP}/${SILVA} | sed 's/.//' > ${TMP}/Taxonomy_SILVA138.1.csv
+# # Check if the index exists
+# echo
+# if [[ $(ls ${TMP}/*.amb 2>/dev/null | wc -l) -eq 0 ]]; then
+#   # Create the index
+#   echo Indexing SILVA
+#   date
+#   bwa index ${TMP}/${SILVA}
+#   grep ">" ${TMP}/${SILVA} | sed 's/.//' > ${TMP}/Taxonomy_SILVA138.1.csv
 
-fi
+# fi
 
 
 
-TAX=${TMP}/Taxonomy_SILVA138.1.csv
+TAX=database/Taxonomy_SILVA138.1.csv
 
 
 
@@ -308,17 +303,24 @@ rm data
 
 )
 
-mkdir Results
-mkdir Results/Tax
-mkdir Results/ASV
-mkdir Results/Unknown_clusters
+mkdir ${OUT}/Results
+mkdir ${OUT}/Results/Tax
+mkdir ${OUT}/Results/ASV
+mkdir ${OUT}/Results/Unknown_clusters
 
 (cd ${TMP}
-mv *_ASV_abundance.tsv ../Results/ASV/
-mv *_Taxonomy.csv ../Results/Tax/
-mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ../Results/Unknown_clusters/
+mv *_ASV_abundance.tsv ${OUT}/Results/ASV/
+mv *_Taxonomy.csv ${OUT}/Results/Tax/
+mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUT}/Results/Unknown_clusters/
 )
 
+declare -i TIME=$(date +%s)-$START
+
+echo Data treatment is over.\nIt took $TIME seconds to perform.
+
+echo Don't forget to cite NanoASV if it helps you treating your sequencing data.
+
+echo Don't forget to cite NanoASV dependencies as well !
 
 
 # # Production of phyloseq object
