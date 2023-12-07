@@ -1,5 +1,5 @@
 # NanoASV
-NanoASv is a docker based Nanopore 1500bp 16 Metabarcoding amplicon data analysis workflow. 
+NanoASV is a docker based Nanopore 1500bp 16 Metabarcoding amplicon data analysis workflow. 
 
 
 # Installation
