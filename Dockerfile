@@ -91,8 +91,13 @@ RUN cd database && \
     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
 
 # # Install R packages 
-# RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
-# RUN R -e "BiocManager::install('phyloseq')"
+
+
+RUN R -e 'install.packages("dplyr")'
+
+
+RUN R -e 'install.packages("BiocManager")'
+RUN R -e 'BiocManager::install("phyloseq")'
 
 
 # Copy the script into the container

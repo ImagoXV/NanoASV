@@ -2,7 +2,7 @@
 install.packages('dplyr', repos='http://cran.rstudio.com/')
 BiocManager::install('phyloseq')
 
-metadata <- read.csv("metadata.csv", row.names = 1, header = TRUE, check.names = FALSE)
+metadata <- read.csv("/data/metadata.csv", row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
 #Phylosequization
@@ -10,7 +10,7 @@ library(phyloseq)
 library(dplyr) #For mget() function
 library(tidyverse)
 
-U_OTU <- read.csv("Unknown_clusters/unknown_clusters.tsv", sep = "\t", header = T, row.names = 1)
+U_OTU <- read.csv("Rdata/Unknown_clusters/unknown_clusters.tsv", sep = "\t", header = T, row.names = 1)
 
 U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
 
@@ -48,7 +48,7 @@ U_TAX <- data.frame(U_TAX,
 
 
 #Individuals ASV tables loading
-temp_ASV = list.files(path = "Results/ASV", pattern = "*.tsv")
+temp_ASV = list.files(path = "Rdata/Results/ASV", pattern = "*.tsv")
 for (i in 1:length(temp_ASV)) {
   if (file.size(paste("ASV/", temp_ASV[i], sep = "")) == 0) {
     assign(temp_ASV[i], data.frame())
@@ -99,7 +99,7 @@ for (i in 1:length(temp_ASV)) colnames(temp_ASV[[i]]) <- barcodes[i]
 
 names(temp_ASV) <- barcodes[1:length(temp_ASV)]
 #Individual taxonomy tables loading
-temp_TAX = list.files(path = "Results/Taxo/", pattern="*Taxonomy.csv")
+temp_TAX = list.files(path = "Rdata/Results/Taxo/", pattern="*Taxonomy.csv")
 for (i in 1:length(temp_TAX)) assign(temp_TAX[i], data.frame(read.csv2(file = paste("Taxo/",temp_TAX[i], sep = ""), sep = ";", header = F, check.names = F, fill = TRUE, 
                                                                        col.names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", 
                                                                                      "Species", "other1", "other2", "other3", "other4", "other5", "other6",
@@ -136,7 +136,15 @@ for(i in 1:length(temp_TAX)) {
 
 
 #Essaye de merge deux a deux sur une liste 
-NanoASV <- merge_phyloseq(barcode01,barcode02,barcode03,barcode04,barcode05,barcode06,barcode07,barcode08,barcode09,barcode10,barcode11,barcode12,barcode13,barcode14,barcode15,barcode16,barcode17,barcode18,barcode19,barcode20,barcode21,barcode22,barcode23,barcode24)
+#NanoASV <- merge_phyloseq(barcode01,barcode02,barcode03,barcode04,barcode05,barcode06,barcode07,barcode08,barcode09,barcode10,barcode11,barcode12,barcode13,barcode14,barcode15,barcode16,barcode17,barcode18,barcode19,barcode20,barcode21,barcode22,barcode23,barcode24)
+
+
+NanoASV <- merge(phyloseq[i], phyloseq[i+1])
+
+for(i in 3: length(temp_phyloseq) {
+  NanoASV <- merge(NanoASV, temp_phyloseq[i])
+}
+
 
 
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
@@ -152,7 +160,7 @@ tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
 
 
 
-save(NanoASV, file = "Imerintsiatosika_Minimal_NanoASV_phyloseq.rdata")
+save(NanoASV, file = "NanoASV.rdata")
 
 
 
