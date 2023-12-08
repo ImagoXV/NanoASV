@@ -17,14 +17,16 @@ singularity build --sandbox nanoasv docker-archive://NanoASV.tar
 ```
 # Usage
 ## With Singularity
-```
+```sh
 singularity exec nanoasv workflow -d path/to/sequences [--options]
 ```
+
 ## With Docker
 ```
 sudo docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv_dev -d /data/Minimal -o OUTPUT
 ```
 ## Options
+
 ```
 | Option    | Description                            |
 | --------- | -------------------------------------- |
@@ -37,8 +39,6 @@ sudo docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv_dev -d /data/Minimal
 | `-i`, `--id_vsearch | Identity threshold for vsearch unknown sequences clustering step, default 0.7
 | `-p`, '--num_process` | Number of core for parallelization, default = 6
 ```
-
-
 
 # How it works 
 
