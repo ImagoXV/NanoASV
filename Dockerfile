@@ -88,7 +88,7 @@ RUN echo "Building the index, grab a cup of coffe, it's the longest part"
 
 RUN cd database && \
     bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
+    zgrep "^>" SILVA_138.1_SSURef_tax_silva.fasta.gz | tr -d ">" > Taxonomy_SILVA138.1.csv
 
 # # Install R packages 
 
