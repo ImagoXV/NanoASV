@@ -1,3 +1,6 @@
+#Command to run with Docker 
+############"sudo docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv_dev -d /data/Minimal -o OUTPUT
+
 # Use a base image with Ubuntu and necessary dependencies
 FROM ubuntu:latest
 
@@ -29,6 +32,15 @@ RUN apt-get update && \
     cowsay \
     uuid-runtime
 
+# # Use the official Miniconda image as a base
+# FROM continuumio/miniconda3:latest
+# RUN  conda update -n base -c defaults conda
+# # Switch to root user for installation
+# USER root
+
+# #Install Chopper
+# RUN conda install -c bioconda chopper
+
 # Install NanoFilt
 RUN pip3 install NanoFilt #A changer
 
@@ -47,6 +59,8 @@ RUN wget https://mafft.cbrc.jp/alignment/software/mafft-7.475-with-extensions-sr
     make && \
     mv mafft /usr/local/bin
 
+
+
 # Install FastTree
 RUN wget http://www.microbesonline.org/fasttree/FastTree && \
     chmod +x FastTree && \
@@ -54,12 +68,27 @@ RUN wget http://www.microbesonline.org/fasttree/FastTree && \
 
 # Download SILVA138.1
 RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    gunzip SILVA_138.1_SSURef_tax_silva.fasta.gz
+    mkdir database && \
+    mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
 
-    #mv Silva /data/database/Silva
-    echo Ca va etre long
 
-    #bwa-mem index SILVA
+# ###Check if the index exists
+# RUN echo && \
+#     if [[ $(ls database/SILVA_138.1_SSURef_tax_silva.amb 2>/dev/null | wc -l) -eq 0 ]]; then && \
+#     (cd database && \
+
+#     # Create the index
+#     echo Indexing SILVA && \
+#     date && \
+#     bwa index SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+#     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv) && \
+#     fi
+
+RUN echo "Building the index, grab a cup of coffe, it's the longest part" 
+
+RUN cd database && \
+    bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
 
 # # Install R packages 
 # RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
