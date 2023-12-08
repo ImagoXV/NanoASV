@@ -71,16 +71,18 @@ RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Export
     mkdir database && \
     mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
 
-    Check if the index exists
-RUN echo && \
-    if [[ $(ls database/SILVA_138.1_SSURef_tax_silva.amb 2>/dev/null | wc -l) -eq 0 ]]; then && \
-    (cd database && \
-    # Create the index
-    echo Indexing SILVA && \
-    date && \
-    bwa index SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv) && \
-    fi
+
+# ###Check if the index exists
+# RUN echo && \
+#     if [[ $(ls database/SILVA_138.1_SSURef_tax_silva.amb 2>/dev/null | wc -l) -eq 0 ]]; then && \
+#     (cd database && \
+
+#     # Create the index
+#     echo Indexing SILVA && \
+#     date && \
+#     bwa index SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+#     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv) && \
+#     fi
 
 RUN echo "Building the index, grab a cup of coffe, it's the longest part" 
 
