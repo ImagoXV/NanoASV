@@ -5,8 +5,8 @@ NanoASV is a docker based Nanopore 1500bp 16 Metabarcoding amplicon data analysi
 # Installation
 ## Build from source with Docker
 ```
-git clone --filter=NanoASV.tar:none https://github.com/ImagoXV/NanoASV
-docker build -t nanoasv NanoASV/.
+git clone https://github.com/ImagoXV/NanoASV
+docker build -it nanoasv NanoASV/.
 ```
 
 
@@ -19,7 +19,9 @@ singularity build --sandbox nanoasv docker-archive://NanoASV.tar
 ## With Singularity
 ```
 singularity exec nanoasv workflow -d path/to/sequences [--options]
+```
 
+```
 | Option    | Description                            |
 | --------- | -------------------------------------- |
 | `-h`, `--help` | Show help message                 |
@@ -30,10 +32,13 @@ singularity exec nanoasv workflow -d path/to/sequences [--options]
 | `-L`, `--maxlength` | Maximum amplicon lmength for Nanofilt, default 1700
 | `-i`, `--id_vsearch | Identity threshold for vsearch unknown sequences clustering step, default 0.7
 | `-p`, '--num_process` | Number of core for parallelization, default = 6
-
-
-
 ```
+
+## With Docker
+```
+sudo docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv_dev -d /data/Minimal -o OUTPUT
+```
+
 # How it works 
 ## Data preparation
 Directly input your /path/to/sequence/data/fastq_pass directory 
