@@ -17,6 +17,7 @@ DEFAULT_MAXL=1700
 DEFAULT_ID=0.7
 DEFAULT_NUM_PROCESSES=6
 DEFAULT_R_CLEANING=1
+DEFAULT_MINAB=0
 
 # Read the arguments passed to the script
 while [[ $# -gt 0 ]]; do
@@ -219,14 +220,15 @@ process_file() {
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
     samtools fastq -f 4 "${FILE}.sam" > ${TMP}/${outsamtools_file}
-    grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 1' | sort -nr > ${TMP}/${output_file}.tsv
+    grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
 
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
 
     grep -o '[^ ]\+$' ${TMP}/${output_file}.tsv > "${TMP}/${filename}_ASV_list.tsv"
 
     echo "${FILE} taxonomy export"
-    output_tax="Taxonomy_$filename.csv"
+    barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
+    output_tax="Taxonomy_barcode${barcode_number}.csv"
     grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
     
 }
@@ -239,85 +241,93 @@ find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env DB
 
 
 # Homogenization of exact affiliations file names
+(cd ${TMP}
+for file in SUB_CHOPED_FILTERED_barcode*.fastq.gz_Exact_affiliations.tsv; do
+    barcode_number=$(echo "$file" | sed -E 's/.*barcode([0-9]+).*\.tsv/\1/')
+    new_file="barcode${barcode_number}_exact_affiliations.tsv"
+    mv "$file" "$new_file"
+done
 
-for file in ${TMP}/CHOPED_FILTERED_barcode*.fastq_Exact_affiliations.tsv; do
-    newname=$(echo "$file" | sed 's/CHOPED_FILTERED_\(barcode[0-9]\+\)\.fastq_Exact_affiliations/\1_Exact_affiliations/')
+
+
+# Homogeneization of ASV table names
+for file in ASV_abundance_SUB_CHOPED_FILTERED_barcode*.fastq.gz.tsv; do
+    barcode_number=$(echo "$file" | sed -E 's/.*barcode([0-9]+).*\.tsv/\1/')
+    new_file="barcode${barcode_number}_abundance.tsv"
+    mv "$file" "$new_file"
+done
+)
+
+
+
+# Clustering step
+
+# This function to hemomogeneize names
+(cd ${TMP}
+for file in Unmatched_SUB_CHOPED_FILTERED_barcode*.fastq; do
+    newname=$(echo "$file" | sed 's/Unmatched_CHOPED_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
     mv "$file" "$newname"
 done
 
-ls ${TMP} 
-
-head ${TMP}/Taxonomy*
-
-# # Homogeneization of ASV table names
-
-# for file in ASV_abundance_CHOPED_FILTERED_barcode*.fastq.tsv; do
-#   new_file=$(echo "$file" | sed -E 's/ASV_abundance_CHOPED_FILTERED_(barcode[0-9]+)\.fastq\.tsv/\1_ASV_abundance.tsv/')
-#   mv "$file" "$new_file"
-# done
+)
 
 
+#This function to add barcode identifier to fasta header to retrieve abundance after clustering
+(cd ${TMP}
+for file in barcode*_unmatched.fastq; do \
+sample=$(echo "$file" | \
+sed 's/barcode\(.*\)_unmatched.fastq/\1/');\
+awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"} else print $0}' "$file" >\
+"$file.tmp" && mv "$file.tmp" "$file"; done
+)
 
-# # Clustering step
+# Vsearch Unknown sequences clustering step
 
-# # This function to hemomogeneize names
-# (cd ${TMP}
-# for file in Unmatched_CHOPED_FILTERED_barcode*.fastq; do
-#     newname=$(echo "$file" | sed 's/Unmatched_CHOPED_FILTERED_barcode\([0-9]\+\)\.fastq/barcode\1_unmatched.fastq/')
-#     mv "$file" "$newname"
-# done
+UNIQ_ID=uuidgen
+(cd ${TMP}
+cat barcode*_unmatched.fastq > seqs
 
-# )
+vsearch \
+        --cluster_size seqs \
+        --id 0.7 \
+        --relabel ${UNIQ_ID}_Unknown_cluster_ \
+        --sizeout \
+        --otutabout unknown_clusters.tsv \
+        --biomout unknown_clusters.biom \
+        --clusterout_id \
+        --clusterout_sort \
+        --consout Consensus_seq_OTU.fasta
+
+rm seqs
+
+)
 
 
-# #This function to add barcode identifier to fasta header to retrieve abundance after clustering
-# (cd ${TMP}
-# for file in barcode*_unmatched.fastq; do \
-# sample=$(echo "$file" | \
-# sed 's/barcode\(.*\)_unmatched.fastq/\1/');\
-# awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"} else print $0}' "$file" >\
-# "$file.tmp" && mv "$file.tmp" "$file"; done
-# )
+mkdir ${DIR}/${OUT}
+mkdir ${DIR}/${OUT}/Results
+mkdir ${DIR}/${OUT}/Results/Tax
+mkdir ${DIR}/${OUT}/Results/ASV
+mkdir ${DIR}/${OUT}/Results/Unknown_clusters
+mkdir ${DIR}/${OUT}/Results/Exact_affiliations
+mkdir ${DIR}/${OUT}/Results/Rdata
 
-# # Vsearch Unknown sequences clustering step
+ls ${TMP}
 
-# UNIQ_ID=uuidgen
-# (cd ${TMP}
-# cat barcode*_unmatched.fastq > data
+(cd ${TMP}
+mv *_abundance.tsv ${DIR}/${OUT}/Results/ASV/
+mv Taxonomy*.csv ${DIR}/${OUT}/Results/Tax/
+mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${DIR}/${OUT}/Results/Unknown_clusters/
+mv *_exact_affiliations.tsv ${DIR}/${OUT}/Results/Exact_affiliations/
+)
 
-# vsearch \
-#         --cluster_size data \
-#         --id 0.7 \
-#         --relabel ${UNIQ_ID}_Unknown_cluster_ \
-#         --sizeout \
-#         --otutabout unknown_clusters.tsv \
-#         --biomout unknown_clusters.biom \
-#         --clusterout_id \
-#         --clusterout_sort \
-#         --consout Consensus_seq_OTU.fasta
+declare -i TIME=$(date +%s)-$START
 
-# rm data
+echo "Data treatment is over.********************************************************"
+echo "It took $TIME seconds to perform."
 
-# )
+echo "Don't forget to cite NanoASV if it helps you treating your sequencing data."
 
-# mkdir ${OUT}/Results
-# mkdir ${OUT}/Results/Tax
-# mkdir ${OUT}/Results/ASV
-# mkdir ${OUT}/Results/Unknown_clusters
-
-# (cd ${TMP}
-# mv *_ASV_abundance.tsv ${OUT}/Results/ASV/
-# mv *_Taxonomy.csv ${OUT}/Results/Tax/
-# mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUT}/Results/Unknown_clusters/
-# )
-
-# declare -i TIME=$(date +%s)-$START
-
-# echo "Data treatment is over.\nIt took $TIME seconds to perform."
-
-# echo "Don't forget to cite NanoASV if it helps you treating your sequencing data."
-
-# echo "Don't forget to cite NanoASV dependencies as well !"
+echo "Don't forget to cite NanoASV dependencies as well !****************************"
 
 
 
