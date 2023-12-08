@@ -214,7 +214,7 @@ process_file() {
     date
     echo "${FILE} alignment"
     filename=$(basename "$1")
-    bwa mem ${DB}/${SILVA} "${FILE}" > "${FILE}.sam"
+    bwa mem ${DB}/SILVA_IDX "${FILE}" > "${FILE}.sam"
     echo samtools start
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
@@ -235,15 +235,19 @@ process_file() {
 export -f process_file
 
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
+find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
 
-# # Homogenization of exact affiliations file names
+# Homogenization of exact affiliations file names
 
-# for file in ${TMP}/CHOPED_FILTERED_barcode*.fastq_Exact_affiliations.tsv; do
-#     newname=$(echo "$file" | sed 's/CHOPED_FILTERED_\(barcode[0-9]\+\)\.fastq_Exact_affiliations/\1_Exact_affiliations/')
-#     mv "$file" "$newname"
-# done
+for file in ${TMP}/CHOPED_FILTERED_barcode*.fastq_Exact_affiliations.tsv; do
+    newname=$(echo "$file" | sed 's/CHOPED_FILTERED_\(barcode[0-9]\+\)\.fastq_Exact_affiliations/\1_Exact_affiliations/')
+    mv "$file" "$newname"
+done
+
+ls ${TMP} 
+
+head ${TMP}/Taxonomy*
 
 # # Homogeneization of ASV table names
 

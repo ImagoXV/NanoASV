@@ -45,7 +45,7 @@ sudo docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv_dev -d /data/Minimal
 ## Building from source
 
 Building from source is pretty long at the moment.
-The main time bottle neck is bwa-meme2 SILVA138.1 indexing step (~30min)
+The main time bottle neck is bwa-meme2 SILVA138.1 indexing step (~60min on my computer)
 It is way faster if you download the archive and build with Singularity. However, the archive is pretty heavy. 
 
 ## Data preparation
