@@ -18,7 +18,9 @@ ENV LC_ALL C.UTF-8
 # Install required packages
 RUN apt-get update && \
     apt-get install -y \
+    fasttree \
     gcc \
+    mafft \
     python3 \
     bwa \
     samtools \
@@ -58,25 +60,10 @@ RUN wget https://github.com/rrwick/Porechop/archive/refs/tags/v0.2.4.tar.gz && \
     cd Porechop-0.2.4 && \
     python3 setup.py install
 
-# Install MAAFT
-RUN wget https://mafft.cbrc.jp/alignment/software/mafft-7.475-with-extensions-src.tgz && \
-    tar -zxvf mafft-7.475-with-extensions-src.tgz && \
-    rm mafft-7.475-with-extensions-src.tgz && \
-    cd mafft-7.475-with-extensions/core && \
-    make && \
-    mv mafft /usr/local/bin
-
-
-
-# Install FastTree
-RUN wget http://www.microbesonline.org/fasttree/FastTree && \
-    chmod +x FastTree && \
-    mv FastTree /usr/local/bin/
-
 # Download SILVA138.1
 RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
     mkdir database && \
-    mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
+    mv SILVA_138.1_SSURef_tax_silva.fasta.gz ./database/
 
 
 # ###Check if the index exists
@@ -95,7 +82,7 @@ RUN echo "Building the index, grab a cup of coffe, it's the longest part"
 
 RUN cd database && \
     bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
+    zgrep "^>" SILVA_138.1_SSURef_tax_silva.fasta.gz | tr -d ">" > Taxonomy_SILVA138.1.csv
 
 # # Install R packages 
 RUN R -e 'install.packages("dplyr")'
