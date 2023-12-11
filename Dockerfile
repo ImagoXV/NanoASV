@@ -69,7 +69,7 @@ RUN wget http://www.microbesonline.org/fasttree/FastTree && \
 # Download SILVA138.1
 RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
     mkdir database && \
-    mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
+    mv SILVA_138.1_SSURef_tax_silva.fasta.gz ./database/
 
 
 # ###Check if the index exists
