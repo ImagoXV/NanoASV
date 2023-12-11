@@ -54,10 +54,10 @@ U_TAX <- data.frame(U_TAX,
 #Individuals ASV tables loading
 temp_ASV = list.files(path = "/data/OUTPUT/Results/ASV/", pattern = "*.tsv")
 for (i in 1:length(temp_ASV)) {
-  if (file.size(paste("ASV/", temp_ASV[i], sep = "")) == 0) {
+  if (file.size(paste("/data/OUTPUT/Results/ASV/", temp_ASV[i], sep = "")) == 0) {
     assign(temp_ASV[i], data.frame())
   } else {
-    assign(temp_ASV[i], read.csv(file = paste("ASV/", temp_ASV[i], sep = ""), 
+    assign(temp_ASV[i], read.csv(file = paste("/data/OUTPUT/Results/ASV/", temp_ASV[i], sep = ""), 
                                  sep = " ", 
                                  row.names = 2, header = FALSE))
   }
@@ -104,8 +104,8 @@ for (i in 1:length(temp_ASV)) colnames(temp_ASV[[i]]) <- barcodes[i]
 
 names(temp_ASV) <- barcodes[1:length(temp_ASV)]
 #Individual taxonomy tables loading
-temp_TAX = list.files(path = "/data/OUTPUT/Results/Taxo/", pattern="*Taxonomy.csv")
-for (i in 1:length(temp_TAX)) assign(temp_TAX[i], data.frame(read.csv2(file = paste("Taxo/",temp_TAX[i], sep = ""), sep = ";", header = F, check.names = F, fill = TRUE, 
+temp_TAX = list.files(path = "/data/OUTPUT/Results/Tax/", pattern="Taxonomy_barcode*.csv")
+for (i in 1:length(temp_TAX)) assign(temp_TAX[i], data.frame(read.csv2(file = paste("/data/OUTPUT/Results/Tax/",temp_TAX[i], sep = ""), sep = ";", header = F, check.names = F, fill = TRUE, 
                                                                        col.names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", 
                                                                                      "Species", "other1", "other2", "other3", "other4", "other5", "other6",
                                                                                      "others7", "others8", "others9", "others10", "others11", "others12", "others13", "others14", "others15", "others16", "others17", "others19"))))
