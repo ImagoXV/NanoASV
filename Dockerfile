@@ -30,7 +30,14 @@ RUN apt-get update && \
     r-base \
     parallel \
     cowsay \
-    uuid-runtime
+    uuid-runtime \
+    libcurl4-openssl-dev \
+    libxml2-dev \
+    libfontconfig1-dev \
+    libssl-dev \
+    libharfbuzz-dev \
+    libfribidi-dev
+
 
 # # Use the official Miniconda image as a base
 # FROM continuumio/miniconda3:latest
@@ -91,18 +98,18 @@ RUN cd database && \
     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
 
 # # Install R packages 
-
-
 RUN R -e 'install.packages("dplyr")'
-
-
 RUN R -e 'install.packages("BiocManager")'
-RUN R -e 'BiocManager::install("phyloseq")'
+RUN R -e 'install.packages("tidyverse")'
+RUN R -e 'BiocManager::install("phyloseq", dependencies = TRUE)'
 
+RUN mkdir Rdata
 
 # Copy the script into the container
 COPY script.sh /script.sh
 COPY script.r /script.r
+
+RUN apt-get autoremove
 
 # Set the script as the entry point
 ENTRYPOINT ["/script.sh"]

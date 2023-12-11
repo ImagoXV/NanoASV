@@ -1,6 +1,6 @@
 #Script d'analyses écologiques NanoASV
-install.packages('dplyr', repos='http://cran.rstudio.com/')
-BiocManager::install('phyloseq')
+
+getwd()
 
 metadata <- read.csv("/data/metadata.csv", row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
@@ -8,15 +8,19 @@ barcodes <- rownames(metadata)
 #Phylosequization
 library(phyloseq)
 library(dplyr) #For mget() function
-library(tidyverse)
+#library(tidyverse)
 
-U_OTU <- read.csv("Rdata/Unknown_clusters/unknown_clusters.tsv", sep = "\t", header = T, row.names = 1)
+U_OTU <- read.csv("/data/OUTPUT/Results/Unknown_clusters/unknown_clusters.tsv", sep = "\t", header = T, row.names = 1)
+
+
+if(nrow(U_OTU) > 0){
+#Il faut rajoutetr un if NON-EMPTY)
 
 U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
 
 unknown_taxonomy <- rep("Unknown", times = 7) #Adapt taxonomy dataframe so it fits later on with bad entries for cleaning
 
-inpu %>% read_csv() %>% filter(rowSums()>5) -> U_OTU
+###inpu %>% read_csv() %>% filter(rowSums()>5) -> U_OTU
 
 #Taking care of unknown taxonomy table
 U_TAX <- data.frame(matrix(nrow = nrow(U_OTU), ncol = 7))
@@ -44,11 +48,11 @@ U_TAX <- data.frame(U_TAX,
                     others16 = NA, 
                     others17 = NA, 
                     others19 = NA)
-
+}
 
 
 #Individuals ASV tables loading
-temp_ASV = list.files(path = "Rdata/Results/ASV", pattern = "*.tsv")
+temp_ASV = list.files(path = "/data/OUTPUT/Results/ASV/", pattern = "*.tsv")
 for (i in 1:length(temp_ASV)) {
   if (file.size(paste("ASV/", temp_ASV[i], sep = "")) == 0) {
     assign(temp_ASV[i], data.frame())
@@ -65,15 +69,16 @@ temp_ASV <- mget(temp_ASV)
 
 names(temp_ASV) <- barcodes
 
-for (i in 1:ncol(U_OTU)){
-  for (j in 1:length(temp_ASV)){
-    if (colnames(U_OTU)[i] == names(temp_ASV[j])) {
-      colnames(temp_ASV[[j]]) <- barcodes[j]
-      temp_ASV[[j]] <- rbind(data.frame(temp_ASV[j]), U_OTU[i])
+if(nrow(U_OTU) > 0){
+  for (i in 1:ncol(U_OTU)){
+    for (j in 1:length(temp_ASV)){
+      if (colnames(U_OTU)[i] == names(temp_ASV[j])) {
+        colnames(temp_ASV[[j]]) <- barcodes[j]
+        temp_ASV[[j]] <- rbind(data.frame(temp_ASV[j]), U_OTU[i])
+      }
     }
   }
 }
-
 
 #The following function will deal with empty barcodes (like blanks)
 for(i in 1: length(temp_ASV)) {
@@ -99,7 +104,7 @@ for (i in 1:length(temp_ASV)) colnames(temp_ASV[[i]]) <- barcodes[i]
 
 names(temp_ASV) <- barcodes[1:length(temp_ASV)]
 #Individual taxonomy tables loading
-temp_TAX = list.files(path = "Rdata/Results/Taxo/", pattern="*Taxonomy.csv")
+temp_TAX = list.files(path = "/data/OUTPUT/Results/Taxo/", pattern="*Taxonomy.csv")
 for (i in 1:length(temp_TAX)) assign(temp_TAX[i], data.frame(read.csv2(file = paste("Taxo/",temp_TAX[i], sep = ""), sep = ";", header = F, check.names = F, fill = TRUE, 
                                                                        col.names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", 
                                                                                      "Species", "other1", "other2", "other3", "other4", "other5", "other6",
@@ -141,7 +146,7 @@ for(i in 1:length(temp_TAX)) {
 
 NanoASV <- merge(phyloseq[i], phyloseq[i+1])
 
-for(i in 3: length(temp_phyloseq) {
+for(i in 3: length(temp_phyloseq)){
   NanoASV <- merge(NanoASV, temp_phyloseq[i])
 }
 

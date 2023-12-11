@@ -321,12 +321,11 @@ mv *_exact_affiliations.tsv ${DIR}/${OUT}/Results/Exact_affiliations/
 )
 
 
-cp -r ${DIR}/${OUT}/* Rdata/
+# cp -r ${DIR}/${OUT}/* ${DIR}/${OUT}/Results/Rdata
 
 # Production of phyloseq object
 echo R step
-Rscript -e 'source("script.r")'
-
+Rscript -e 'source("/script.r")'
 
 
 declare -i TIME=$(date +%s)-$START
