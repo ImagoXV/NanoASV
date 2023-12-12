@@ -18,7 +18,9 @@ ENV LC_ALL C.UTF-8
 # Install required packages
 RUN apt-get update && \
     apt-get install -y \
+    fasttree \
     gcc \
+    mafft \
     python3 \
     bwa \
     samtools \
@@ -30,7 +32,14 @@ RUN apt-get update && \
     r-base \
     parallel \
     cowsay \
-    uuid-runtime
+    uuid-runtime \
+    libcurl4-openssl-dev \
+    libxml2-dev \
+    libfontconfig1-dev \
+    libssl-dev \
+    libharfbuzz-dev \
+    libfribidi-dev
+
 
 # # Use the official Miniconda image as a base
 # FROM continuumio/miniconda3:latest
@@ -51,25 +60,10 @@ RUN wget https://github.com/rrwick/Porechop/archive/refs/tags/v0.2.4.tar.gz && \
     cd Porechop-0.2.4 && \
     python3 setup.py install
 
-# Install MAAFT
-RUN wget https://mafft.cbrc.jp/alignment/software/mafft-7.475-with-extensions-src.tgz && \
-    tar -zxvf mafft-7.475-with-extensions-src.tgz && \
-    rm mafft-7.475-with-extensions-src.tgz && \
-    cd mafft-7.475-with-extensions/core && \
-    make && \
-    mv mafft /usr/local/bin
-
-
-
-# Install FastTree
-RUN wget http://www.microbesonline.org/fasttree/FastTree && \
-    chmod +x FastTree && \
-    mv FastTree /usr/local/bin/
-
 # Download SILVA138.1
 RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
     mkdir database && \
-    mv SILVA_138.1_SSURef_tax_silva.fasta.gz database/SILVA_138.1_SSURef_tax_silva.fasta.gz
+    mv SILVA_138.1_SSURef_tax_silva.fasta.gz ./database/
 
 
 # ###Check if the index exists
@@ -88,16 +82,21 @@ RUN echo "Building the index, grab a cup of coffe, it's the longest part"
 
 RUN cd database && \
     bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | grep ">"  | sed 's/.//' > Taxonomy_SILVA138.1.csv
+    zgrep "^>" SILVA_138.1_SSURef_tax_silva.fasta.gz | tr -d ">" > Taxonomy_SILVA138.1.csv
 
 # # Install R packages 
-# RUN R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
-# RUN R -e "BiocManager::install('phyloseq')"
+RUN R -e 'install.packages("dplyr")'
+RUN R -e 'install.packages("BiocManager")'
+RUN R -e 'install.packages("tidyverse")'
+RUN R -e 'BiocManager::install("phyloseq", dependencies = TRUE)'
 
+RUN mkdir Rdata
 
 # Copy the script into the container
 COPY script.sh /script.sh
 COPY script.r /script.r
+
+RUN apt-get autoremove
 
 # Set the script as the entry point
 ENTRYPOINT ["/script.sh"]

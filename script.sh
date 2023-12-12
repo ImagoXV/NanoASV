@@ -320,6 +320,14 @@ mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${DIR}/${
 mv *_exact_affiliations.tsv ${DIR}/${OUT}/Results/Exact_affiliations/
 )
 
+
+# cp -r ${DIR}/${OUT}/* ${DIR}/${OUT}/Results/Rdata
+
+# Production of phyloseq object
+echo R step
+Rscript -e 'source("/script.r")'
+
+
 declare -i TIME=$(date +%s)-$START
 
 echo "Data treatment is over.********************************************************"
@@ -328,7 +336,6 @@ echo "It took $TIME seconds to perform."
 echo "Don't forget to cite NanoASV if it helps you treating your sequencing data."
 
 echo "Don't forget to cite NanoASV dependencies as well !****************************"
-
 
 
 
