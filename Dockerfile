@@ -87,7 +87,7 @@ RUN cd database && \
 # # Install R packages 
 RUN R -e 'install.packages("dplyr")'
 RUN R -e 'install.packages("BiocManager")'
-RUN R -e 'install.packages("tidyverse")'
+#RUN R -e 'install.packages("tidyverse")'
 RUN R -e 'BiocManager::install("phyloseq", dependencies = TRUE)'
 
 RUN mkdir Rdata
