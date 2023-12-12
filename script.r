@@ -81,7 +81,7 @@ if(nrow(U_OTU) > 0){
 }
 
 #The following function will deal with empty barcodes (like blanks)
-for(i in 1: length(temp_ASV)) {
+for(i in 1:length(temp_ASV)) {
   if (lapply(temp_ASV[i], function(df) nrow(df)) == 0) {
     temp_ASV[i] <- list(data.frame(V1 = rep(0, times = 1)))
     rownames(temp_ASV[[i]]) <- rownames(temp_ASV[[i-1]])[nrow(temp_ASV[[i-1]])]
@@ -101,10 +101,11 @@ for (i in 1:length(temp_ASV)){
 
 for (i in 1:length(temp_ASV)) colnames(temp_ASV[[i]]) <- barcodes[i]
 
+ls()
 
 names(temp_ASV) <- barcodes[1:length(temp_ASV)]
 #Individual taxonomy tables loading
-temp_TAX = list.files(path = "/data/OUTPUT/Results/Tax/", pattern="Taxonomy_barcode*.csv")
+temp_TAX = list.files(path = "/data/OUTPUT/Results/Tax/", pattern="*.csv")
 for (i in 1:length(temp_TAX)) assign(temp_TAX[i], data.frame(read.csv2(file = paste("/data/OUTPUT/Results/Tax/",temp_TAX[i], sep = ""), sep = ";", header = F, check.names = F, fill = TRUE, 
                                                                        col.names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", 
                                                                                      "Species", "other1", "other2", "other3", "other4", "other5", "other6",
@@ -118,7 +119,9 @@ for(i in 1: length(temp_TAX)){
   if (lapply(temp_TAX[i], function(df) nrow(df)) != 0) {#This step allows to correct for Kingdom, which is currently merged with SILVA ID
     rownames(temp_TAX[[i]]) <- sapply(strsplit(temp_TAX[[i]][,1], split = " "), "[[", 1)
     temp_TAX[[i]][,1] <- sapply(strsplit(temp_TAX[[i]][,1], split = " "), "[", 2)
-    temp_TAX[[i]] <- rbind(temp_TAX[[i]], U_TAX)
+    if(nrow(U_OTU) > 0){
+      temp_TAX[[i]] <- rbind(temp_TAX[[i]], U_TAX)
+    }
   }
 }
 
@@ -129,13 +132,33 @@ for(i in 1: length(temp_TAX)) {
   }
 }
 
+summary(temp_TAX)
+summary(temp_ASV)
+
+print(temp_ASV[1])
+print(temp_ASV[2])
 
 temp_phyloseq <- barcodes
+print("Double Crochets")
+print(temp_ASV[[1]])
+print(temp_ASV[[2]])
 
-for(i in 1:length(temp_TAX)) {
-  assign(temp_phyloseq[i], value = phyloseq(otu_table(temp_ASV[[i]], taxa_are_rows = TRUE), 
-                                            tax_table(as.matrix(temp_TAX[[i]])), 
-                                            sample_data(metadata)))
+
+physeq_list <- list()
+
+for (i in 1:length(temp_ASV)) {
+  # Create the phyloseq object
+  physeq_object <- phyloseq(otu_table(temp_ASV[[i]], taxa_are_rows = TRUE), 
+                            tax_table(as.matrix(temp_TAX[[i]])), 
+                            sample_data(metadata))
+  
+  # Get the name from the barcodes vector
+  barcode_name <- barcodes[i]
+  
+  # Assign the phyloseq object to the list with the dynamic name
+  physeq_list[[barcode_name]] <- physeq_object
+  
+  # Print the index
   print(i)
 }
 
@@ -143,20 +166,24 @@ for(i in 1:length(temp_TAX)) {
 #Essaye de merge deux a deux sur une liste 
 #NanoASV <- merge_phyloseq(barcode01,barcode02,barcode03,barcode04,barcode05,barcode06,barcode07,barcode08,barcode09,barcode10,barcode11,barcode12,barcode13,barcode14,barcode15,barcode16,barcode17,barcode18,barcode19,barcode20,barcode21,barcode22,barcode23,barcode24)
 
+i<-1
 
-NanoASV <- merge(phyloseq[i], phyloseq[i+1])
+NanoASV <- merge_phyloseq(temp_phyloseq[i], temp_phyloseq[i+1])
 
+summary(NanoASV)
+
+if(length(temp_phyloseq)>2){
 for(i in 3: length(temp_phyloseq)){
   NanoASV <- merge(NanoASV, temp_phyloseq[i])
 }
-
+}
 
 
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
-
-NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
-NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
-NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
+# 
+# NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
+# NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
+# NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
 
 #After those functions, there is no more taxa with fucked up names so we can remove supp fields of taxa table
 
@@ -164,8 +191,8 @@ tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
 
 
 
-
-save(NanoASV, file = "NanoASV.rdata")
+print("Saving the phyloseq object to a file")
+save(NanoASV, file = "/data/OUTPUT/Results/Rdata/NanoASV.rdata")
 
 
 
