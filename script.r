@@ -132,17 +132,7 @@ for(i in 1: length(temp_TAX)) {
   }
 }
 
-summary(temp_TAX)
-summary(temp_ASV)
-
-print(temp_ASV[1])
-print(temp_ASV[2])
-
 temp_phyloseq <- barcodes
-print("Double Crochets")
-print(temp_ASV[[1]])
-print(temp_ASV[[2]])
-
 
 physeq_list <- list()
 
@@ -154,30 +144,25 @@ for (i in 1:length(temp_ASV)) {
   
   # Get the name from the barcodes vector
   barcode_name <- barcodes[i]
-  
   # Assign the phyloseq object to the list with the dynamic name
   physeq_list[[barcode_name]] <- physeq_object
-  
   # Print the index
   print(i)
 }
-
 
 #Essaye de merge deux a deux sur une liste 
 #NanoASV <- merge_phyloseq(barcode01,barcode02,barcode03,barcode04,barcode05,barcode06,barcode07,barcode08,barcode09,barcode10,barcode11,barcode12,barcode13,barcode14,barcode15,barcode16,barcode17,barcode18,barcode19,barcode20,barcode21,barcode22,barcode23,barcode24)
 
 i<-1
-
-NanoASV <- merge_phyloseq(temp_phyloseq[i], temp_phyloseq[i+1])
+NanoASV <- merge_phyloseq(physeq_list[[i]], physeq_list[[i+1]])
 
 summary(NanoASV)
 
-if(length(temp_phyloseq)>2){
-for(i in 3: length(temp_phyloseq)){
-  NanoASV <- merge(NanoASV, temp_phyloseq[i])
+if(length(physeq_list)>2){
+  for(i in 3: length(physeq_list)){
+    NanoASV <- merge_phyloseq(NanoASV, physeq_list[i])
+  }
 }
-}
-
 
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
 # 
@@ -186,15 +171,7 @@ for(i in 3: length(temp_phyloseq)){
 # NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
 
 #After those functions, there is no more taxa with fucked up names so we can remove supp fields of taxa table
-
 tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
-
-
 
 print("Saving the phyloseq object to a file")
 save(NanoASV, file = "/data/OUTPUT/Results/Rdata/NanoASV.rdata")
-
-
-
-
-
