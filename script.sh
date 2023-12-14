@@ -98,9 +98,9 @@ fi
 # r m -vr .tmp_NanoASV #To remove the tmp previous tmp directory 
 
 date
-echo Creating temporary directory at ./.
-mkdir -v .tmp_NanoASV
-TMP=".tmp_NanoASV"
+echo Creating temporary directory at /tmp/
+mkdir -v /tmp/.tmp_NanoASV
+TMP="/tmp/.tmp_NanoASV"
 
 
 # Concatenation of fastq files
@@ -110,7 +110,7 @@ echo Concatenation step
      pwd
      ls
      date
-    zcat -v ${BARCODE}/*.fastq.gz | gzip > /${TMP}/${BARCODE}.fastq.gz         
+    zcat -v ${BARCODE}/*.fastq.gz | gzip > ${TMP}/${BARCODE}.fastq.gz         
     echo ${BARCODE} concatenated
  done
 )
@@ -303,21 +303,29 @@ rm seqs
 )
 
 
-mkdir ${DIR}/${OUT}
-mkdir ${DIR}/${OUT}/Results
-mkdir ${DIR}/${OUT}/Results/Tax
-mkdir ${DIR}/${OUT}/Results/ASV
-mkdir ${DIR}/${OUT}/Results/Unknown_clusters
-mkdir ${DIR}/${OUT}/Results/Exact_affiliations
-mkdir ${DIR}/${OUT}/Results/Rdata
+# mkdir ${DIR}/${OUT}
+# mkdir ${DIR}/${OUT}/Results
+# mkdir ${DIR}/${OUT}/Results/Tax
+# mkdir ${DIR}/${OUT}/Results/ASV
+# mkdir ${DIR}/${OUT}/Results/Unknown_clusters
+# mkdir ${DIR}/${OUT}/Results/Exact_affiliations
+# mkdir ${DIR}/${OUT}/Results/Rdata
+
+mkdir ${OUT}
+mkdir ${OUT}/Results
+mkdir ${OUT}/Results/Tax
+mkdir ${OUT}/Results/ASV
+mkdir ${OUT}/Results/Unknown_clusters
+mkdir ${OUT}/Results/Exact_affiliations
+mkdir ${OUT}/Results/Rdata
 
 ls ${TMP}
 
 (cd ${TMP}
-mv *_abundance.tsv ${DIR}/${OUT}/Results/ASV/
-mv Taxonomy*.csv ${DIR}/${OUT}/Results/Tax/
-mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${DIR}/${OUT}/Results/Unknown_clusters/
-mv *_exact_affiliations.tsv ${DIR}/${OUT}/Results/Exact_affiliations/
+mv *_abundance.tsv ${OUT}/Results/ASV/
+mv Taxonomy*.csv ${OUT}/Results/Tax/
+mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUT}/Results/Unknown_clusters/
+mv *_exact_affiliations.tsv ${OUT}/Results/Exact_affiliations/
 )
 
 
@@ -337,6 +345,7 @@ echo "Don't forget to cite NanoASV if it helps you treating your sequencing data
 
 echo "Don't forget to cite NanoASV dependencies as well !****************************"
 
+#rm -rf ${TMP}
 
 
 
