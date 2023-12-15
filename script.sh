@@ -70,6 +70,11 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    --version)
+      echo "NanoASV 1.0"
+      shift
+      ;;
+    
     *)
       echo "Unknown option: $1"
       shift
