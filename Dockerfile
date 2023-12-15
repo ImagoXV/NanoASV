@@ -96,6 +96,10 @@ RUN mkdir Rdata
 COPY script.sh /script.sh
 COPY script.r /script.r
 
+#Install chopper - I have to move it up with other soft,  but for the moment, it will avoid reindexing silva...
+RUN wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-linux.zip &&  unzip chopper-linux.zip
+RUN chmod ugo+rwx chopper && mv chopper /opt/
+
 RUN apt-get autoremove
 
 # Set the script as the entry point
