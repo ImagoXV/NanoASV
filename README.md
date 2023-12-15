@@ -13,13 +13,15 @@ docker build -it nanoasv NanoASV/.
 ## Build image with Singularity
 ```
 wget PATH/TO/ARCHIVE
-singularity build --sandbox nanoasv docker-archive://NanoASV.tar
+singularity build nanoasv docker-archive://NanoASV.tar
 ```
 # Usage
 ## With Singularity
 ```sh
-singularity exec nanoasv workflow -d path/to/sequences [--options]
+singularity run nanoasv -d path/to/sequences -o out [--options]
 ```
+
+
 
 ## With Docker
 ```
