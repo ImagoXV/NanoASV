@@ -1,7 +1,10 @@
-#Script d'analyses écologiques NanoASV
-
-DIR <- commandArgs(trailingOnly = TRUE)[1]
-OUTPWD <- args <- commandArgs(trailingOnly = TRUE)[2]
+#NanoASV phylosequisation
+#Arthur Cousson - 2023
+#Contact : arthur.cousson@ird.fr
+args <- commandArgs(trailingOnly = TRUE)
+DIR <- args[1]
+OUTPWD <- args[2]
+R_CLEANING <- args[3]
 
 
 metadata <- read.csv(paste0(DIR,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
@@ -14,9 +17,7 @@ library(dplyr) #For mget() function
 
 U_OTU <- read.csv(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"), sep = "\t", header = T, row.names = 1)
 
-
 if(nrow(U_OTU) > 0){
-#Il faut rajoutetr un if NON-EMPTY)
 
 U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
 
@@ -66,8 +67,7 @@ for (i in 1:length(temp_ASV)) {
 }
 
 
-temp_ASV <- mget(temp_ASV)
-
+temp_ASV <- mget(temp_ASV) #To get files as objects from names
 
 names(temp_ASV) <- barcodes
 
@@ -98,12 +98,7 @@ for (i in 1:length(temp_ASV)){
   }
 }
 
-
-
-
 for (i in 1:length(temp_ASV)) colnames(temp_ASV[[i]]) <- barcodes[i]
-
-ls()
 
 names(temp_ASV) <- barcodes[1:length(temp_ASV)]
 #Individual taxonomy tables loading
@@ -155,11 +150,10 @@ for (i in 1:length(temp_ASV)) {
 #Essaye de merge deux a deux sur une liste 
 #NanoASV <- merge_phyloseq(barcode01,barcode02,barcode03,barcode04,barcode05,barcode06,barcode07,barcode08,barcode09,barcode10,barcode11,barcode12,barcode13,barcode14,barcode15,barcode16,barcode17,barcode18,barcode19,barcode20,barcode21,barcode22,barcode23,barcode24)
 
-i<-1
+i<-1 #Reset the incrementation
 NanoASV <- merge_phyloseq(physeq_list[[i]], physeq_list[[i+1]])
 
-summary(NanoASV)
-
+#If more than 2 samples, then, adding them all together
 if(length(physeq_list)>2){
   for(i in 3: length(physeq_list)){
     NanoASV <- merge_phyloseq(NanoASV, physeq_list[i])
@@ -167,10 +161,11 @@ if(length(physeq_list)>2){
 }
 
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
-# 
-# NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
-# NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
-# NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
+if(R_CLEANING == 1){
+NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
+NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
+NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
+}
 
 #After those functions, there is no more taxa with fucked up names so we can remove supp fields of taxa table
 tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
