@@ -95,8 +95,6 @@ fi
 
 
 # Create temporary directory
-# r m -vr .tmp_NanoASV #To remove the tmp previous tmp directory 
-
 date
 echo Creating temporary directory at /tmp/
 mkdir -v /tmp/.tmp_NanoASV
@@ -114,10 +112,6 @@ echo Concatenation step
     echo ${BARCODE} concatenated
  done
 )
-
-
-
-
 
 filter_file() {
   (
@@ -169,7 +163,7 @@ export -f chop_file
 find "${TMP}" -maxdepth 1 -name "FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
 
 echo Filtered datasets are being deleted
-rm -v ${TMP}/FILTERED*
+rm ${TMP}/FILTERED*
 
 # Subsampling
 echo Barcodes 50000 firsts quality checked sequences subsampling
@@ -182,31 +176,14 @@ date
 )
 
 echo Full size datasets are being deleted
-rm -v ${TMP}/CHOPED*
+rm ${TMP}/CHOPED*
 
-ls ${TMP}
 
 # Bwa alignments
 
- SILVA="database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
-
-
-# # Check if the index exists
-# echo
-# if [[ $(ls ${TMP}/*.amb 2>/dev/null | wc -l) -eq 0 ]]; then
-#   # Create the index
-#   echo Indexing SILVA
-#   date
-#   bwa index ${TMP}/${SILVA}
-#   grep ">" ${TMP}/${SILVA} | sed 's/.//' > ${TMP}/Taxonomy_SILVA138.1.csv
-
-# fi
-
-
-
-TAX=database/Taxonomy_SILVA138.1.csv
-
-DB="/database"
+ SILVA="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
+ TAX="/database/Taxonomy_SILVA138.1.csv"
+ DB="/database"
 
 
 # Define a function to process each file
@@ -302,7 +279,7 @@ rm seqs
 
 )
 
-
+# #Docker version---------------
 # mkdir ${DIR}/${OUT}
 # mkdir ${DIR}/${OUT}/Results
 # mkdir ${DIR}/${OUT}/Results/Tax
@@ -311,6 +288,10 @@ rm seqs
 # mkdir ${DIR}/${OUT}/Results/Exact_affiliations
 # mkdir ${DIR}/${OUT}/Results/Rdata
 
+# OUTPWD=${DIR}/${OUT}
+
+
+#Singularity version------------
 mkdir ${OUT}
 mkdir ${OUT}/Results
 mkdir ${OUT}/Results/Tax
@@ -319,21 +300,23 @@ mkdir ${OUT}/Results/Unknown_clusters
 mkdir ${OUT}/Results/Exact_affiliations
 mkdir ${OUT}/Results/Rdata
 
-ls ${TMP}
+OUTPWD=$(pwd)/${OUT}
 
 (cd ${TMP}
-mv *_abundance.tsv ${OUT}/Results/ASV/
-mv Taxonomy*.csv ${OUT}/Results/Tax/
-mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUT}/Results/Unknown_clusters/
-mv *_exact_affiliations.tsv ${OUT}/Results/Exact_affiliations/
+
+echo cat Taxo to check for problem
+cat Taxonomy*.csv
+mv *_abundance.tsv ${OUTPWD}/Results/ASV/
+mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
+mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/
+mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
 )
 
 
-# cp -r ${DIR}/${OUT}/* ${DIR}/${OUT}/Results/Rdata
 
 # Production of phyloseq object
 echo R step
-Rscript -e 'source("/script.r")'
+Rscript /script.r $DIR $OUTPWD
 
 
 declare -i TIME=$(date +%s)-$START
@@ -344,8 +327,6 @@ echo "It took $TIME seconds to perform."
 echo "Don't forget to cite NanoASV if it helps you treating your sequencing data."
 
 echo "Don't forget to cite NanoASV dependencies as well !****************************"
-
-#rm -rf ${TMP}
 
 
 
