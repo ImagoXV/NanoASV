@@ -121,13 +121,14 @@ TMP="/tmp/.tmp_NanoASV"
 )
 #***************************************************************************************************************************
 
-## Define function to filter files
+## Define function to filter files******************************************************************************************
+
 filter_file() {
   (
   #echo "Concerned file is $1"
   filename=$(basename "$1")
   output_file="FILTERED_$filename"
-  zcat "$1" | NanoFilt -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" | gzip > "${TMP}/${output_file}"
+  zcat "$1" | /opt/chopper -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" | gzip > "${TMP}/${output_file}"
   #echo "$1 filtered"
   )
 }
@@ -157,11 +158,11 @@ rm ${TMP}/barcode*.fastq.gz
 
 chop_file() {
   (
-      echo "Concerned file is $1"
+  #echo "Concerned file is $1"
   filename=$(basename "$1")
   output_file="CHOPED_$filename"
-  porechop -i $1 -o ${TMP}/${output_file} -t 4
-  echo "$1 choped"
+  porechop --verbosity 0 -i $1 -o ${TMP}/${output_file} -t ${NUM_PROCESSES}
+  #echo "$1 choped"
   )
 }
 
