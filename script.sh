@@ -319,7 +319,9 @@ mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
 mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/
 mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
 )
+rm -r ${TMP}
 #***************************************************************************************************************************
+
 
 
 ##Production of phyloseq object ********************************************************************************************
