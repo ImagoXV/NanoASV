@@ -1,8 +1,10 @@
 #Script d'analyses écologiques NanoASV
 
-getwd()
+DIR <- commandArgs(trailingOnly = TRUE)[1]
+OUTPWD <- args <- commandArgs(trailingOnly = TRUE)[2]
 
-metadata <- read.csv("/data/metadata.csv", row.names = 1, header = TRUE, check.names = FALSE)
+
+metadata <- read.csv(paste0(DIR,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
 #Phylosequization
@@ -10,7 +12,7 @@ library(phyloseq)
 library(dplyr) #For mget() function
 #library(tidyverse)
 
-U_OTU <- read.csv("/data/OUTPUT/Results/Unknown_clusters/unknown_clusters.tsv", sep = "\t", header = T, row.names = 1)
+U_OTU <- read.csv(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"), sep = "\t", header = T, row.names = 1)
 
 
 if(nrow(U_OTU) > 0){
@@ -52,12 +54,12 @@ U_TAX <- data.frame(U_TAX,
 
 
 #Individuals ASV tables loading
-temp_ASV = list.files(path = "/data/OUTPUT/Results/ASV/", pattern = "*.tsv")
+temp_ASV = list.files(path = paste0(OUTPWD,"/Results/ASV/"), pattern = "*.tsv")
 for (i in 1:length(temp_ASV)) {
-  if (file.size(paste("/data/OUTPUT/Results/ASV/", temp_ASV[i], sep = "")) == 0) {
+  if (file.size(paste(OUTPWD,"/Results/ASV/", temp_ASV[i], sep = "")) == 0) {
     assign(temp_ASV[i], data.frame())
   } else {
-    assign(temp_ASV[i], read.csv(file = paste("/data/OUTPUT/Results/ASV/", temp_ASV[i], sep = ""), 
+    assign(temp_ASV[i], read.csv(file = paste(OUTPWD,"/Results/ASV/", temp_ASV[i], sep = ""), 
                                  sep = " ", 
                                  row.names = 2, header = FALSE))
   }
@@ -105,8 +107,8 @@ ls()
 
 names(temp_ASV) <- barcodes[1:length(temp_ASV)]
 #Individual taxonomy tables loading
-temp_TAX = list.files(path = "/data/OUTPUT/Results/Tax/", pattern="*.csv")
-for (i in 1:length(temp_TAX)) assign(temp_TAX[i], data.frame(read.csv2(file = paste("/data/OUTPUT/Results/Tax/",temp_TAX[i], sep = ""), sep = ";", header = F, check.names = F, fill = TRUE, 
+temp_TAX = list.files(path = paste0(OUTPWD,"/Results/Tax/"), pattern="*.csv")
+for (i in 1:length(temp_TAX)) assign(temp_TAX[i], data.frame(read.csv2(file = paste(OUTPWD,"/Results/Tax/",temp_TAX[i], sep = ""), sep = ";", header = F, check.names = F, fill = TRUE, 
                                                                        col.names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", 
                                                                                      "Species", "other1", "other2", "other3", "other4", "other5", "other6",
                                                                                      "others7", "others8", "others9", "others10", "others11", "others12", "others13", "others14", "others15", "others16", "others17", "others19"))))
@@ -174,4 +176,4 @@ if(length(physeq_list)>2){
 tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
 
 print("Saving the phyloseq object to a file")
-save(NanoASV, file = "/data/OUTPUT/Results/Rdata/NanoASV.rdata")
+save(NanoASV, file = paste0(OUTPWD,"/Results/Rdata/NanoASV.rdata"))
