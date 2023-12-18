@@ -153,8 +153,24 @@ rm ${TMP}/barcode*.fastq.gz
 #***************************************************************************************************************************
 
 ## Chimera detection *******************************************************************************************************
-#echo "Chimera detection - WORK IN PROGRESS"
-# Work in progress
+##vsearch --uchime_denovo FILENAME --nonchimeras FILENAME
+# Chimera detection function definition
+chimera_detection() {
+  (
+  #echo Chimera detection step
+  filename=$(basename "$1")
+  chimera_out="NONCHIM_$filename"
+  vsearch --uchime_denovo $1 --nonchimeras ${chimera_out}
+  )
+}
+
+#Iterate in parallel
+find "${TMP}" -maxdepth 1 -name "NONCHIM_*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
+  parallel -j "${NUM_PROCESSES}" chimera_detection  
+
+#echo Filtered datasets are being deleted
+rm ${TMP}/FILTERED*
+
 #***************************************************************************************************************************
 
 
@@ -175,11 +191,11 @@ export -f chop_file
 #***************************************************************************************************************************
 
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
+find "${TMP}" -maxdepth 1 -name "NONCHIM_*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
 ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
 
 #echo Filtered datasets are being deleted
-rm ${TMP}/FILTERED*
+rm ${TMP}/NONCHIM*
 
 # Subsampling
 #echo Barcodes ${SUBSAMPLING} firsts quality checked sequences subsampling
@@ -194,6 +210,7 @@ rm ${TMP}/FILTERED*
 #echo Full size datasets are being deleted
 rm ${TMP}/CHOPED*
 #***************************************************************************************************************************
+
 
 # Bwa alignments ***********************************************************************************************************
 
