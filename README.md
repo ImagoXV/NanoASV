@@ -92,6 +92,11 @@ Those files can be found in Resumlts directory.
 Non matching sequences fastq are extracted then clustered with vsearch -id 0.7.
 Outputs into Results/Unknown_clusters
 
+## Phylogenetic tree generation
+Reference ASV sequence from SILVA138.1 are extracted accordingly to detected references. 
+Unknown OTUs seed sequence are added. The final file is fed to FastTree to produce a tree file
+Under development. Need a flag to avoid producing the tree, because it's long
+
 ## Phylosequization
 Alignements results, taxonomy and clustered unknown entities are used to produce a phyloseq opbject: NanoASV.rdata
 In the future, I will add the phylogeny and the tree. But at the moment, the efficient way would be to produce a tree from SILVA database reference sequence. 
