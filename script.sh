@@ -157,10 +157,11 @@ rm ${TMP}/barcode*.fastq.gz
 # Chimera detection function definition
 chimera_detection() {
   (
-  #echo Chimera detection step
+  echo Chimera detection step
   filename=$(basename "$1")
   chimera_out="NONCHIM_$filename"
   vsearch --uchime_denovo $1 --nonchimeras ${chimera_out}
+  echo ${filename} chimera removed
   )
 }
 

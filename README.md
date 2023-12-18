@@ -14,6 +14,12 @@ Avoid this step  downloading the (heavy) NanoASV.tar archive
 git clone https://github.com/ImagoXV/NanoASV
 docker build -it nanoasv NanoASV/.
 ```
+### Create Docker archive to build with Singularity
+
+```sh
+docker save NanoASV.tar nanoasv
+
+```
 
 
 ## Build image with Singularity
