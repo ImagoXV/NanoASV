@@ -21,6 +21,7 @@ DEFAULT_R_CLEANING=1
 DEFAULT_MINAB=0
 DEFAULT_SUBSAMPLING=10000000
 DEFAULT_NUM_PROCESSES=6
+DEFAULT_TREE=0
 
 #***************************************************************************************************************************
 # Read the arguments passed to the script
@@ -72,6 +73,11 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    --tree)
+      TREE="$2"
+      shift
+      shift
+      ;;
     --version)
       echo "NanoASV 1.0"
       shift
@@ -90,9 +96,11 @@ QUAL="${QUAL:-$DEFAULT_QUAL}"
 MINL="${MINL:-$DEFAULT_MINL}"
 MAXL="${MAXL:-$DEFAULT_MAXL}"
 ID="${ID:-$DEFAULT_ID}"
-NUM_PROCESSES="${NUM_PROCESS:-$DEFAULT_NUM_PROCESSES}"
+NUM_PROCESSES="${NUM_PROCESSES:-$DEFAULT_NUM_PROCESSES}"
 R_CLEANING="${R_CLEANING:-$DEFAULT_R_CLEANING}"
 SUBSAMPLING="${SUBSAMPLING:-$DEFAULT_SUBSAMPLING}"
+TREE="${TREE:-$DEFAULT_TREE}"
+
 #***************************************************************************************************************************
 
 #***************************************************************************************************************************
@@ -313,30 +321,61 @@ vsearch \
 
 rm seqs
 )
+
+
+# Create phylogeny with FastTree
+
+## Get every identified ASV ID
+
+#if [ "$TREE" -eq 1 ]; then
+(cd ${TMP}
+cat *_ASV_list.tsv | sort -u > ID_ASV
+echo Extracting ASV SILVA fasta
+zcat ${SILVA} | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
+cat ALL_ASV.fasta
+
+## MAFFT alignement
+echo Starting MAFFT alignement
+mafft --thread "${NUM_PROCESSES}" ALL_ASV.fasta > ALL_ASV.aln
+echo MAFFT finished
+
+cat ALL_ASV.aln
+
+## FastTree
+echo Starting FastTree
+FastTree -nt ALL_ASV.aln > ASV.tree
+echo TREE finished
+
+cat ASV.tree
+)
+#fi
+
 #***************************************************************************************************************************
 
-# #Docker version **********************************************************************************************************
-# mkdir ${DIR}/${OUT}
-# mkdir ${DIR}/${OUT}/Results
+#Docker version **********************************************************************************************************
+mkdir ${DIR}/${OUT}
+mkdir ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
 # mkdir ${DIR}/${OUT}/Results/Tax
 # mkdir ${DIR}/${OUT}/Results/ASV
 # mkdir ${DIR}/${OUT}/Results/Unknown_clusters
+# mkdir ${DIR}/${OUT}/Results/Phylogeny
 # mkdir ${DIR}/${OUT}/Results/Exact_affiliations
 # mkdir ${DIR}/${OUT}/Results/Rdata
 
-# OUTPWD=${DIR}/${OUT}
+OUTPWD=${DIR}/${OUT}
 #***************************************************************************************************************************
 
-#Singularity version *******************************************************************************************************
-mkdir ${OUT}
-mkdir ${OUT}/Results
-mkdir ${OUT}/Results/Tax
-mkdir ${OUT}/Results/ASV
-mkdir ${OUT}/Results/Unknown_clusters
-mkdir ${OUT}/Results/Exact_affiliations
-mkdir ${OUT}/Results/Rdata
+# #Singularity version *******************************************************************************************************
+# mkdir ${OUT}
+# mkdir ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
+# # mkdir ${OUT}/Results/Tax
+# # mkdir ${OUT}/Results/ASV
+# # mkdir ${OUT}/Results/Unknown_clusters
+# # mkdir ${OUT}/Results/Phylogeny
+# # mkdir ${OUT}/Results/Exact_affiliations
+# # mkdir ${OUT}/Results/Rdata
 
-OUTPWD=$(pwd)/${OUT}
+# OUTPWD=$(pwd)/${OUT}
 #***************************************************************************************************************************
 
 ## Export results **********************************************************************************************************
@@ -345,9 +384,13 @@ mv *_abundance.tsv ${OUTPWD}/Results/ASV/
 mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
 mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/
 mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
+mv ASV.tree ${OUT}/Results/Phylogeny/
 )
 #rm -r ${TMP}
 #***************************************************************************************************************************
+
+
+
 
 
 
@@ -359,6 +402,6 @@ Rscript /script.r $DIR $OUTPWD $R_CLEANING
 declare -i TIME=$(date +%s)-$START
 #***************************************************************************************************************************
 echo "Data treatment is over."
-echo "NanoASV $TIME seconds to perform."
+echo "NanoASV took $TIME seconds to perform."
 echo "Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data."
 #***************************************************************************************************************************

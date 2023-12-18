@@ -10,7 +10,7 @@ The longest part is SILVA indexing step.
 Avoid this step  downloading the (heavy) NanoASV.tar archive
 ```sh
 git clone https://github.com/ImagoXV/NanoASV
-docker build -it nanoasv NanoASV/.
+docker build -t nanoasv NanoASV/.
 ```
 ### Create Docker archive to build with Singularity
 
