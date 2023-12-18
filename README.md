@@ -73,15 +73,17 @@ Directly input your /path/to/sequence/data/fastq_pass directory
 
 ## Filtering
 Chopper will filter for inappropriate sequences.
-Is executed in parrallel (default --num-process = 6 as)
+Is executed in parrallel (default --num-process = 6 )
 Default parameters will filter for sequences with quality>8 1300bp<length<1700bp
 
 ## Chimera detection
-Ongoing work
+Chimera detection is performed with vsearch --uchime_denovo
+Is executed in parrallel (default --num-process = 6 )
+
 
 ## Adapter trimming
 Porechop will trimm known adapters 
-Is executed in parrallel (default --num-process = 6 as)
+Is executed in parrallel (default --num-process = 6 )
 
 ## Subsampling
 50 000 sequences per barcode is enough for most common questions.
@@ -90,7 +92,7 @@ Can be modified with --subsampling int
 
 ## Alignment
 bwa-mem2 will align previously filtered sequences against SILVA 138.1
-Is executed in parrallel (default --num-process = 6 as)
+Is executed in parrallel (default --num-process = 6 )
 In the future, I will add the possibility to use another database than SILVA
 barcode*_abundance.tsv, Taxonomy_barcode*.csv and barcode*_exact_affiliations.tsv like files are produced.
 Those files can be found in Resumlts directory.
