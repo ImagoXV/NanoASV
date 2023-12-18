@@ -20,6 +20,8 @@ DEFAULT_NUM_PROCESSES=6
 DEFAULT_R_CLEANING=1
 DEFAULT_MINAB=0
 DEFAULT_SUBSAMPLING=10000000
+DEFAULT_NUM_PROCESSES=6
+
 #***************************************************************************************************************************
 # Read the arguments passed to the script
 while [[ $# -gt 0 ]]; do
@@ -117,9 +119,9 @@ TMP="/tmp/.tmp_NanoASV"
 #echo Concatenation step
 (cd ${DIR}
   for BARCODE in barcode* ; do
-     pwd
-     ls
-     date
+    #  pwd
+    #  ls
+    #  date
     zcat -v ${BARCODE}/*.fastq.gz | gzip > ${TMP}/${BARCODE}.fastq.gz         
     #echo ${BARCODE} concatenated
  done
@@ -160,13 +162,14 @@ chimera_detection() {
   echo Chimera detection step
   filename=$(basename "$1")
   chimera_out="NONCHIM_$filename"
-  vsearch --uchime_denovo $1 --nonchimeras ${chimera_out}
-  echo ${filename} chimera removed
+  vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}"
+  echo ${chimera_out} chimera removed
   )
 }
+export -f chimera_detection
 
 #Iterate in parallel
-find "${TMP}" -maxdepth 1 -name "NONCHIM_*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
+find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
   parallel -j "${NUM_PROCESSES}" chimera_detection  
 
 #echo Filtered datasets are being deleted
@@ -183,7 +186,7 @@ chop_file() {
   #echo "Concerned file is $1"
   filename=$(basename "$1")
   output_file="CHOPED_$filename"
-  porechop --verbosity 0 -i $1 -o ${TMP}/${output_file} -t ${NUM_PROCESSES}
+  porechop --verbosity 0 -i $1 -o ${TMP}/${output_file}
   #echo "$1 choped"
   )
 }
@@ -246,14 +249,14 @@ export -f process_file
 #***************************************************************************************************************************
 
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
+find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
 MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
 #***************************************************************************************************************************
 
 # Homogenization of exact affiliations file names **************************************************************************
 (cd ${TMP}
-for file in SUB_CHOPED_FILTERED_barcode*.fastq.gz_Exact_affiliations.tsv; do
+for file in SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz_Exact_affiliations.tsv; do
     barcode_number=$(echo "$file" | sed -E 's/.*barcode([0-9]+).*\.tsv/\1/')
     new_file="barcode${barcode_number}_exact_affiliations.tsv"
     mv "$file" "$new_file"
@@ -262,7 +265,7 @@ done
 #***************************************************************************************************************************
 
 # Homogeneization of ASV table names ***************************************************************************************
-for file in ASV_abundance_SUB_CHOPED_FILTERED_barcode*.fastq.gz.tsv; do
+for file in ASV_abundance_SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz.tsv; do
     barcode_number=$(echo "$file" | sed -E 's/.*barcode([0-9]+).*\.tsv/\1/')
     new_file="barcode${barcode_number}_abundance.tsv"
     mv "$file" "$new_file"
@@ -275,8 +278,8 @@ done
 
 # This function to hemomogeneize names
 (cd ${TMP}
-for file in Unmatched_SUB_CHOPED_FILTERED_barcode*.fastq; do
-    newname=$(echo "$file" | sed 's/Unmatched_CHOPED_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
+for file in Unmatched_SUB_CHOPED_NONCHIM__FILTERED_barcode*.fastq; do
+    newname=$(echo "$file" | sed 's/Unmatched_SUB_CHOPED_NONCHIM_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
     mv "$file" "$newname"
 done
 )
@@ -343,7 +346,7 @@ mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
 mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/
 mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
 )
-rm -r ${TMP}
+#rm -r ${TMP}
 #***************************************************************************************************************************
 
 

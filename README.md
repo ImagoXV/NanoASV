@@ -3,13 +3,11 @@
 # NanoASV
 NanoASV is a docker based Nanopore 1500bp 16S Metabarcoding amplicon data analysis workflow. 
 
-
 # Installation
 ## Build from source with Docker
 Takes 75 min on my computer (32Gb RAM - 12 cores).
 The longest part is SILVA indexing step.
 Avoid this step  downloading the (heavy) NanoASV.tar archive
-
 ```sh
 git clone https://github.com/ImagoXV/NanoASV
 docker build -it nanoasv NanoASV/.
@@ -18,10 +16,7 @@ docker build -it nanoasv NanoASV/.
 
 ```sh
 docker save NanoASV.tar nanoasv
-
 ```
-
-
 ## Build image with Singularity
 
 ```sh
@@ -33,9 +28,6 @@ singularity build nanoasv docker-archive://NanoASV.tar
 ```sh
 singularity run nanoasv -d path/to/sequences -o out [--options]
 ```
-
-
-
 ## With Docker
 I highly recommand you not to run it with docker because of root privileges.
 Plus, the workflow is Singularity oriented, which means it might not work if running with docker
@@ -77,9 +69,8 @@ Is executed in parrallel (default --num-process = 6 )
 Default parameters will filter for sequences with quality>8 1300bp<length<1700bp
 
 ## Chimera detection
-Chimera detection is performed with vsearch --uchime_denovo
+Chimera detection is performed with vsearch --uchime_denovo.
 Is executed in parrallel (default --num-process = 6 )
-
 
 ## Adapter trimming
 Porechop will trimm known adapters 
