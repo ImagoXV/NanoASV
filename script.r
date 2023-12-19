@@ -5,6 +5,7 @@ args <- commandArgs(trailingOnly = TRUE)
 DIR <- args[1]
 OUTPWD <- args[2]
 R_CLEANING <- args[3]
+TREE <- args[4]
 
 #Phylosequization -----
 library(phyloseq)
@@ -170,8 +171,9 @@ if(length(physeq_list)>2){
 }
 
 ##Phylogeny ----
+if(TREE == 1){
 phy_tree(NanoASV) <- phy_tree(ASV.tree)
-
+}
 ##Dataset cleaning ----
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
 if(R_CLEANING == 1){

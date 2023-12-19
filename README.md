@@ -7,7 +7,7 @@ NanoASV is a docker based Nanopore 1500bp 16S Metabarcoding amplicon data analys
 ## Build from source with Docker
 Takes 75 min on my computer (32Gb RAM - 12 cores).
 The longest part is SILVA indexing step.
-Avoid this step  downloading the (heavy) NanoASV.tar archive
+Avoid this step by downloading the (heavy) NanoASV.tar archive
 ```sh
 git clone https://github.com/ImagoXV/NanoASV
 docker build -t nanoasv NanoASV/.
@@ -31,8 +31,9 @@ singularity run nanoasv -d path/to/sequences -o out [--options]
 ## With Docker
 I highly recommand you not to run it with docker because of root privileges.
 Plus, the workflow is Singularity oriented, which means it might not work if running with docker
+Don't forget the --docker flag
 ```sh
-docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out
+docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker 1
 ```
 ## Options
 
@@ -41,14 +42,16 @@ docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out
 | --------- | -------------------------------------- |
 | `-h`, `--help` | Show help message                 |
 | `-v`, `--version` | Show version information       |
-| `-d`, `--dir` | Description of the option          |
+| `-d`, `--dir` | path/to/fastq_pass/                |
 | `-q`, `--quality | Quality threshold for NanoFilt, default 8
 | `-l`, `--minlength` | Minimum amplicon length for Nanofilt, default 1300
 | `-L`, `--maxlength` | Maximum amplicon lmength for Nanofilt, default 1700
 | `-i`, `--id_vsearch | Identity threshold for vsearch unknown sequences clustering step, default 0.7
 | `-p`, `--num_process` | Number of core for parallelization, default = 6
-| `--subsampling`, | Max number of sequences per barcode, default 2.5.10^6
-| ` r_cleaning` | logical 0-1 to remove Eukaryota, Chloroplast and Mitochondria sequences from phyloseq object, default 1 (TRUE)
+| `--subsampling`, | Max number of sequences per barcode, default 4.10^7
+| `--r_cleaning` | logical 0-1 to remove Eukaryota, Chloroplast and Mitochondria sequences from phyloseq object, default 1 (TRUE)
+| `--notree` | Flag - To remove phylogeny step and subsequent tree from phyloseq object
+| `--docker` | Flag - To run NanoASV with Docker
 ```
 
 # How it works 
@@ -95,7 +98,8 @@ Outputs into Results/Unknown_clusters
 ## Phylogenetic tree generation
 Reference ASV sequence from SILVA138.1 are extracted accordingly to detected references. 
 Unknown OTUs seed sequence are added. The final file is fed to FastTree to produce a tree file
-Under development. Need a flag to avoid producing the tree, because it's long
+Tree file is then implemented into the final phyloseq object.
+This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical estimation of the entity.
 
 ## Phylosequization
 Alignements results, taxonomy and clustered unknown entities are used to produce a phyloseq opbject: NanoASV.rdata
