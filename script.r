@@ -6,15 +6,19 @@ DIR <- args[1]
 OUTPWD <- args[2]
 R_CLEANING <- args[3]
 
+#Phylosequization -----
+library(phyloseq)
+library(dplyr) #For mget() function
+library(ape) #To handle trees
+#library(tidyverse)
 
 metadata <- read.csv(paste0(DIR,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
-#Phylosequization
-library(phyloseq)
-library(dplyr) #For mget() function
-#library(tidyverse)
+ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
 
+
+##Unknown OTUs ----
 U_OTU <- read.csv(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"), sep = "\t", header = T, row.names = 1)
 
 if(nrow(U_OTU) > 0){
@@ -25,6 +29,7 @@ unknown_taxonomy <- rep("Unknown", times = 7) #Adapt taxonomy dataframe so it fi
 
 ###inpu %>% read_csv() %>% filter(rowSums()>5) -> U_OTU
 
+###Unknown taxonomy ----
 #Taking care of unknown taxonomy table
 U_TAX <- data.frame(matrix(nrow = nrow(U_OTU), ncol = 7))
 rownames(U_TAX) <- rownames(U_OTU)
@@ -53,7 +58,7 @@ U_TAX <- data.frame(U_TAX,
                     others19 = NA)
 }
 
-
+##ASV tables ----
 #Individuals ASV tables loading
 temp_ASV = list.files(path = paste0(OUTPWD,"/Results/ASV/"), pattern = "*.tsv")
 for (i in 1:length(temp_ASV)) {
@@ -101,6 +106,8 @@ for (i in 1:length(temp_ASV)){
 for (i in 1:length(temp_ASV)) colnames(temp_ASV[[i]]) <- barcodes[i]
 
 names(temp_ASV) <- barcodes[1:length(temp_ASV)]
+
+##ASV Taxonomy ----
 #Individual taxonomy tables loading
 temp_TAX = list.files(path = paste0(OUTPWD,"/Results/Tax/"), pattern="*.csv")
 for (i in 1:length(temp_TAX)) assign(temp_TAX[i], data.frame(read.csv2(file = paste(OUTPWD,"/Results/Tax/",temp_TAX[i], sep = ""), sep = ";", header = F, check.names = F, fill = TRUE, 
@@ -131,6 +138,8 @@ for(i in 1: length(temp_TAX)) {
 
 temp_phyloseq <- barcodes
 
+##Phyloseq objects ----
+
 physeq_list <- list()
 
 for (i in 1:length(temp_ASV)) {
@@ -160,6 +169,10 @@ if(length(physeq_list)>2){
   }
 }
 
+##Phylogeny ----
+phy_tree(NanoASV) <- phy_tree(ASV.tree)
+
+##Dataset cleaning ----
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
 if(R_CLEANING == 1){
 NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
@@ -167,8 +180,11 @@ NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
 NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
 }
 
+##Taxonomy cleaning ----
 #After those functions, there is no more taxa with fucked up names so we can remove supp fields of taxa table
 tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
 
+
+#Phyloseq export ----
 print("Saving the phyloseq object to a file")
 save(NanoASV, file = paste0(OUTPWD,"/Results/Rdata/NanoASV.rdata"))

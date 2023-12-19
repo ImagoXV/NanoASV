@@ -332,7 +332,7 @@ rm seqs
 cat *_ASV_list.tsv | sort -u > ID_ASV
 echo Extracting ASV SILVA fasta
 zcat ${SILVA} | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
-cat ALL_ASV.fasta
+cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV.fasta
 
 ## MAFFT alignement
 echo Starting MAFFT alignement
@@ -352,30 +352,20 @@ cat ASV.tree
 
 #***************************************************************************************************************************
 
-#Docker version **********************************************************************************************************
-mkdir ${DIR}/${OUT}
-mkdir ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
-# mkdir ${DIR}/${OUT}/Results/Tax
-# mkdir ${DIR}/${OUT}/Results/ASV
-# mkdir ${DIR}/${OUT}/Results/Unknown_clusters
-# mkdir ${DIR}/${OUT}/Results/Phylogeny
-# mkdir ${DIR}/${OUT}/Results/Exact_affiliations
-# mkdir ${DIR}/${OUT}/Results/Rdata
+# #Docker version **********************************************************************************************************
+# mkdir ${DIR}/${OUT}
+# mkdir ${DIR}/${OUT}/Results
+# mkdir -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
 
-OUTPWD=${DIR}/${OUT}
+# OUTPWD=${DIR}/${OUT}
 #***************************************************************************************************************************
 
-# #Singularity version *******************************************************************************************************
-# mkdir ${OUT}
-# mkdir ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
-# # mkdir ${OUT}/Results/Tax
-# # mkdir ${OUT}/Results/ASV
-# # mkdir ${OUT}/Results/Unknown_clusters
-# # mkdir ${OUT}/Results/Phylogeny
-# # mkdir ${OUT}/Results/Exact_affiliations
-# # mkdir ${OUT}/Results/Rdata
+#Singularity version *******************************************************************************************************
+mkdir ${OUT}
+mkdir ${OUT}/Results/
+mkdir ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
 
-# OUTPWD=$(pwd)/${OUT}
+OUTPWD=$(pwd)/${OUT}
 #***************************************************************************************************************************
 
 ## Export results **********************************************************************************************************
@@ -384,7 +374,7 @@ mv *_abundance.tsv ${OUTPWD}/Results/ASV/
 mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
 mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/
 mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
-mv ASV.tree ${OUT}/Results/Phylogeny/
+mv ASV.tree ${OUTPWD}/Results/Phylogeny/
 )
 #rm -r ${TMP}
 #***************************************************************************************************************************
