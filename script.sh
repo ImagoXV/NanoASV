@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# This script is the first docker version of NanoASV
+# This script is the first version of NanoASV
 # Authors : Arthur Cousson, Frederic Mahe
 # 08/03/2023
 
 START=$(date +%s) #Set the clock for timer
 
 #/usr/games/cowsay -TU NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. && /usr/games/cowsay -f dragon Death To Epi2Me !
-#echo NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. #&& /usr/games/cowsay -f dragon Death To Epi2Me !
+echo "NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data." #&& /usr/games/cowsay -f dragon Death To Epi2Me !
 
 #***************************************************************************************************************************
 # Manual entries - Arguments
@@ -20,6 +20,10 @@ DEFAULT_NUM_PROCESSES=6
 DEFAULT_R_CLEANING=1
 DEFAULT_MINAB=0
 DEFAULT_SUBSAMPLING=10000000
+DEFAULT_NUM_PROCESSES=6
+DEFAULT_TREE=1
+DEFAULT_DOCKER=0
+
 #***************************************************************************************************************************
 # Read the arguments passed to the script
 while [[ $# -gt 0 ]]; do
@@ -70,11 +74,20 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    --notree)
+      TREE=0
+      shift
+      shift
+      ;;
+    --docker)
+      DOCKER=1
+      shift
+      shift
+      ;;
     --version)
       echo "NanoASV 1.0"
       shift
       ;;
-    
     *)
       echo "Unknown option: $1"
       shift
@@ -88,9 +101,12 @@ QUAL="${QUAL:-$DEFAULT_QUAL}"
 MINL="${MINL:-$DEFAULT_MINL}"
 MAXL="${MAXL:-$DEFAULT_MAXL}"
 ID="${ID:-$DEFAULT_ID}"
-NUM_PROCESSES="${NUM_PROCESS:-$DEFAULT_NUM_PROCESSES}"
+NUM_PROCESSES="${NUM_PROCESSES:-$DEFAULT_NUM_PROCESSES}"
 R_CLEANING="${R_CLEANING:-$DEFAULT_R_CLEANING}"
 SUBSAMPLING="${SUBSAMPLING:-$DEFAULT_SUBSAMPLING}"
+TREE="${TREE:-$DEFAULT_TREE}"
+DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
+SUBSAMPLING=$((SUBSAMPLING * 4))
 #***************************************************************************************************************************
 
 #***************************************************************************************************************************
@@ -117,11 +133,7 @@ TMP="/tmp/.tmp_NanoASV"
 #echo Concatenation step
 (cd ${DIR}
   for BARCODE in barcode* ; do
-     pwd
-     ls
-     date
     zcat -v ${BARCODE}/*.fastq.gz | gzip > ${TMP}/${BARCODE}.fastq.gz         
-    #echo ${BARCODE} concatenated
  done
 )
 #***************************************************************************************************************************
@@ -153,8 +165,25 @@ rm ${TMP}/barcode*.fastq.gz
 #***************************************************************************************************************************
 
 ## Chimera detection *******************************************************************************************************
-#echo "Chimera detection - WORK IN PROGRESS"
-# Work in progress
+# Chimera detection function definition
+chimera_detection() {
+  (
+  #echo Chimera detection step
+  filename=$(basename "$1")
+  chimera_out="NONCHIM_$filename"
+  vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}"
+  #echo ${chimera_out} chimera removed
+  )
+}
+export -f chimera_detection
+
+#Iterate in parallel
+find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
+  parallel -j "${NUM_PROCESSES}" chimera_detection  
+
+#echo Filtered datasets are being deleted
+rm ${TMP}/FILTERED*
+
 #***************************************************************************************************************************
 
 
@@ -166,7 +195,7 @@ chop_file() {
   #echo "Concerned file is $1"
   filename=$(basename "$1")
   output_file="CHOPED_$filename"
-  porechop --verbosity 0 -i $1 -o ${TMP}/${output_file} -t ${NUM_PROCESSES}
+  porechop --verbosity 0 -i $1 -o ${TMP}/${output_file}
   #echo "$1 choped"
   )
 }
@@ -175,11 +204,11 @@ export -f chop_file
 #***************************************************************************************************************************
 
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
+find "${TMP}" -maxdepth 1 -name "NONCHIM_*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
 ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
 
 #echo Filtered datasets are being deleted
-rm ${TMP}/FILTERED*
+rm ${TMP}/NONCHIM*
 
 # Subsampling
 #echo Barcodes ${SUBSAMPLING} firsts quality checked sequences subsampling
@@ -195,6 +224,7 @@ rm ${TMP}/FILTERED*
 rm ${TMP}/CHOPED*
 #***************************************************************************************************************************
 
+
 # Bwa alignments ***********************************************************************************************************
 
  SILVA="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
@@ -205,11 +235,11 @@ rm ${TMP}/CHOPED*
 # Define a function to process each file
 process_file() {
     FILE="$1"
-    date
-    echo "${FILE} alignment"
+    #date
+    #echo "${FILE} alignment"
     filename=$(basename "$1")
     bwa mem ${DB}/SILVA_IDX "${FILE}" > "${FILE}.sam"
-    echo samtools start
+    #echo samtools start
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
     samtools fastq -f 4 "${FILE}.sam" > ${TMP}/${outsamtools_file}
@@ -217,7 +247,7 @@ process_file() {
      "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
     grep -o '[^ ]\+$' ${TMP}/${output_file}.tsv > "${TMP}/${filename}_ASV_list.tsv"
-    echo "${FILE} taxonomy export"
+    #echo "${FILE} taxonomy export"
     barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
     output_tax="Taxonomy_barcode${barcode_number}.csv"
     grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
@@ -228,14 +258,14 @@ export -f process_file
 #***************************************************************************************************************************
 
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
+find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
 MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
 #***************************************************************************************************************************
 
 # Homogenization of exact affiliations file names **************************************************************************
 (cd ${TMP}
-for file in SUB_CHOPED_FILTERED_barcode*.fastq.gz_Exact_affiliations.tsv; do
+for file in SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz_Exact_affiliations.tsv; do
     barcode_number=$(echo "$file" | sed -E 's/.*barcode([0-9]+).*\.tsv/\1/')
     new_file="barcode${barcode_number}_exact_affiliations.tsv"
     mv "$file" "$new_file"
@@ -244,7 +274,7 @@ done
 #***************************************************************************************************************************
 
 # Homogeneization of ASV table names ***************************************************************************************
-for file in ASV_abundance_SUB_CHOPED_FILTERED_barcode*.fastq.gz.tsv; do
+for file in ASV_abundance_SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz.tsv; do
     barcode_number=$(echo "$file" | sed -E 's/.*barcode([0-9]+).*\.tsv/\1/')
     new_file="barcode${barcode_number}_abundance.tsv"
     mv "$file" "$new_file"
@@ -257,8 +287,8 @@ done
 
 # This function to hemomogeneize names
 (cd ${TMP}
-for file in Unmatched_SUB_CHOPED_FILTERED_barcode*.fastq; do
-    newname=$(echo "$file" | sed 's/Unmatched_CHOPED_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
+for file in Unmatched_SUB_CHOPED_NONCHIM__FILTERED_barcode*.fastq; do
+    newname=$(echo "$file" | sed 's/Unmatched_SUB_CHOPED_NONCHIM_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
     mv "$file" "$newname"
 done
 )
@@ -288,34 +318,48 @@ vsearch \
         --biomout unknown_clusters.biom \
         --clusterout_id \
         --clusterout_sort \
-        --consout Consensus_seq_OTU.fasta
-
+        --consout Consensus_seq_OTU.fasta \
+        #--randseed 666
 rm seqs
 )
+
+
+# Create phylogeny with MAFFT and FastTree *********************************************************************************
+
+## Get every identified ASV ID
+
+if [ "$TREE" -eq 1 ]; then
+(cd ${TMP}
+cat *_ASV_list.tsv | sort -u > ID_ASV
+echo Extracting ASV SILVA fasta
+zcat ${SILVA} | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
+cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV_OTU.fasta
+
+## MAFFT alignement ********************************************************************************************************
+mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln
+
+## FastTree ****************************************************************************************************************
+FastTree -nt ALL_ASV.aln > ASV.tree
+)
+fi
+
 #***************************************************************************************************************************
-
-# #Docker version **********************************************************************************************************
-# mkdir ${DIR}/${OUT}
-# mkdir ${DIR}/${OUT}/Results
-# mkdir ${DIR}/${OUT}/Results/Tax
-# mkdir ${DIR}/${OUT}/Results/ASV
-# mkdir ${DIR}/${OUT}/Results/Unknown_clusters
-# mkdir ${DIR}/${OUT}/Results/Exact_affiliations
-# mkdir ${DIR}/${OUT}/Results/Rdata
-
-# OUTPWD=${DIR}/${OUT}
+if [ "$DOCKER" -eq 1 ]; then
+#Docker version ************************************************************************************************************
+mkdir ${DIR}/${OUT}
+mkdir ${DIR}/${OUT}/Results
+mkdir -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
+OUTPWD=${DIR}/${OUT}
+fi
 #***************************************************************************************************************************
-
+if [ "$DOCKER" -eq 0 ]; then
 #Singularity version *******************************************************************************************************
 mkdir ${OUT}
-mkdir ${OUT}/Results
-mkdir ${OUT}/Results/Tax
-mkdir ${OUT}/Results/ASV
-mkdir ${OUT}/Results/Unknown_clusters
-mkdir ${OUT}/Results/Exact_affiliations
-mkdir ${OUT}/Results/Rdata
+mkdir ${OUT}/Results/
+mkdir ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
 
 OUTPWD=$(pwd)/${OUT}
+fi
 #***************************************************************************************************************************
 
 ## Export results **********************************************************************************************************
@@ -324,20 +368,19 @@ mv *_abundance.tsv ${OUTPWD}/Results/ASV/
 mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
 mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/
 mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
+mv ASV.tree ${OUTPWD}/Results/Phylogeny/
 )
 rm -r ${TMP}
 #***************************************************************************************************************************
 
-
-
 ##Production of phyloseq object ********************************************************************************************
 #echo R step
-Rscript /script.r $DIR $OUTPWD $R_CLEANING
+Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE
 
 #***************************************************************************************************************************
 declare -i TIME=$(date +%s)-$START
 #***************************************************************************************************************************
 echo "Data treatment is over."
-echo "NanoASV $TIME seconds to perform."
+echo "NanoASV took $TIME seconds to perform."
 echo "Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data."
 #***************************************************************************************************************************
