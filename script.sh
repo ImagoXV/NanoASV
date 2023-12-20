@@ -7,7 +7,14 @@
 START=$(date +%s) #Set the clock for timer
 
 #/usr/games/cowsay -TU NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. && /usr/games/cowsay -f dragon Death To Epi2Me !
-echo "NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data." #&& /usr/games/cowsay -f dragon Death To Epi2Me !
+#echo "NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data." #&& /usr/games/cowsay -f dragon Death To Epi2Me !
+
+#Log system and error handling *********************************************************************************************
+# LOG_FILE="NanoASV_log.txt"
+# exec > >(tee -a $LOG_FILE) 2>&1
+#set -e
+#***************************************************************************************************************************
+
 
 #***************************************************************************************************************************
 # Manual entries - Arguments
@@ -23,6 +30,7 @@ DEFAULT_SUBSAMPLING=10000000
 DEFAULT_NUM_PROCESSES=6
 DEFAULT_TREE=1
 DEFAULT_DOCKER=0
+DEFAULT_R_STEP_ONLY=0
 
 #***************************************************************************************************************************
 # Read the arguments passed to the script
@@ -64,9 +72,8 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    --r_cleaning)
-      R_CLEANING="$2"
-      shift
+    --no-r-cleaning)
+      R_CLEANING=0
       shift
       ;;
     --subsampling)
@@ -77,11 +84,13 @@ while [[ $# -gt 0 ]]; do
     --notree)
       TREE=0
       shift
-      shift
       ;;
     --docker)
       DOCKER=1
       shift
+      ;;
+    --ronly)
+      R_STEP_ONLY=1
       shift
       ;;
     --version)
@@ -107,6 +116,7 @@ SUBSAMPLING="${SUBSAMPLING:-$DEFAULT_SUBSAMPLING}"
 TREE="${TREE:-$DEFAULT_TREE}"
 DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
 SUBSAMPLING=$((SUBSAMPLING * 4))
+R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 #***************************************************************************************************************************
 
 #***************************************************************************************************************************
@@ -120,48 +130,91 @@ if [[ -z $OUT ]]; then
   /usr/games/cowsay -d "Error: -o needs an argument. You don't want me to print to stdout" >&2
   exit 1
 fi
-#***************************************************************************************************************************
 
 ## Create temporary directory ***********************************************************************************************
 # date
 # echo Creating temporary directory at /tmp/
-mkdir /tmp/.tmp_NanoASV
+mkdir -p /tmp/.tmp_NanoASV
 TMP="/tmp/.tmp_NanoASV"
+
+#****************************************************************************************************************************
+if [ "$DOCKER" -eq 1 ]; then
+#Docker version ************************************************************************************************************
+mkdir -p ${DIR}/${OUT} 2> /dev/null
+mkdir -p ${DIR}/${OUT}/Results 2> /dev/null
+mkdir -p -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+OUTPWD=${DIR}/${OUT}
+fi
+
+#***************************************************************************************************************************
+if [ "$DOCKER" -eq 0 ]; then
+#Singularity version *******************************************************************************************************
+mkdir -p ${OUT} 2> /dev/null
+mkdir -p ${OUT}/Results/ 2> /dev/null
+mkdir -p ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+
+OUTPWD=$(pwd)/${OUT}
+fi
+#***************************************************************************************************************************
+
+#R Step Only if problem *********************************************************************************************
+if [ "$R_STEP_ONLY" -eq 1 ]; then
+##Production of phyloseq object *************************************************************************************
+Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE
+
+#********************************************************************************************************************
+declare -i TIME=$(date +%s)-$START
+#********************************************************************************************************************
+echo "Data treatment is over."
+echo "NanoASV Rstep took $TIME seconds to perform."
+echo "Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data."
+#********************************************************************************************************************
+exit
+fi
 
 
 ## Concatenation of fastq files *********************************************************************************************
-#echo Concatenation step
-(cd ${DIR}
-  for BARCODE in barcode* ; do
-    zcat -v ${BARCODE}/*.fastq.gz | gzip > ${TMP}/${BARCODE}.fastq.gz         
- done
-)
+
+cat_files() {
+  BARCODE_DIR="$1"
+  # Extract the barcode from the directory name
+  BARCODE=$(basename "${BARCODE_DIR}")
+  # Concatenate all fastq.gz files in the barcode directory
+  zcat "${DIR}/${BARCODE_DIR}"/*.fastq.gz | gzip > "${TMP}/${BARCODE}.fastq.gz"
+}
+
+export -f cat_files  # Export the function so that it can be used in parallel
+
+echo "Step 1 : Concatenation"
+find "${DIR}" -maxdepth 1 -type d -name "barcode*" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" \
+  parallel -j "${NUM_PROCESSES}" cat_files
+
 #***************************************************************************************************************************
 
 ## Define function to filter files******************************************************************************************
 
 filter_file() {
   (
-  #echo "Concerned file is $1"
   filename=$(basename "$1")
   output_file="FILTERED_$filename"
-  zcat "$1" | /opt/chopper -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" | gzip > "${TMP}/${output_file}"
-  #echo "$1 filtered"
+  zcat "$1" | /opt/chopper -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" 2> /dev/null | gzip > "${TMP}/${output_file}"
   )
 }
 
 export -f filter_file
+
 #***************************************************************************************************************************
 
 
-## Filtering sequences based on quality with NanoFilt **********************************************************************
-#echo NanoFilt step
+## Filtering sequences based on quality with Chopper **********************************************************************
+
 # Iterate over the files in parallel
+echo "Step 2 : Filtering with Chopper"
 find "${TMP}" -maxdepth 1 -name "barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
   parallel -j "${NUM_PROCESSES}" filter_file  
 #echo Unfiltered files are being deleted
 rm ${TMP}/barcode*.fastq.gz
-#date
+
 #***************************************************************************************************************************
 
 ## Chimera detection *******************************************************************************************************
@@ -171,12 +224,13 @@ chimera_detection() {
   #echo Chimera detection step
   filename=$(basename "$1")
   chimera_out="NONCHIM_$filename"
-  vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}"
+  vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
   #echo ${chimera_out} chimera removed
   )
 }
 export -f chimera_detection
 
+echo "Step 3 : Chimera detection with vsearch"
 #Iterate in parallel
 find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
   parallel -j "${NUM_PROCESSES}" chimera_detection  
@@ -203,6 +257,7 @@ chop_file() {
 export -f chop_file
 #***************************************************************************************************************************
 
+echo "Step 4 : Adapter trimming with Porechop"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "NONCHIM_*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
 ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
@@ -211,8 +266,10 @@ ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file
 rm ${TMP}/NONCHIM*
 
 # Subsampling
-#echo Barcodes ${SUBSAMPLING} firsts quality checked sequences subsampling
-#date
+
+echo "Step 5 : Subsampling"
+
+
 (cd ${TMP}
  for CHOPED_FILE in CHOPED*.fastq.gz ; do
      zcat "${CHOPED_FILE}" | head -n "${SUBSAMPLING}"  > "SUB_${CHOPED_FILE}"
@@ -238,11 +295,11 @@ process_file() {
     #date
     #echo "${FILE} alignment"
     filename=$(basename "$1")
-    bwa mem ${DB}/SILVA_IDX "${FILE}" > "${FILE}.sam"
+    bwa mem ${DB}/SILVA_IDX "${FILE}" 2> /dev/null > "${FILE}.sam"
     #echo samtools start
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
-    samtools fastq -f 4 "${FILE}.sam" > ${TMP}/${outsamtools_file}
+    samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file} 
     grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
      "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
@@ -256,7 +313,7 @@ process_file() {
 # Export the function
 export -f process_file
 #***************************************************************************************************************************
-
+echo "Step 6 : Reads alignements with bwa against SILVA_138.1"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
 MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
@@ -287,27 +344,35 @@ done
 
 # This function to hemomogeneize names
 (cd ${TMP}
-for file in Unmatched_SUB_CHOPED_NONCHIM__FILTERED_barcode*.fastq; do
+for file in Unmatched_SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq; do
+    if [ -e "$file" ]; then
     newname=$(echo "$file" | sed 's/Unmatched_SUB_CHOPED_NONCHIM_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
     mv "$file" "$newname"
+    fi
 done
 )
 #***************************************************************************************************************************
 
 #This function to add barcode identifier to fasta header to retrieve abundance after clustering ****************************
 (cd ${TMP}
-for file in barcode*_unmatched.fastq; do \
-sample=$(echo "$file" | \
-sed 's/barcode\(.*\)_unmatched.fastq/\1/');\
-awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"} else print $0}' "$file" >\
-"$file.tmp" && mv "$file.tmp" "$file"; done
+for file in barcode*_unmatched.fastq; do
+    if [ -e "$file" ]; then
+  sample=$(echo "$file" | \
+  sed 's/barcode\(.*\)_unmatched.fastq/\1/');\
+  awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"} else print $0}' "$file" >\
+  "$file.tmp" && mv "$file.tmp" "$file"; 
+  fi
+done
 )
 #***************************************************************************************************************************
 
 # Vsearch Unknown sequences clustering step ********************************************************************************
 UNIQ_ID=uuidgen
 (cd ${TMP}
-cat barcode*_unmatched.fastq > seqs
+cat barcode*_unmatched.fastq > seqs 2> /dev/null
+# Check if seqs is not empty
+if [ -s "seqs" ]; then
+echo "Step 7 : Unknown sequences clustering with vsearch"
 
 vsearch \
         --cluster_size seqs \
@@ -321,52 +386,40 @@ vsearch \
         --consout Consensus_seq_OTU.fasta \
         #--randseed 666
 rm seqs
+
+else 
+echo "Step 7 : Skipped - no unknown sequence"
+fi
 )
-
-
 # Create phylogeny with MAFFT and FastTree *********************************************************************************
+
+echo "Step 8 : Phylogeny with MAFFT and FastTree"
 
 ## Get every identified ASV ID
 
 if [ "$TREE" -eq 1 ]; then
 (cd ${TMP}
 cat *_ASV_list.tsv | sort -u > ID_ASV
-echo Extracting ASV SILVA fasta
 zcat ${SILVA} | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
+if [ -e "Consensus_seq_OTU.fasta" ]; then
 cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV_OTU.fasta
+else 
+cat ALL_ASV.fasta > ALL_ASV_OTU.fasta
+fi
 
 ## MAFFT alignement ********************************************************************************************************
-mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln
+mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null
 
 ## FastTree ****************************************************************************************************************
-FastTree -nt ALL_ASV.aln > ASV.tree
+FastTree -nt ALL_ASV.aln > ASV.tree 2> /dev/null
 )
 fi
-
-#***************************************************************************************************************************
-if [ "$DOCKER" -eq 1 ]; then
-#Docker version ************************************************************************************************************
-mkdir ${DIR}/${OUT}
-mkdir ${DIR}/${OUT}/Results
-mkdir -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
-OUTPWD=${DIR}/${OUT}
-fi
-#***************************************************************************************************************************
-if [ "$DOCKER" -eq 0 ]; then
-#Singularity version *******************************************************************************************************
-mkdir ${OUT}
-mkdir ${OUT}/Results/
-mkdir ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
-
-OUTPWD=$(pwd)/${OUT}
-fi
-#***************************************************************************************************************************
 
 ## Export results **********************************************************************************************************
 (cd ${TMP}
 mv *_abundance.tsv ${OUTPWD}/Results/ASV/
 mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
-mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/
+mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/ 2> /dev/null
 mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
 mv ASV.tree ${OUTPWD}/Results/Phylogeny/
 )
@@ -374,13 +427,12 @@ rm -r ${TMP}
 #***************************************************************************************************************************
 
 ##Production of phyloseq object ********************************************************************************************
-#echo R step
-Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE
+echo "Step 9 : Phylosequization with R and phyloseq"
+Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE 2> /dev/null
 
 #***************************************************************************************************************************
 declare -i TIME=$(date +%s)-$START
 #***************************************************************************************************************************
 echo "Data treatment is over."
 echo "NanoASV took $TIME seconds to perform."
-echo "Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data."
-#***************************************************************************************************************************
+echo "Don't forget to cite NanoASV and its dependencies if it allows you to treat your data."
