@@ -153,20 +153,19 @@ for (i in 1:length(temp_ASV)) {
   barcode_name <- barcodes[i]
   # Assign the phyloseq object to the list with the dynamic name
   physeq_list[[barcode_name]] <- physeq_object
-  # Print the index
-  print(i)
 }
 
 #Essaye de merge deux a deux sur une liste 
 #NanoASV <- merge_phyloseq(barcode01,barcode02,barcode03,barcode04,barcode05,barcode06,barcode07,barcode08,barcode09,barcode10,barcode11,barcode12,barcode13,barcode14,barcode15,barcode16,barcode17,barcode18,barcode19,barcode20,barcode21,barcode22,barcode23,barcode24)
 
 i<-1 #Reset the incrementation
-NanoASV <- merge_phyloseq(physeq_list[[i]], physeq_list[[i+1]])
+#Initialize the phyloseq object
+NanoASV <- merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])
 
-#If more than 2 samples, then, adding them all together
-if(length(physeq_list)>2){
-  for(i in 3: length(physeq_list)){
-    NanoASV <- merge_phyloseq(NanoASV, physeq_list[i])
+# If more than 2 samples, then, adding them all together
+if (length(physeq_list) > 2) {
+  for (i in 3:length(physeq_list)) {
+    NanoASV <- merge_phyloseq(NanoASV, physeq_list[[i]])
   }
 }
 

@@ -131,11 +131,32 @@ TMP="/tmp/.tmp_NanoASV"
 
 ## Concatenation of fastq files *********************************************************************************************
 #echo Concatenation step
-(cd ${DIR}
-  for BARCODE in barcode* ; do
-    zcat -v ${BARCODE}/*.fastq.gz | gzip > ${TMP}/${BARCODE}.fastq.gz         
- done
-)
+# (cd ${DIR}
+#   for BARCODE in barcode* ; do
+#     zcat -v ${BARCODE}/*.fastq.gz | gzip > ${TMP}/${BARCODE}.fastq.gz         
+#  done
+# )
+
+cat_files() {
+  BARCODE_DIR="$1"
+  TMP="$2"
+
+  # Extract the barcode from the directory name
+  BARCODE=$(basename "${BARCODE_DIR}")
+
+  # Concatenate all fastq.gz files in the barcode directory
+  zcat -v "${BARCODE_DIR}"/*.fastq.gz | gzip > "${TMP}/${BARCODE}.fastq.gz"
+}
+
+export -f cat_files  # Export the function so that it can be used in parallel
+
+find "${TMP}" -maxdepth 1 -type d -name "barcode*" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" \
+  parallel -j "${NUM_PROCESSES}" cat_files
+
+ls ${TMP}
+
+cat ${TMP}/*
+
 #***************************************************************************************************************************
 
 ## Define function to filter files******************************************************************************************
