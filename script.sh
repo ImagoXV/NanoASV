@@ -7,7 +7,14 @@
 START=$(date +%s) #Set the clock for timer
 
 #/usr/games/cowsay -TU NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Hope this will help you analyse your data. && /usr/games/cowsay -f dragon Death To Epi2Me !
-echo "NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data." #&& /usr/games/cowsay -f dragon Death To Epi2Me !
+#echo "NanoASV is a workflow created by Arthur Cousson with useful contributions from Frederic Mahe and Enrique Ortega-Abbud. Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data." #&& /usr/games/cowsay -f dragon Death To Epi2Me !
+
+#Log system and error handling *********************************************************************************************
+# LOG_FILE="NanoASV_log.txt"
+# exec > >(tee -a $LOG_FILE) 2>&1
+#set -e
+#***************************************************************************************************************************
+
 
 #***************************************************************************************************************************
 # Manual entries - Arguments
@@ -23,6 +30,7 @@ DEFAULT_SUBSAMPLING=10000000
 DEFAULT_NUM_PROCESSES=6
 DEFAULT_TREE=1
 DEFAULT_DOCKER=0
+DEFAULT_R_STEP_ONLY=0
 
 #***************************************************************************************************************************
 # Read the arguments passed to the script
@@ -77,11 +85,13 @@ while [[ $# -gt 0 ]]; do
     --notree)
       TREE=0
       shift
-      shift
       ;;
     --docker)
       DOCKER=1
       shift
+      ;;
+    --ronly)
+      R_STEP_ONLY=1
       shift
       ;;
     --version)
@@ -107,6 +117,7 @@ SUBSAMPLING="${SUBSAMPLING:-$DEFAULT_SUBSAMPLING}"
 TREE="${TREE:-$DEFAULT_TREE}"
 DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
 SUBSAMPLING=$((SUBSAMPLING * 4))
+R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 #***************************************************************************************************************************
 
 #***************************************************************************************************************************
@@ -120,42 +131,69 @@ if [[ -z $OUT ]]; then
   /usr/games/cowsay -d "Error: -o needs an argument. You don't want me to print to stdout" >&2
   exit 1
 fi
-#***************************************************************************************************************************
 
 ## Create temporary directory ***********************************************************************************************
 # date
 # echo Creating temporary directory at /tmp/
-mkdir /tmp/.tmp_NanoASV
+mkdir -v /tmp/.tmp_NanoASV
 TMP="/tmp/.tmp_NanoASV"
+
+#****************************************************************************************************************************
+if [ "$DOCKER" -eq 1 ]; then
+#Docker version ************************************************************************************************************
+mkdir ${DIR}/${OUT}
+mkdir ${DIR}/${OUT}/Results
+mkdir -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
+OUTPWD=${DIR}/${OUT}
+fi
+
+#***************************************************************************************************************************
+if [ "$DOCKER" -eq 0 ]; then
+#Singularity version *******************************************************************************************************
+mkdir ${OUT}
+mkdir ${OUT}/Results/
+mkdir ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
+
+OUTPWD=$(pwd)/${OUT}
+fi
+#***************************************************************************************************************************
+
+ 
+echo R step value $R_STEP_ONLY
+#R Step Only if problem *********************************************************************************************
+if [ "$R_STEP_ONLY" -eq 1 ]; then
+##Production of phyloseq object *************************************************************************************
+echo R step
+Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE
+
+#********************************************************************************************************************
+declare -i TIME=$(date +%s)-$START
+#********************************************************************************************************************
+echo "Data treatment is over."
+echo "NanoASV Rstep took $TIME seconds to perform."
+echo "Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data."
+#********************************************************************************************************************
+exit
+fi
 
 
 ## Concatenation of fastq files *********************************************************************************************
-#echo Concatenation step
-# (cd ${DIR}
-#   for BARCODE in barcode* ; do
-#     zcat -v ${BARCODE}/*.fastq.gz | gzip > ${TMP}/${BARCODE}.fastq.gz         
-#  done
-# )
 
 cat_files() {
   BARCODE_DIR="$1"
-  TMP="$2"
-
   # Extract the barcode from the directory name
   BARCODE=$(basename "${BARCODE_DIR}")
-
   # Concatenate all fastq.gz files in the barcode directory
-  zcat -v "${BARCODE_DIR}"/*.fastq.gz | gzip > "${TMP}/${BARCODE}.fastq.gz"
+  zcat -v "${DIR}/${BARCODE_DIR}"/*.fastq.gz | gzip > "${TMP}/${BARCODE}.fastq.gz"
+  echo concatenation step - problematic
 }
 
 export -f cat_files  # Export the function so that it can be used in parallel
 
-find "${TMP}" -maxdepth 1 -type d -name "barcode*" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" \
+find "${DIR}" -maxdepth 1 -type d -name "barcode*" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" \
   parallel -j "${NUM_PROCESSES}" cat_files
 
 ls ${TMP}
-
-cat ${TMP}/*
 
 #***************************************************************************************************************************
 
@@ -163,7 +201,7 @@ cat ${TMP}/*
 
 filter_file() {
   (
-  #echo "Concerned file is $1"
+  echo "Concerned file is $1"
   filename=$(basename "$1")
   output_file="FILTERED_$filename"
   zcat "$1" | /opt/chopper -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" | gzip > "${TMP}/${output_file}"
@@ -364,25 +402,6 @@ FastTree -nt ALL_ASV.aln > ASV.tree
 )
 fi
 
-#***************************************************************************************************************************
-if [ "$DOCKER" -eq 1 ]; then
-#Docker version ************************************************************************************************************
-mkdir ${DIR}/${OUT}
-mkdir ${DIR}/${OUT}/Results
-mkdir -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
-OUTPWD=${DIR}/${OUT}
-fi
-#***************************************************************************************************************************
-if [ "$DOCKER" -eq 0 ]; then
-#Singularity version *******************************************************************************************************
-mkdir ${OUT}
-mkdir ${OUT}/Results/
-mkdir ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
-
-OUTPWD=$(pwd)/${OUT}
-fi
-#***************************************************************************************************************************
-
 ## Export results **********************************************************************************************************
 (cd ${TMP}
 mv *_abundance.tsv ${OUTPWD}/Results/ASV/
@@ -404,4 +423,3 @@ declare -i TIME=$(date +%s)-$START
 echo "Data treatment is over."
 echo "NanoASV took $TIME seconds to perform."
 echo "Don't forget to cite NanoASV and its dependencies if it helps you treating your sequencing data."
-#***************************************************************************************************************************
