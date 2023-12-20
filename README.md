@@ -4,14 +4,15 @@
 NanoASV is a docker based Nanopore 1500bp 16S Metabarcoding amplicon data analysis workflow. 
 
 # Installation
-## Download for Singularity
+## EASY - Download for Singularity
 Just download and uncompress the archive then run with singularity accordingly
 ```sh
 wget path/to/archive
+tar -xvzf nanoasv.tar.gz
 singularity run nanoasv -d path/to/sequences -o out [--options]
 ```
 
-## Build from source with Docker
+## ADVANCED - Build from source with Docker
 Takes 75 min on my computer (32Gb RAM - 12 cores).
 The longest part is SILVA indexing step.
 Avoid this step by downloading the (heavy) NanoASV.tar archive
@@ -24,7 +25,7 @@ docker build -t nanoasv NanoASV/.
 ```sh
 docker save NanoASV.tar nanoasv
 ```
-## Build image with Singularity
+## ADVANCED - Build image with Singularity
 
 ```sh
 wget PATH/TO/ARCHIVE
@@ -37,11 +38,11 @@ singularity run nanoasv -d path/to/sequences -o out [--options]
 ```
 ## With Docker
 I highly recommand you not to run it with docker because of root privileges.
-Plus, the workflow is Singularity oriented, which means it might not work if running with docker
 Don't forget the --docker flag
 ```sh
 docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker 1
 ```
+You can mount your sequences directory anywhere in the container, but I recommand you to mount in /data/
 ## Options
 
 ```

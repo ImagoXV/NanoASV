@@ -135,35 +135,32 @@ fi
 ## Create temporary directory ***********************************************************************************************
 # date
 # echo Creating temporary directory at /tmp/
-mkdir -v /tmp/.tmp_NanoASV
+mkdir -p -v /tmp/.tmp_NanoASV
 TMP="/tmp/.tmp_NanoASV"
 
 #****************************************************************************************************************************
 if [ "$DOCKER" -eq 1 ]; then
 #Docker version ************************************************************************************************************
-mkdir ${DIR}/${OUT}
-mkdir ${DIR}/${OUT}/Results
-mkdir -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
+mkdir -p ${DIR}/${OUT}
+mkdir -p ${DIR}/${OUT}/Results
+mkdir -p -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
 OUTPWD=${DIR}/${OUT}
 fi
 
 #***************************************************************************************************************************
 if [ "$DOCKER" -eq 0 ]; then
 #Singularity version *******************************************************************************************************
-mkdir ${OUT}
-mkdir ${OUT}/Results/
-mkdir ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
+mkdir -p ${OUT}
+mkdir -p ${OUT}/Results/
+mkdir -p ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
 
 OUTPWD=$(pwd)/${OUT}
 fi
 #***************************************************************************************************************************
 
- 
-echo R step value $R_STEP_ONLY
 #R Step Only if problem *********************************************************************************************
 if [ "$R_STEP_ONLY" -eq 1 ]; then
 ##Production of phyloseq object *************************************************************************************
-echo R step
 Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE
 
 #********************************************************************************************************************
