@@ -187,5 +187,4 @@ tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
 
 
 #Phyloseq export ----
-print("Saving the phyloseq object to a file")
 save(NanoASV, file = paste0(OUTPWD,"/Results/Rdata/NanoASV.rdata"))

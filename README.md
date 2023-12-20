@@ -9,7 +9,10 @@ Just download and uncompress the archive then run with singularity accordingly
 ```sh
 wget path/to/archive
 tar -xvzf nanoasv.tar.gz
-singularity run nanoasv -d path/to/sequences -o out [--options]
+```
+Then test if everything is working properly
+```sh
+singularity run nanoasv -d Minimal -o out_minimal_test [--options]
 ```
 
 ## ADVANCED - Build from source with Docker
@@ -32,11 +35,11 @@ wget PATH/TO/ARCHIVE
 singularity build nanoasv docker-archive://NanoASV.tar
 ```
 # Usage
-## With Singularity
+## RECOMMENDED - With Singularity
 ```sh
 singularity run nanoasv -d path/to/sequences -o out [--options]
 ```
-## With Docker
+## ADVANCED - With Docker
 I highly recommand you not to run it with docker because of root privileges.
 Don't forget the --docker flag
 ```sh
@@ -115,6 +118,11 @@ In the future, I will add the phylogeny and the tree. But at the moment, the eff
 Please refer to the metadata.csv file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
 In the future, I will add a possibility to just start from output results if metadata.csv is bad format
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using --r_cleaning 0
+### --ronly option
+Sometimes, your metadata.csv file will not meet phyloseq standards. 
+To avoid you recomputing all the previous steps, a --ronly option can be added. 
+Just precise --dir and --out as in your first treatment. NanoASV will find final datasets and run only the r script. 
+This will save you time.
 
 ## Citation
 Please don't forget to cite NanoASV and dependencies if it helped you treat your Nanopore data
