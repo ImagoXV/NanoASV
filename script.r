@@ -20,9 +20,9 @@ ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
 
 
 ##Unknown OTUs ----
-U_OTU <- read.csv(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"), sep = "\t", header = T, row.names = 1)
 
-if(nrow(U_OTU) > 0){
+if (file.exists(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"))) {
+U_OTU <- read.csv(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"), sep = "\t", header = T, row.names = 1)
 
 U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
 
@@ -77,7 +77,7 @@ temp_ASV <- mget(temp_ASV) #To get files as objects from names
 
 names(temp_ASV) <- barcodes
 
-if(nrow(U_OTU) > 0){
+if(file.exists(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"))){
   for (i in 1:ncol(U_OTU)){
     for (j in 1:length(temp_ASV)){
       if (colnames(U_OTU)[i] == names(temp_ASV[j])) {
@@ -124,7 +124,7 @@ for(i in 1: length(temp_TAX)){
   if (lapply(temp_TAX[i], function(df) nrow(df)) != 0) {#This step allows to correct for Kingdom, which is currently merged with SILVA ID
     rownames(temp_TAX[[i]]) <- sapply(strsplit(temp_TAX[[i]][,1], split = " "), "[[", 1)
     temp_TAX[[i]][,1] <- sapply(strsplit(temp_TAX[[i]][,1], split = " "), "[", 2)
-    if(nrow(U_OTU) > 0){
+    if(file.exists(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"))){
       temp_TAX[[i]] <- rbind(temp_TAX[[i]], U_TAX)
     }
   }
@@ -187,4 +187,5 @@ tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
 
 
 #Phyloseq export ----
+print("Exporting phyloseq object")
 save(NanoASV, file = paste0(OUTPWD,"/Results/Rdata/NanoASV.rdata"))

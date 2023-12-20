@@ -140,18 +140,18 @@ TMP="/tmp/.tmp_NanoASV"
 #****************************************************************************************************************************
 if [ "$DOCKER" -eq 1 ]; then
 #Docker version ************************************************************************************************************
-mkdir -p ${DIR}/${OUT}
-mkdir -p ${DIR}/${OUT}/Results
-mkdir -p -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
+mkdir -p ${DIR}/${OUT} 2> /dev/null
+mkdir -p ${DIR}/${OUT}/Results 2> /dev/null
+mkdir -p -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
 OUTPWD=${DIR}/${OUT}
 fi
 
 #***************************************************************************************************************************
 if [ "$DOCKER" -eq 0 ]; then
 #Singularity version *******************************************************************************************************
-mkdir -p ${OUT}
-mkdir -p ${OUT}/Results/
-mkdir -p ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}
+mkdir -p ${OUT} 2> /dev/null
+mkdir -p ${OUT}/Results/ 2> /dev/null
+mkdir -p ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
 
 OUTPWD=$(pwd)/${OUT}
 fi
