@@ -185,7 +185,7 @@ cat_files() {
 
 export -f cat_files  # Export the function so that it can be used in parallel
 
-echo "Step 1 : Concatenation"
+echo "Step 1/9 : Concatenation"
 find "${DIR}" -maxdepth 1 -type d -name "barcode*" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" \
   parallel -j "${NUM_PROCESSES}" cat_files
 
@@ -209,7 +209,7 @@ export -f filter_file
 ## Filtering sequences based on quality with Chopper **********************************************************************
 
 # Iterate over the files in parallel
-echo "Step 2 : Filtering with Chopper"
+echo "Step 2/9 : Filtering with Chopper"
 find "${TMP}" -maxdepth 1 -name "barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
   parallel -j "${NUM_PROCESSES}" filter_file  
 #echo Unfiltered files are being deleted
@@ -230,7 +230,7 @@ chimera_detection() {
 }
 export -f chimera_detection
 
-echo "Step 3 : Chimera detection with vsearch"
+echo "Step 3/9 : Chimera detection with vsearch"
 #Iterate in parallel
 find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
   parallel -j "${NUM_PROCESSES}" chimera_detection  
@@ -257,7 +257,7 @@ chop_file() {
 export -f chop_file
 #***************************************************************************************************************************
 
-echo "Step 4 : Adapter trimming with Porechop"
+echo "Step 4/9 : Adapter trimming with Porechop"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "NONCHIM_*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
 ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
@@ -267,7 +267,7 @@ rm ${TMP}/NONCHIM*
 
 # Subsampling
 
-echo "Step 5 : Subsampling"
+echo "Step 5/9 : Subsampling"
 
 
 (cd ${TMP}
@@ -313,7 +313,7 @@ process_file() {
 # Export the function
 export -f process_file
 #***************************************************************************************************************************
-echo "Step 6 : Reads alignements with bwa against SILVA_138.1"
+echo "Step 6/9 : Reads alignements with bwa against SILVA_138.1"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
 MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
@@ -372,7 +372,7 @@ UNIQ_ID=uuidgen
 cat barcode*_unmatched.fastq > seqs 2> /dev/null
 # Check if seqs is not empty
 if [ -s "seqs" ]; then
-echo "Step 7 : Unknown sequences clustering with vsearch"
+echo "Step 7/9 : Unknown sequences clustering with vsearch"
 
 vsearch \
         --cluster_size seqs \
@@ -388,12 +388,12 @@ vsearch \
 rm seqs
 
 else 
-echo "Step 7 : Skipped - no unknown sequence"
+echo "Step 7/9 : Skipped - no unknown sequence"
 fi
 )
 # Create phylogeny with MAFFT and FastTree *********************************************************************************
 
-echo "Step 8 : Phylogeny with MAFFT and FastTree"
+echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 
 ## Get every identified ASV ID
 
@@ -427,7 +427,7 @@ rm -r ${TMP}
 #***************************************************************************************************************************
 
 ##Production of phyloseq object ********************************************************************************************
-echo "Step 9 : Phylosequization with R and phyloseq"
+echo "Step 9/9 : Phylosequization with R and phyloseq"
 Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE 2> /dev/null
 
 #***************************************************************************************************************************

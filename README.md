@@ -60,9 +60,10 @@ You can mount your sequences directory anywhere in the container, but I recomman
 | `-i`, `--id_vsearch | Identity threshold for vsearch unknown sequences clustering step, default 0.7
 | `-p`, `--num_process` | Number of core for parallelization, default = 6
 | `--subsampling`, | Max number of sequences per barcode, default 4.10^7
-| `--r_cleaning` | logical 0-1 to remove Eukaryota, Chloroplast and Mitochondria sequences from phyloseq object, default 1 (TRUE)
+| `--no-r-cleaning` | Flag - to keep Eukaryota, Chloroplast and Mitochondria sequences from phyloseq object
 | `--notree` | Flag - To remove phylogeny step and subsequent tree from phyloseq object
 | `--docker` | Flag - To run NanoASV with Docker
+| `--ronly`  | Flag - To run only the R phyloseq step
 ```
 
 # How it works 
