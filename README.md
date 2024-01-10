@@ -49,21 +49,22 @@ You can mount your sequences directory anywhere in the container, but I recomman
 ## Options
 
 ```
-| Option    | Description                            |
-| --------- | -------------------------------------- |
-| `-h`, `--help` | Show help message                 |
-| `-v`, `--version` | Show version information       |
-| `-d`, `--dir` | path/to/fastq_pass/                |
-| `-q`, `--quality | Quality threshold for NanoFilt, default 8
-| `-l`, `--minlength` | Minimum amplicon length for Nanofilt, default 1300
-| `-L`, `--maxlength` | Maximum amplicon lmength for Nanofilt, default 1700
-| `-i`, `--id_vsearch | Identity threshold for vsearch unknown sequences clustering step, default 0.7
-| `-p`, `--num_process` | Number of core for parallelization, default = 6
-| `--subsampling`, | Max number of sequences per barcode, default 4.10^7
-| `--no-r-cleaning` | Flag - to keep Eukaryota, Chloroplast and Mitochondria sequences from phyloseq object
-| `--notree` | Flag - To remove phylogeny step and subsequent tree from phyloseq object
-| `--docker` | Flag - To run NanoASV with Docker
-| `--ronly`  | Flag - To run only the R phyloseq step
+| Option              | Description                                                                    |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `-h`, `--help`      | Show help message                                                              |
+| `-v`, `--version`   | Show version information                                                       |
+| `-d`, `--dir`       | Path to fastq_pass/                                                            |
+| `-q`, `--quality`   | Quality threshold for NanoFilt, default: 8                                     |
+| `-l`, `--minlength` | Minimum amplicon length for Nanofilt, default: 1300                            |
+| `-L`, `--maxlength` | Maximum amplicon length for Nanofilt, default: 1700                            |
+| `-i`, `--id_vsearch`| Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
+| `-p`, `--num_process`| Number of cores for parallelization, default: 6                               |
+| `--subsampling`     | Max number of sequences per barcode, default: 4.10^7                           |
+| `--no-r-cleaning`   | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
+|                     | from phyloseq object                                                           |
+| `--notree`          | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
+| `--docker`          | Flag - To run NanoASV with Docker                                              |
+| `--ronly`           | Flag - To run only the R phyloseq step                                         |
 ```
 
 # How it works 
