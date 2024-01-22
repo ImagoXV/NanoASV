@@ -34,6 +34,11 @@ docker save NanoASV.tar nanoasv
 wget PATH/TO/ARCHIVE
 singularity build nanoasv docker-archive://NanoASV.tar
 ```
+
+## ADVANCED - Install on MK1C sequencing device
+
+All previous steps can be used to install on MK1C, but be sure to use the aarch64 version. **IT WOULD NOT RUN IF IT'S NOT AARCH64 VERSION**
+
 # Usage
 ## RECOMMENDED - With Singularity
 ```sh
