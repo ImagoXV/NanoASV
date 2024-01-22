@@ -47,9 +47,9 @@ RUN wget https://github.com/rrwick/Porechop/archive/refs/tags/v0.2.4.tar.gz && \
     cd Porechop-0.2.4 && \
     python3 setup.py install
 
-#Install Chopper
-RUN wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-linux.zip &&  unzip chopper-linux.zip
-RUN chmod ugo+rwx chopper && mv chopper /opt/
+#Install Chopper for MK1C aarch64
+RUN wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip &&  unzip chopper-aarch64.zip
+RUN chmod ugo+rwx chopper && mv chopper /opt
 
 # Download SILVA138.1
 RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
