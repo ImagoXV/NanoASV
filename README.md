@@ -54,9 +54,9 @@ You can mount your sequences directory anywhere in the container, but I recomman
 | `-h`, `--help`       | Show help message                                                              |
 | `-v`, `--version`    | Show version information                                                       |
 | `-d`, `--dir`        | Path to fastq_pass/                                                            |
-| `-q`, `--quality`    | Quality threshold for NanoFilt, default: 8                                     |
-| `-l`, `--minlength`  | Minimum amplicon length for Nanofilt, default: 1300                            |
-| `-L`, `--maxlength`  | Maximum amplicon length for Nanofilt, default: 1700                            |
+| `-q`, `--quality`    | Quality threshold for Chopper, default: 8                                      |
+| `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
+| `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
 | `-i`, `--id_vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
 | `-p`, `--num_process`| Number of cores for parallelization, default: 6                                |
 | `--subsampling`      | Max number of sequences per barcode, default: 4.10^7                           |
