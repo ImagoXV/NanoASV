@@ -8,11 +8,14 @@ NanoASV is a docker based Nanopore 1500bp 16S Metabarcoding amplicon data analys
 Just download and uncompress the archive then run with singularity accordingly
 ```sh
 wget path/to/archive
-tar -xvzf nanoasv.tar.gz
+tar -xvzf nanoasv.tar.gz 
+sudo mv nanoasv /opt/
+echo 'export PATH=$PATH:/opt/' >> ~/.bashrc && source ~/.bashrc
+
 ```
 Then test if everything is working properly
 ```sh
-singularity run nanoasv -d Minimal -o out_minimal_test [--options]
+nanoasv -d Minimal -o out_minimal_test [--options]
 ```
 
 ## ADVANCED - Build from source with Docker
@@ -41,8 +44,18 @@ All previous steps can be used to install on MK1C, but be sure to use the aarch6
 
 # Usage
 ## RECOMMENDED - With Singularity
+If installed in /opt/
+
+```sh
+nanoasv -d path/to/sequences -o out [--options]
+```
+Or 
 ```sh
 singularity run nanoasv -d path/to/sequences -o out [--options]
+```
+Or if installed elsewhere 
+```
+/path/to/installation/nanoasv -d path/to/sequences -o out [--options] 
 ```
 ## ADVANCED - With Docker
 I highly recommand you not to run it with docker because of root privileges.
