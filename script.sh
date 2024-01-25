@@ -430,8 +430,8 @@ echo "Step 9/9 : Phylosequization with R and phyloseq"
 Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE 2> /dev/null
 
 #***************************************************************************************************************************
-declare -i TIME=$(date +%s)-$START
+declare -ir TIME=$(( $(date +%s) - ${START} ))
 #***************************************************************************************************************************
 echo "Data treatment is over."
-echo "NanoASV took $TIME seconds to perform."
+echo "NanoASV took ${TIME} seconds to perform."
 echo "Don't forget to cite NanoASV and its dependencies if it allows you to treat your data."
