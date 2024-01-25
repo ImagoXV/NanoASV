@@ -134,8 +134,7 @@ fi
 ## Create temporary directory ***********************************************************************************************
 # date
 # echo Creating temporary directory at /tmp/
-mkdir -p /tmp/.tmp_NanoASV
-TMP="/tmp/.tmp_NanoASV"
+TMP="$(mktemp --directory || exit 1)"
 
 #****************************************************************************************************************************
 if [ "$DOCKER" -eq 1 ]; then
