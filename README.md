@@ -44,7 +44,7 @@ All previous steps can be used to install on MK1C, but be sure to use the aarch6
 
 # Usage
 ## RECOMMENDED - With Singularity
-If installed in /opt/
+If added to the path
 
 ```sh
 nanoasv -d path/to/sequences -o out [--options]
