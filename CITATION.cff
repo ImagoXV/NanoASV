@@ -3,7 +3,10 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Cousson", "Mahé"
   given-names: "Arthur", "Frédéric"
-  orcid: ""
+  orcid: "https://orcid.org/0000-0002-7807-2560"
+- family-names: "Mahé"
+  given-names: "Frédéric"
+  orcid: "https://orcid.org/0000-0002-2808-0984"
 title: "NanoASV: A docker based workflow for local and reproducible Nanopore 1500bp 16S Metabarcoding amplicon data analysis"
 version: 1.0.0
 date-released: 2024-02-03
