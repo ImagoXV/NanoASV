@@ -134,25 +134,21 @@ fi
 ## Create temporary directory ***********************************************************************************************
 # date
 # echo Creating temporary directory at /tmp/
-mkdir -p /tmp/.tmp_NanoASV
-TMP="/tmp/.tmp_NanoASV"
+TMP="$(mktemp --directory || exit 1)"
 
 #****************************************************************************************************************************
-if [ "$DOCKER" -eq 1 ]; then
+if [[ "${DOCKER}" -eq 1 ]]; then
 #Docker version ************************************************************************************************************
-mkdir -p ${DIR}/${OUT} 2> /dev/null
-mkdir -p ${DIR}/${OUT}/Results 2> /dev/null
-mkdir -p -v ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+mkdir --parents --verbose \
+    ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
 OUTPWD=${DIR}/${OUT}
 fi
 
 #***************************************************************************************************************************
-if [ "$DOCKER" -eq 0 ]; then
+if [[ "${DOCKER}" -eq 0 ]]; then
 #Singularity version *******************************************************************************************************
-mkdir -p ${OUT} 2> /dev/null
-mkdir -p ${OUT}/Results/ 2> /dev/null
-mkdir -p ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-
+mkdir --parents --verbose \
+    ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
 OUTPWD=$(pwd)/${OUT}
 fi
 #***************************************************************************************************************************
@@ -431,8 +427,8 @@ echo "Step 9/9 : Phylosequization with R and phyloseq"
 Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE 2> /dev/null
 
 #***************************************************************************************************************************
-declare -i TIME=$(date +%s)-$START
+declare -ir TIME=$(( $(date +%s) - ${START} ))
 #***************************************************************************************************************************
 echo "Data treatment is over."
-echo "NanoASV took $TIME seconds to perform."
+echo "NanoASV took ${TIME} seconds to perform."
 echo "Don't forget to cite NanoASV and its dependencies if it allows you to treat your data."
