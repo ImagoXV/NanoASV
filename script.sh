@@ -241,23 +241,68 @@ rm ${TMP}/barcode*.fastq.gz
 #Then I'll identify the chimeric OTUs, I have to go back to the sequences composing the cluster. 
 #Remove them, and go on
 
+UNIQ_ID=uuidgen
 vsearch \
-        --cluster_size seqs \
+        --cluster_size $(cat ${TMP}/FILTERED*) \
         --id 0.7 \
-        --relabel ${UNIQ_ID}_Unknown_cluster_ \
+        --relabel ${UNIQ_ID}_Cluster \
         --sizeout \
-        --otutabout unknown_clusters.tsv \
-        --biomout unknown_clusters.biom \
+        --otutabout Unchecked_clusters.tsv \
+        --biomout Unchecked_clusters.biom \
         --clusterout_id \
         --clusterout_sort \
-        --consout Consensus_seq_OTU.fasta \
+        --consout Unchecked_clusters.fasta \
         #--randseed 666
-rm seqs
+
+#Now we need to test for chimeras in that fasta file
+
+#Before that we need to sort them by size 
+
+vsearch --sortbysize  Unchecked_clusters.fasta | vsearch --uchime_denovo --chimeras Chimeric_clusters.fasta
+
+#Now we align eveything against these sequences and output only the non-matching sequences.
+
+
+bwa index -p CHIMERAS Chimeric_clusters.fasta 
 
 
 
+# Define a function to process each file
+process_file() {
+    FILE="$1"
+    #date
+    #echo "${FILE} alignment"
+    filename=$(basename "$1")
+    bwa mem CHIMERAS "${FILE}" 2> /dev/null > "${FILE}.sam"
+    #echo samtools start
+    outsamtools_file="NONCHIM_$filename"
+    # output_file="ASV_abundance_$filename"
+    samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file} 
+    # grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
+    #  "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
+    # sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
+    # grep -o '[^ ]\+$' ${TMP}/${output_file}.tsv > "${TMP}/${filename}_ASV_list.tsv"
+    # #echo "${FILE} taxonomy export"
+    # barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
+    # output_tax="Taxonomy_barcode${barcode_number}.csv"
+    # grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
+}
+
+# Export the function
+export -f process_file
+#***************************************************************************************************************************
+echo "Getting rid of chimeras"
+# Iterate over the files in parallel
+find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
+MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
 
+
+#Now NONCHIM_*.fastq.gz should be chimera free
+
+
+
+#We'll try to in ject it in the remaining workflow
 
 
 
