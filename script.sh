@@ -213,28 +213,55 @@ rm ${TMP}/barcode*.fastq.gz
 
 #***************************************************************************************************************************
 
-## Chimera detection *******************************************************************************************************
-# Chimera detection function definition
-chimera_detection() {
-  (
-  #echo Chimera detection step
-  filename=$(basename "$1")
-  chimera_out="NONCHIM_$filename"
-  vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
-  #echo ${chimera_out} chimera removed
-  )
-}
-export -f chimera_detection
+# ## Chimera detection *******************************************************************************************************
+# # Chimera detection function definition
+# chimera_detection() {
+#   (
+#   #echo Chimera detection step
+#   filename=$(basename "$1")
+#   chimera_out="NONCHIM_$filename"
+#   vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
+#   #echo ${chimera_out} chimera removed
+#   )
+# }
+# export -f chimera_detection
 
-echo "Step 3/9 : Chimera detection with vsearch"
-#Iterate in parallel
-find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
-  parallel -j "${NUM_PROCESSES}" chimera_detection  
+# echo "Step 3/9 : Chimera detection with vsearch"
+# #Iterate in parallel
+# find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
+#   parallel -j "${NUM_PROCESSES}" chimera_detection  
 
-#echo Filtered datasets are being deleted
-rm ${TMP}/FILTERED*
+# #echo Filtered datasets are being deleted
+# rm ${TMP}/FILTERED*
 
-#***************************************************************************************************************************
+# #***************************************************************************************************************************
+
+
+#I'll try to clusterize sequences before chimera detection. 
+#Then I'll identify the chimeric OTUs, I have to go back to the sequences composing the cluster. 
+#Remove them, and go on
+
+vsearch \
+        --cluster_size seqs \
+        --id 0.7 \
+        --relabel ${UNIQ_ID}_Unknown_cluster_ \
+        --sizeout \
+        --otutabout unknown_clusters.tsv \
+        --biomout unknown_clusters.biom \
+        --clusterout_id \
+        --clusterout_sort \
+        --consout Consensus_seq_OTU.fasta \
+        #--randseed 666
+rm seqs
+
+
+
+
+
+
+
+
+
 
 
 ## Trim adapaters with Porechop ********************************************************************************************
