@@ -211,30 +211,30 @@ find "${TMP}" -maxdepth 1 -name "barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${Q
 #echo Unfiltered files are being deleted
 rm ${TMP}/barcode*.fastq.gz
 
-#***************************************************************************************************************************
+# #***************************************************************************************************************************
 
-## Chimera detection *******************************************************************************************************
-# Chimera detection function definition
-chimera_detection() {
-  (
-  #echo Chimera detection step
-  filename=$(basename "$1")
-  chimera_out="NONCHIM_$filename"
-  vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
-  #echo ${chimera_out} chimera removed
-  )
-}
-export -f chimera_detection
+# ## Chimera detection *******************************************************************************************************
+# # Chimera detection function definition
+# chimera_detection() {
+#   (
+#   #echo Chimera detection step
+#   filename=$(basename "$1")
+#   chimera_out="NONCHIM_$filename"
+#   vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
+#   #echo ${chimera_out} chimera removed
+#   )
+# }
+# export -f chimera_detection
 
-echo "Step 3/9 : Chimera detection with vsearch"
-#Iterate in parallel
-find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
-  parallel -j "${NUM_PROCESSES}" chimera_detection  
+# echo "Step 3/9 : Chimera detection with vsearch"
+# #Iterate in parallel
+# find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
+#   parallel -j "${NUM_PROCESSES}" chimera_detection  
 
-#echo Filtered datasets are being deleted
-rm ${TMP}/FILTERED*
+# #echo Filtered datasets are being deleted
+# rm ${TMP}/FILTERED*
 
-#***************************************************************************************************************************
+# #***************************************************************************************************************************
 
 
 ## Trim adapaters with Porechop ********************************************************************************************

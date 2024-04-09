@@ -75,7 +75,9 @@ for (i in 1:length(temp_ASV)) {
 
 temp_ASV <- mget(temp_ASV) #To get files as objects from names
 
-names(temp_ASV) <- barcodes
+names(temp_ASV) <- lapply(strsplit(names(temp_ASV), split = "_"), function(x) x[[1]])
+
+barcodes <- names(temp_ASV)
 
 if(file.exists(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"))){
   for (i in 1:ncol(U_OTU)){
