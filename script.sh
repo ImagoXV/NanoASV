@@ -31,6 +31,7 @@ DEFAULT_NUM_PROCESSES=6
 DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
+DEFAULT_METADATA=${DIR}
 
 #***************************************************************************************************************************
 # Read the arguments passed to the script
@@ -97,6 +98,10 @@ while [[ $# -gt 0 ]]; do
       echo "NanoASV 1.0"
       shift
       ;;
+    --metadata)
+      METADATA="$2"
+      shift
+      ;;
     *)
       echo "Unknown option: $1"
       shift
@@ -117,6 +122,7 @@ TREE="${TREE:-$DEFAULT_TREE}"
 DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
 SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
+METADATA="${METADATA:-$DEFAULT_METADATA}"
 #***************************************************************************************************************************
 
 

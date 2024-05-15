@@ -80,6 +80,7 @@ You can mount your sequences directory anywhere in the container, but I recomman
 | `--subsampling`      | Max number of sequences per barcode, default: 4.10^7                           |
 | `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
 |                      | from phyloseq object                                                           |
+| `--metadata`         | Specify metadata.csv file directory, default is demultiplexed directory (--dir)|
 | `--notree`           | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
 | `--docker`           | Flag - To run NanoASV with Docker                                              |
 | `--ronly`            | Flag - To run only the R phyloseq step                                         |
