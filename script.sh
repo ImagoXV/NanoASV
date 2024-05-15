@@ -457,7 +457,7 @@ rm -r ${TMP}
 
 ##Production of phyloseq object ********************************************************************************************
 echo "Step 9/9 : Phylosequization with R and phyloseq"
-Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE 2> /dev/null
+Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE $METADATA 2> /dev/null
 
 #***************************************************************************************************************************
 declare -ir TIME=$(( $(date +%s) - ${START} ))
