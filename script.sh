@@ -139,7 +139,7 @@ TMP="$(mktemp --directory || exit 1)"
 #****************************************************************************************************************************
 if [[ "${DOCKER}" -eq 1 ]]; then
 #Docker version ************************************************************************************************************
-mkdir --parents --verbose \
+mkdir --parents \
     ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
 OUTPWD=${DIR}/${OUT}
 fi
@@ -147,7 +147,7 @@ fi
 #***************************************************************************************************************************
 if [[ "${DOCKER}" -eq 0 ]]; then
 #Singularity version *******************************************************************************************************
-mkdir --parents --verbose \
+mkdir --parents \
     ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
 OUTPWD=$(pwd)/${OUT}
 fi
@@ -211,30 +211,30 @@ find "${TMP}" -maxdepth 1 -name "barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${Q
 #echo Unfiltered files are being deleted
 rm ${TMP}/barcode*.fastq.gz
 
-#***************************************************************************************************************************
+# #***************************************************************************************************************************
 
-## Chimera detection *******************************************************************************************************
-# Chimera detection function definition
-chimera_detection() {
-  (
-  #echo Chimera detection step
-  filename=$(basename "$1")
-  chimera_out="NONCHIM_$filename"
-  vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
-  #echo ${chimera_out} chimera removed
-  )
-}
-export -f chimera_detection
+# ## Chimera detection *******************************************************************************************************
+# # Chimera detection function definition
+# chimera_detection() {
+#   (
+#   #echo Chimera detection step
+#   filename=$(basename "$1")
+#   chimera_out="NONCHIM_$filename"
+#   vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
+#   #echo ${chimera_out} chimera removed
+#   )
+# }
+# export -f chimera_detection
 
-echo "Step 3/9 : Chimera detection with vsearch"
-#Iterate in parallel
-find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
-  parallel -j "${NUM_PROCESSES}" chimera_detection  
+echo "Step 3/9 : Chimera detection with vsearch - INACTIVATED"
+# #Iterate in parallel
+# find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
+#   parallel -j "${NUM_PROCESSES}" chimera_detection  
 
-#echo Filtered datasets are being deleted
-rm ${TMP}/FILTERED*
+# #echo Filtered datasets are being deleted
+# rm ${TMP}/FILTERED*
 
-#***************************************************************************************************************************
+# #***************************************************************************************************************************
 
 
 ## Trim adapaters with Porechop ********************************************************************************************
@@ -255,11 +255,12 @@ export -f chop_file
 
 echo "Step 4/9 : Adapter trimming with Porechop"
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "NONCHIM_*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
+find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
 ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
 
 #echo Filtered datasets are being deleted
-rm ${TMP}/NONCHIM*
+#rm ${TMP}/NONCHIM*
+rm ${TMP}/FILTERED*
 
 # Subsampling
 
@@ -311,14 +312,14 @@ export -f process_file
 #***************************************************************************************************************************
 echo "Step 6/9 : Reads alignements with bwa against SILVA_138.1"
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
+find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
 MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
 #***************************************************************************************************************************
 
 # Homogenization of exact affiliations file names **************************************************************************
 (cd ${TMP}
-for file in SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz_Exact_affiliations.tsv; do
+for file in SUB_CHOPED_FILTERED_barcode*.fastq.gz_Exact_affiliations.tsv; do
     barcode_number=$(echo "$file" | sed -E 's/.*barcode([0-9]+).*\.tsv/\1/')
     new_file="barcode${barcode_number}_exact_affiliations.tsv"
     mv "$file" "$new_file"
@@ -327,7 +328,7 @@ done
 #***************************************************************************************************************************
 
 # Homogeneization of ASV table names ***************************************************************************************
-for file in ASV_abundance_SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq.gz.tsv; do
+for file in ASV_abundance_SUB_CHOPED_FILTERED_barcode*.fastq.gz.tsv; do
     barcode_number=$(echo "$file" | sed -E 's/.*barcode([0-9]+).*\.tsv/\1/')
     new_file="barcode${barcode_number}_abundance.tsv"
     mv "$file" "$new_file"
@@ -340,9 +341,9 @@ done
 
 # This function to hemomogeneize names
 (cd ${TMP}
-for file in Unmatched_SUB_CHOPED_NONCHIM_FILTERED_barcode*.fastq; do
+for file in Unmatched_SUB_CHOPED_FILTERED_barcode*.fastq; do
     if [ -e "$file" ]; then
-    newname=$(echo "$file" | sed 's/Unmatched_SUB_CHOPED_NONCHIM_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
+    newname=$(echo "$file" | sed 's/Unmatched_SUB_CHOPED_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
     mv "$file" "$newname"
     fi
 done
