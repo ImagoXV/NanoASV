@@ -119,6 +119,32 @@ SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 #***************************************************************************************************************************
 
+
+#***************************************************************************************************************************
+# Check if the required binaries are correctly installed
+which mafft > /dev/null || \
+    { echo "mafft is not there. Please reinstall" ; exit 1 ; }
+
+which /opt/chopper > /dev/null || \
+    { echo "chopper is not there. Please reinstall" ; exit 1 ; }
+
+which porechop > /dev/null || \
+    { echo "porechop is not there. Please reinstall" ; exit 1 ; }
+
+which bwa > /dev/null || \
+    { echo "bwa is not there. Please reinstall" ; exit 1 ; }
+
+which samtools > /dev/null || \
+    { echo "samtools is not there. Please reinstall" ; exit 1 ; }
+
+which FastTree > /dev/null || \
+    { echo "FasTree is not there. Please reinstall" ; exit 1 ; }
+
+which Rscript > /dev/null || \
+    { echo "R is not there. Please reinstall" ; exit 1 ; }
+
+
+
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
 if [[ -z $DIR ]]; then

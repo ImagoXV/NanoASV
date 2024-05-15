@@ -103,8 +103,9 @@ Is executed in parrallel (default --num-process = 6 )
 Default parameters will filter for sequences with quality>8 1300bp<length<1700bp
 
 ## Chimera detection
-Chimera detection is performed with vsearch --uchime_denovo.
-Is executed in parrallel (default --num-process = 6 )
+<!-- Chimera detection is performed with vsearch --uchime_denovo.
+Is executed in parrallel (default --num-process = 6 ) -->
+There is no efficient chimera detection step at the moment
 
 ## Adapter trimming
 Porechop will trimm known adapters 
