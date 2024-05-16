@@ -101,6 +101,7 @@ while [[ $# -gt 0 ]]; do
     --metadata)
       METADATA="$2"
       shift
+      shift
       ;;
     *)
       echo "Unknown option: $1"
@@ -245,29 +246,6 @@ rm ${TMP}/barcode*.fastq.gz
 
 # #***************************************************************************************************************************
 
-# ## Chimera detection *******************************************************************************************************
-# # Chimera detection function definition
-# chimera_detection() {
-#   (
-#   #echo Chimera detection step
-#   filename=$(basename "$1")
-#   chimera_out="NONCHIM_$filename"
-#   vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
-#   #echo ${chimera_out} chimera removed
-#   )
-# }
-# export -f chimera_detection
-
-echo "Step 3/9 : Chimera detection with vsearch - INACTIVATED"
-# #Iterate in parallel
-# find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
-#   parallel -j "${NUM_PROCESSES}" chimera_detection  
-
-# #echo Filtered datasets are being deleted
-# rm ${TMP}/FILTERED*
-
-# #***************************************************************************************************************************
-
 
 ## Trim adapaters with Porechop ********************************************************************************************
 #echo "Porechop step"
@@ -285,7 +263,7 @@ chop_file() {
 export -f chop_file
 #***************************************************************************************************************************
 
-echo "Step 4/9 : Adapter trimming with Porechop"
+echo "Step 3/9 : Adapter trimming with Porechop"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
 ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
@@ -296,7 +274,7 @@ rm ${TMP}/FILTERED*
 
 # Subsampling
 
-echo "Step 5/9 : Subsampling"
+echo "Step 4/9 : Subsampling"
 
 
 (cd ${TMP}
@@ -309,6 +287,29 @@ echo "Step 5/9 : Subsampling"
 #echo Full size datasets are being deleted
 rm ${TMP}/CHOPED*
 #***************************************************************************************************************************
+
+# ## Chimera detection *******************************************************************************************************
+# # Chimera detection function definition
+# chimera_detection() {
+#   (
+#   #echo Chimera detection step
+#   filename=$(basename "$1")
+#   chimera_out="NONCHIM_$filename"
+#   vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
+#   #echo ${chimera_out} chimera removed
+#   )
+# }
+# export -f chimera_detection
+
+echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
+# #Iterate in parallel
+# find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
+#   parallel -j "${NUM_PROCESSES}" chimera_detection  
+
+# #echo Filtered datasets are being deleted
+# rm ${TMP}/FILTERED*
+
+# #***************************************************************************************************************************
 
 
 # Bwa alignments ***********************************************************************************************************
