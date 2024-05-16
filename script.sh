@@ -31,6 +31,7 @@ DEFAULT_NUM_PROCESSES=6
 DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
+DEFAULT_METADATA=${DIR}
 
 #***************************************************************************************************************************
 # Read the arguments passed to the script
@@ -97,6 +98,11 @@ while [[ $# -gt 0 ]]; do
       echo "NanoASV 1.0"
       shift
       ;;
+    --metadata)
+      METADATA="$2"
+      shift
+      shift
+      ;;
     *)
       echo "Unknown option: $1"
       shift
@@ -117,7 +123,34 @@ TREE="${TREE:-$DEFAULT_TREE}"
 DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
 SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
+METADATA="${METADATA:-$DEFAULT_METADATA}"
 #***************************************************************************************************************************
+
+
+#***************************************************************************************************************************
+# Check if the required binaries are correctly installed
+which mafft > /dev/null || \
+    { echo "mafft is not there. Please reinstall" ; exit 1 ; }
+
+which /opt/chopper > /dev/null || \
+    { echo "chopper is not there. Please reinstall" ; exit 1 ; }
+
+which porechop > /dev/null || \
+    { echo "porechop is not there. Please reinstall" ; exit 1 ; }
+
+which bwa > /dev/null || \
+    { echo "bwa is not there. Please reinstall" ; exit 1 ; }
+
+which samtools > /dev/null || \
+    { echo "samtools is not there. Please reinstall" ; exit 1 ; }
+
+which FastTree > /dev/null || \
+    { echo "FasTree is not there. Please reinstall" ; exit 1 ; }
+
+which Rscript > /dev/null || \
+    { echo "R is not there. Please reinstall" ; exit 1 ; }
+
+
 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
@@ -213,29 +246,6 @@ rm ${TMP}/barcode*.fastq.gz
 
 # #***************************************************************************************************************************
 
-# ## Chimera detection *******************************************************************************************************
-# # Chimera detection function definition
-# chimera_detection() {
-#   (
-#   #echo Chimera detection step
-#   filename=$(basename "$1")
-#   chimera_out="NONCHIM_$filename"
-#   vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
-#   #echo ${chimera_out} chimera removed
-#   )
-# }
-# export -f chimera_detection
-
-echo "Step 3/9 : Chimera detection with vsearch - INACTIVATED"
-# #Iterate in parallel
-# find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
-#   parallel -j "${NUM_PROCESSES}" chimera_detection  
-
-# #echo Filtered datasets are being deleted
-# rm ${TMP}/FILTERED*
-
-# #***************************************************************************************************************************
-
 
 ## Trim adapaters with Porechop ********************************************************************************************
 #echo "Porechop step"
@@ -253,7 +263,7 @@ chop_file() {
 export -f chop_file
 #***************************************************************************************************************************
 
-echo "Step 4/9 : Adapter trimming with Porechop"
+echo "Step 3/9 : Adapter trimming with Porechop"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
 ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
@@ -264,7 +274,7 @@ rm ${TMP}/FILTERED*
 
 # Subsampling
 
-echo "Step 5/9 : Subsampling"
+echo "Step 4/9 : Subsampling"
 
 
 (cd ${TMP}
@@ -277,6 +287,29 @@ echo "Step 5/9 : Subsampling"
 #echo Full size datasets are being deleted
 rm ${TMP}/CHOPED*
 #***************************************************************************************************************************
+
+# ## Chimera detection *******************************************************************************************************
+# # Chimera detection function definition
+# chimera_detection() {
+#   (
+#   #echo Chimera detection step
+#   filename=$(basename "$1")
+#   chimera_out="NONCHIM_$filename"
+#   vsearch --uchime_denovo $1 --nonchimeras "${TMP}/${chimera_out}" 2> /dev/null
+#   #echo ${chimera_out} chimera removed
+#   )
+# }
+# export -f chimera_detection
+
+echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
+# #Iterate in parallel
+# find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
+#   parallel -j "${NUM_PROCESSES}" chimera_detection  
+
+# #echo Filtered datasets are being deleted
+# rm ${TMP}/FILTERED*
+
+# #***************************************************************************************************************************
 
 
 # Bwa alignments ***********************************************************************************************************
@@ -425,7 +458,7 @@ rm -r ${TMP}
 
 ##Production of phyloseq object ********************************************************************************************
 echo "Step 9/9 : Phylosequization with R and phyloseq"
-Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE 2> /dev/null
+Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE $METADATA 2> /dev/null
 
 #***************************************************************************************************************************
 declare -ir TIME=$(( $(date +%s) - ${START} ))

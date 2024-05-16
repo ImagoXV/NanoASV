@@ -32,15 +32,14 @@ docker build -t nanoasv NanoASV/.
 docker save NanoASV.tar nanoasv
 ```
 ## ADVANCED - Build image with Singularity
-
+I recommend building the sif file from the docker archive 
 ```sh
-wget PATH/TO/ARCHIVE
 singularity build nanoasv docker-archive://NanoASV.tar
 ```
 
 ## ADVANCED - Install on MK1C sequencing device
 
-All previous steps can be used to install on MK1C, but be sure to use the aarch64 version. **IT WOULD NOT RUN IF IT'S NOT AARCH64 VERSION**
+All previous steps can be used to install on MK1C, but be sure to use the aarch64 version. **IT WILL NOT RUN IF IT'S NOT AARCH64 VERSION**
 
 # Usage
 ## RECOMMENDED - With Singularity
@@ -80,6 +79,7 @@ You can mount your sequences directory anywhere in the container, but I recomman
 | `--subsampling`      | Max number of sequences per barcode, default: 4.10^7                           |
 | `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
 |                      | from phyloseq object                                                           |
+| `--metadata`         | Specify metadata.csv file directory, default is demultiplexed directory (--dir)|
 | `--notree`           | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
 | `--docker`           | Flag - To run NanoASV with Docker                                              |
 | `--ronly`            | Flag - To run only the R phyloseq step                                         |
@@ -103,8 +103,9 @@ Is executed in parrallel (default --num-process = 6 )
 Default parameters will filter for sequences with quality>8 1300bp<length<1700bp
 
 ## Chimera detection
-Chimera detection is performed with vsearch --uchime_denovo.
-Is executed in parrallel (default --num-process = 6 )
+<!-- Chimera detection is performed with vsearch --uchime_denovo.
+Is executed in parrallel (default --num-process = 6 ) -->
+There is no efficient chimera detection step at the moment
 
 ## Adapter trimming
 Porechop will trimm known adapters 

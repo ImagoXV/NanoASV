@@ -6,6 +6,7 @@ DIR <- args[1]
 OUTPWD <- args[2]
 R_CLEANING <- args[3]
 TREE <- args[4]
+METADATA <- args[5]
 
 #Phylosequization -----
 library(phyloseq)
@@ -13,7 +14,7 @@ library(dplyr) #For mget() function
 library(ape) #To handle trees
 #library(tidyverse)
 
-metadata <- read.csv(paste0(DIR,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
+metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
 ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
