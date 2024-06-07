@@ -60,9 +60,15 @@ Or if installed elsewhere
 I highly recommand you not to run it with docker because of root privileges.
 Don't forget the --docker flag
 ```sh
-docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker 1
+docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker
 ```
 You can mount your sequences directory anywhere in the container, but I recommand you to mount in /data/
+
+## Technical recommandations
+If running on a PC, I suggest to not use more than two threads with 32Gb of RAM. Otherwise, you might crash your system. 
+I highly suggest you to run it on a cluster. 
+96 samples (--subsampling 50000) run perfectly fine with 150Gb and 8 threads
+
 ## Options
 
 ```
@@ -75,7 +81,7 @@ You can mount your sequences directory anywhere in the container, but I recomman
 | `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
 | `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
 | `-i`, `--id_vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
-| `-p`, `--num_process`| Number of cores for parallelization, default: 6                                |
+| `-p`, `--num_process`| Number of cores for parallelization, default: 1                                |
 | `--subsampling`      | Max number of sequences per barcode, default: 4.10^7                           |
 | `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
 |                      | from phyloseq object                                                           |

@@ -23,7 +23,7 @@ DEFAULT_QUAL=8
 DEFAULT_MINL=1300
 DEFAULT_MAXL=1700
 DEFAULT_ID=0.7
-DEFAULT_NUM_PROCESSES=6
+DEFAULT_NUM_PROCESSES=1
 DEFAULT_R_CLEANING=1
 DEFAULT_MINAB=0
 DEFAULT_SUBSAMPLING=10000000
@@ -129,25 +129,25 @@ METADATA="${METADATA:-$DEFAULT_METADATA}"
 
 #***************************************************************************************************************************
 # Check if the required binaries are correctly installed
-which mafft > /dev/null || \
+/bin/which mafft > /dev/null || \
     { echo "mafft is not there. Please reinstall" ; exit 1 ; }
 
-which /opt/chopper > /dev/null || \
+/bin/which /opt/chopper > /dev/null || \
     { echo "chopper is not there. Please reinstall" ; exit 1 ; }
 
-which porechop > /dev/null || \
+/bin/which porechop > /dev/null || \
     { echo "porechop is not there. Please reinstall" ; exit 1 ; }
 
-which bwa > /dev/null || \
+/bin/which bwa > /dev/null || \
     { echo "bwa is not there. Please reinstall" ; exit 1 ; }
 
-which samtools > /dev/null || \
+/bin/which samtools > /dev/null || \
     { echo "samtools is not there. Please reinstall" ; exit 1 ; }
 
-which FastTree > /dev/null || \
+/bin/which FastTree > /dev/null || \
     { echo "FasTree is not there. Please reinstall" ; exit 1 ; }
 
-which Rscript > /dev/null || \
+/bin/which Rscript > /dev/null || \
     { echo "R is not there. Please reinstall" ; exit 1 ; }
 
 
@@ -369,12 +369,11 @@ done
 )
 #***************************************************************************************************************************
 
-
 # Clustering step **********************************************************************************************************
 
-# This function to hemomogeneize names
+# This function to homogeneize names
 (cd ${TMP}
-for file in Unmatched_SUB_CHOPED_FILTERED_barcode*.fastq; do
+for file in Unmatched_SUB_CHOPED_FILTERED_barcode*.fastq.gz; do
     if [ -e "$file" ]; then
     newname=$(echo "$file" | sed 's/Unmatched_SUB_CHOPED_FILTERED_barcode\([0-9]\+\)\.fastq.gz/barcode\1_unmatched.fastq.gz/')
     mv "$file" "$newname"
@@ -385,10 +384,10 @@ done
 
 #This function to add barcode identifier to fasta header to retrieve abundance after clustering ****************************
 (cd ${TMP}
-for file in barcode*_unmatched.fastq; do
+for file in barcode*_unmatched.fastq.gz; do
     if [ -e "$file" ]; then
   sample=$(echo "$file" | \
-  sed 's/barcode\(.*\)_unmatched.fastq/\1/');\
+  sed 's/barcode\(.*\)_unmatched.fastq.gz/\1/');\
   awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"} else print $0}' "$file" >\
   "$file.tmp" && mv "$file.tmp" "$file"; 
   fi
@@ -399,7 +398,7 @@ done
 # Vsearch Unknown sequences clustering step ********************************************************************************
 UNIQ_ID=uuidgen
 (cd ${TMP}
-cat barcode*_unmatched.fastq > seqs 2> /dev/null
+cat barcode*_unmatched.fastq.gz > seqs 2> /dev/null
 # Check if seqs is not empty
 if [ -s "seqs" ]; then
 echo "Step 7/9 : Unknown sequences clustering with vsearch"
@@ -413,7 +412,7 @@ vsearch \
         --biomout unknown_clusters.biom \
         --clusterout_id \
         --clusterout_sort \
-        --consout Consensus_seq_OTU.fasta \
+        --consout Consensus_seq_OTU.fasta 2> /dev/null
         #--randseed 666
 rm seqs
 

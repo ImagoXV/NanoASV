@@ -36,7 +36,7 @@ ENV LC_ALL C.UTF-8
     libcurl4-openssl-dev=8.5.0-2ubuntu10.1 \
     libxml2-dev=2.9.14+dfsg-1.3ubuntu3 \
     libfontconfig1-dev=2.15.0-1.1ubuntu2 \
-    libssl-dev=3.0.13-0ubuntu3 \
+    #libssl-dev=3.0.13-0ubuntu3 \
     libharfbuzz-dev=8.3.0-2build2 \
     libfribidi-dev=1.0.13-3build1
 
