@@ -23,7 +23,7 @@ DEFAULT_QUAL=8
 DEFAULT_MINL=1300
 DEFAULT_MAXL=1700
 DEFAULT_ID=0.7
-DEFAULT_NUM_PROCESSES=6
+DEFAULT_NUM_PROCESSES=1
 DEFAULT_R_CLEANING=1
 DEFAULT_MINAB=0
 DEFAULT_SUBSAMPLING=10000000
@@ -369,11 +369,9 @@ done
 )
 #***************************************************************************************************************************
 
-ls ${TMP}
-
 # Clustering step **********************************************************************************************************
 
-# This function to hemomogeneize names
+# This function to homogeneize names
 (cd ${TMP}
 for file in Unmatched_SUB_CHOPED_FILTERED_barcode*.fastq.gz; do
     if [ -e "$file" ]; then
@@ -383,8 +381,6 @@ for file in Unmatched_SUB_CHOPED_FILTERED_barcode*.fastq.gz; do
 done
 )
 #***************************************************************************************************************************
-
-ls ${TMP}
 
 #This function to add barcode identifier to fasta header to retrieve abundance after clustering ****************************
 (cd ${TMP}
@@ -402,7 +398,7 @@ done
 # Vsearch Unknown sequences clustering step ********************************************************************************
 UNIQ_ID=uuidgen
 (cd ${TMP}
-zcat barcode*_unmatched.fastq.gz > seqs 2> /dev/null
+cat barcode*_unmatched.fastq.gz > seqs 2> /dev/null
 # Check if seqs is not empty
 if [ -s "seqs" ]; then
 echo "Step 7/9 : Unknown sequences clustering with vsearch"
@@ -416,7 +412,7 @@ vsearch \
         --biomout unknown_clusters.biom \
         --clusterout_id \
         --clusterout_sort \
-        --consout Consensus_seq_OTU.fasta \
+        --consout Consensus_seq_OTU.fasta 2> /dev/null
         #--randseed 666
 rm seqs
 
