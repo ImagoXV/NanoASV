@@ -63,12 +63,12 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    -i|--id_vsearch)
+    -i|--id-vsearch)
       ID="$2"
       shift
       shift
       ;;
-    -p|--num_process)
+    -p|--num-process)
       NUM_PROCESSES="$2"
       shift
       shift
@@ -94,8 +94,14 @@ while [[ $# -gt 0 ]]; do
       R_STEP_ONLY=1
       shift
       ;;
-    --version)
-      echo "NanoASV 1.0"
+    -v|--version)
+      echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson and Frederic Mahe"
+      exit
+      shift
+      ;;
+    -h|--help)
+      cat /help.txt
+      exit
       shift
       ;;
     --metadata)
@@ -105,6 +111,8 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo "Unknown option: $1"
+      cat /help.txt
+      exit
       shift
       ;;
   esac
@@ -409,17 +417,15 @@ vsearch \
         --relabel ${UNIQ_ID}_Unknown_cluster_ \
         --sizeout \
         --otutabout unknown_clusters.tsv \
-        #--biomout unknown_clusters.biom \
         --clusterout_id \
         --clusterout_sort \
-        --consout Consensus_seq_OTU.fasta 2> /dev/null
+        --consout Consensus_seq_OTU.fasta \
+        --quiet
         #--randseed 666
 rm seqs
 
 #Remove singletons
 awk '$2 > 5' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv;
-
-
 #Transform multiline fasta into singleline fasta
 awk '{if(NR==1) {print $0} else {if($0 ~ /^>/) {print "\n"$0} else {printf $0}}}' Consensus_seq_OTU.fasta > singleline_Consensus_seq_OTU.fasta
 #Extract their ID for fasta soerting

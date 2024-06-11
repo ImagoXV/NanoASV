@@ -78,6 +78,7 @@ RUN mkdir Rdata
 # Copy the script into the container
 COPY script.sh /script.sh
 COPY script.r /script.r
+COPY help.txt /help.txt
 
 # Set the script as the entry pointbwa-mem2-2.2.1_x64-linux
 ENTRYPOINT ["/script.sh"]

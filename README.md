@@ -80,8 +80,8 @@ I highly suggest you to run it on a cluster.
 | `-q`, `--quality`    | Quality threshold for Chopper, default: 8                                      |
 | `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
 | `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
-| `-i`, `--id_vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
-| `-p`, `--num_process`| Number of cores for parallelization, default: 1                                |
+| `-i`, `--id-vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
+| `-p`, `--num-process`| Number of cores for parallelization, default: 1                                |
 | `--subsampling`      | Max number of sequences per barcode, default: 4.10^7                           |
 | `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
 |                      | from phyloseq object                                                           |
