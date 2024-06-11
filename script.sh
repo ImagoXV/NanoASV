@@ -287,7 +287,7 @@ echo "Step 4/9 : Subsampling"
 #echo Full size datasets are being deleted
 rm ${TMP}/CHOPED*
 #***************************************************************************************************************************
-
+# # The following is inactivated because we first need to cluster all sequences together to find chimeras. We need to try new vsearch algorithm.
 # ## Chimera detection *******************************************************************************************************
 # # Chimera detection function definition
 # chimera_detection() {
@@ -396,7 +396,7 @@ done
 #***************************************************************************************************************************
 
 # Vsearch Unknown sequences clustering step ********************************************************************************
-UNIQ_ID=uuidgen
+UNIQ_ID=$(uuidgen)
 (cd ${TMP}
 cat barcode*_unmatched.fastq.gz > seqs 2> /dev/null
 # Check if seqs is not empty
@@ -405,21 +405,38 @@ echo "Step 7/9 : Unknown sequences clustering with vsearch"
 
 vsearch \
         --cluster_size seqs \
-        --id 0.7 \
+        --id ${ID} \
         --relabel ${UNIQ_ID}_Unknown_cluster_ \
         --sizeout \
         --otutabout unknown_clusters.tsv \
-        --biomout unknown_clusters.biom \
+        #--biomout unknown_clusters.biom \
         --clusterout_id \
         --clusterout_sort \
         --consout Consensus_seq_OTU.fasta 2> /dev/null
         #--randseed 666
 rm seqs
 
+#Remove singletons
+awk '$2 > 5' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv;
+
+
+#Transform multiline fasta into singleline fasta
+awk '{if(NR==1) {print $0} else {if($0 ~ /^>/) {print "\n"$0} else {printf $0}}}' Consensus_seq_OTU.fasta > singleline_Consensus_seq_OTU.fasta
+#Extract their ID for fasta soerting
+cut -f1 no_singletons_unknown_clusters.tsv > Non_singletons_ID
+#Sort fasta file
+grep -A1 -f Non_singletons_ID singleline_Consensus_seq_OTU.fasta > non_singleton.fasta
+#Replace Consensus fasta file by subsampled
+mv non_singleton.fasta Consensus_seq_OTU.fasta
+mv no_singletons_unknown_clusters.tsv unknown_clusters.tsv
+
+#If by any mean you don't have any unknown sequence, then you'll just skip the step (highly improbable)
 else 
 echo "Step 7/9 : Skipped - no unknown sequence"
 fi
 )
+
+
 # Create phylogeny with MAFFT and FastTree *********************************************************************************
 
 echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
@@ -448,7 +465,7 @@ fi
 (cd ${TMP}
 mv *_abundance.tsv ${OUTPWD}/Results/ASV/
 mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
-mv Consensus_seq_OTU.fasta unknown_clusters.tsv unknown_clusters.biom  ${OUTPWD}/Results/Unknown_clusters/ 2> /dev/null
+mv Consensus_seq_OTU.fasta unknown_clusters.tsv  ${OUTPWD}/Results/Unknown_clusters/ 2> /dev/null
 mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
 mv ASV.tree ${OUTPWD}/Results/Phylogeny/
 )
