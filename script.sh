@@ -17,23 +17,6 @@ START=$(date +%s) #Set the clock for timer
 
 
 #***************************************************************************************************************************
-# Manual entries - Arguments
-# Set default values
-DEFAULT_QUAL=8
-DEFAULT_MINL=1300
-DEFAULT_MAXL=1700
-DEFAULT_ID=0.7
-DEFAULT_NUM_PROCESSES=1
-DEFAULT_R_CLEANING=1
-DEFAULT_MINAB=0
-DEFAULT_SUBSAMPLING=10000000
-DEFAULT_NUM_PROCESSES=6
-DEFAULT_TREE=1
-DEFAULT_DOCKER=0
-DEFAULT_R_STEP_ONLY=0
-DEFAULT_METADATA=${DIR}
-
-#***************************************************************************************************************************
 # Read the arguments passed to the script
 while [[ $# -gt 0 ]]; do
   key="$1"
@@ -112,12 +95,29 @@ while [[ $# -gt 0 ]]; do
     *)
       echo "Unknown option: $1"
       cat /help.txt
-      exit
+      exit 1
       shift
       ;;
   esac
 done
 
+#***************************************************************************************************************************
+# Manual entries - Arguments
+# Set default values
+DEFAULT_QUAL=8
+DEFAULT_MINL=1300
+DEFAULT_MAXL=1700
+DEFAULT_ID=0.7
+DEFAULT_NUM_PROCESSES=1
+DEFAULT_R_CLEANING=1
+DEFAULT_MINAB=0
+DEFAULT_SUBSAMPLING=10000000
+DEFAULT_NUM_PROCESSES=6
+DEFAULT_TREE=1
+DEFAULT_DOCKER=0
+DEFAULT_R_STEP_ONLY=0
+DEFAULT_METADATA=${DIR}
+#***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
 QUAL="${QUAL:-$DEFAULT_QUAL}"
@@ -428,7 +428,7 @@ rm seqs
 awk '$2 > 5' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv;
 #Transform multiline fasta into singleline fasta
 awk '{if(NR==1) {print $0} else {if($0 ~ /^>/) {print "\n"$0} else {printf $0}}}' Consensus_seq_OTU.fasta > singleline_Consensus_seq_OTU.fasta
-#Extract their ID for fasta soerting
+#Extract their ID for fasta sorting
 cut -f1 no_singletons_unknown_clusters.tsv > Non_singletons_ID
 #Sort fasta file
 grep -A1 -f Non_singletons_ID singleline_Consensus_seq_OTU.fasta > non_singleton.fasta
@@ -451,6 +451,8 @@ echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 
 if [ "$TREE" -eq 1 ]; then
 (cd ${TMP}
+
+#So I basically need to do the singleton removal befaore that step
 cat *_ASV_list.tsv | sort -u > ID_ASV
 zcat ${SILVA} | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
 if [ -e "Consensus_seq_OTU.fasta" ]; then
@@ -463,7 +465,7 @@ fi
 mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null
 
 ## FastTree ****************************************************************************************************************
-FastTree -nt ALL_ASV.aln > ASV.tree 2> /dev/null
+FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null
 )
 fi
 
