@@ -82,7 +82,7 @@ I highly suggest you to run it on a cluster.
 | `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
 | `-i`, `--id-vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
 | `-p`, `--num-process`| Number of cores for parallelization, default: 1                                |
-| `--subsampling`      | Max number of sequences per barcode, default: 4.10^7                           |
+| `--subsampling`      | Max number of sequences per barcode, default: 50,000                           |
 | `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
 |                      | from phyloseq object                                                           |
 | `--metadata`         | Specify metadata.csv file directory, default is demultiplexed directory (--dir)|
