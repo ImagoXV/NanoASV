@@ -36,9 +36,10 @@ ENV LC_ALL C.UTF-8
     libcurl4-openssl-dev=8.5.0-2ubuntu10.1 \
     libxml2-dev=2.9.14+dfsg-1.3ubuntu3 \
     libfontconfig1-dev=2.15.0-1.1ubuntu2 \
-    #libssl-dev=3.0.13-0ubuntu3 \
     libharfbuzz-dev=8.3.0-2build2 \
     libfribidi-dev=1.0.13-3build1
+    #libssl-dev=3.0.13-0ubuntu3 
+
 
 # Install Porechop
 RUN wget https://github.com/rrwick/Porechop/archive/refs/tags/v0.2.4.tar.gz && \
@@ -79,6 +80,9 @@ RUN mkdir Rdata
 COPY script.sh /script.sh
 COPY script.r /script.r
 COPY help.txt /help.txt
+
+#Test for --containall option equivalent
+RUN export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH
 
 # Set the script as the entry pointbwa-mem2-2.2.1_x64-linux
 ENTRYPOINT ["/script.sh"]

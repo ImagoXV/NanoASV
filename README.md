@@ -96,7 +96,7 @@ I highly suggest you to run it on a cluster.
 ## Building from source
 
 Building from source is pretty long at the moment.
-The main time bottle neck is bwa-meme2 SILVA138.1 indexing step (~60min on my computer)
+The main time bottle neck is bwa SILVA138.1 indexing step (~60min on 32Gb RAM PC)
 It is way faster if you download the archive and build with Singularity. However, the archive is pretty heavy. 
 
 ## Data preparation
@@ -105,7 +105,7 @@ Directly input your /path/to/sequence/data/fastq_pass directory
 
 ## Filtering
 Chopper will filter for inappropriate sequences.
-Is executed in parrallel (default --num-process = 6 )
+Is executed in parrallel (default --num-process = 1 )
 Default parameters will filter for sequences with quality>8 1300bp<length<1700bp
 
 ## Chimera detection
@@ -115,7 +115,7 @@ There is no efficient chimera detection step at the moment
 
 ## Adapter trimming
 Porechop will trimm known adapters 
-Is executed in parrallel (default --num-process = 6 )
+Is executed in parrallel (default --num-process = 1 )
 
 ## Subsampling
 50 000 sequences per barcode is enough for most common questions.
@@ -124,13 +124,14 @@ Can be modified with --subsampling int
 
 ## Alignment
 bwa-mem2 will align previously filtered sequences against SILVA 138.1
-Is executed in parrallel (default --num-process = 6 )
+Is executed in parrallel (default --num-process = 1 )
 In the future, I will add the possibility to use another database than SILVA
 barcode*_abundance.tsv, Taxonomy_barcode*.csv and barcode*_exact_affiliations.tsv like files are produced.
 Those files can be found in Resumlts directory.
 
 ## Unknown sequences clustering
-Non matching sequences fastq are extracted then clustered with vsearch -id 0.7.
+Non matching sequences fastq are extracted then clustered with vsearch (default --id 0.7).
+Clusters with abundance under 5 are discarded to avoid useless heavy computing.
 Outputs into Results/Unknown_clusters
 
 ## Phylogenetic tree generation
@@ -140,8 +141,7 @@ Tree file is then implemented into the final phyloseq object.
 This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical estimation of the entity.
 
 ## Phylosequization
-Alignements results, taxonomy and clustered unknown entities are used to produce a phyloseq opbject: NanoASV.rdata
-In the future, I will add the phylogeny and the tree. But at the moment, the efficient way would be to produce a tree from SILVA database reference sequence. 
+Alignements results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq opbject: NanoASV.rdata
 Please refer to the metadata.csv file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
 In the future, I will add a possibility to just start from output results if metadata.csv is bad format
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using --r_cleaning 0
