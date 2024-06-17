@@ -1,6 +1,10 @@
 #NanoASV phylosequisation
 #Arthur Cousson - 2023
 #Contact : arthur.cousson@ird.fr
+#Workaround conflicting host vs local libraries
+
+.libPaths(c("/usr/local/lib/R/site-library","/usr/lib/R/site-library","/usr/lib/R/library"))
+
 args <- commandArgs(trailingOnly = TRUE)
 DIR <- args[1]
 OUTPWD <- args[2]
@@ -159,7 +163,6 @@ for (i in 1:length(temp_ASV)) {
 }
 
 #Essaye de merge deux a deux sur une liste 
-#NanoASV <- merge_phyloseq(barcode01,barcode02,barcode03,barcode04,barcode05,barcode06,barcode07,barcode08,barcode09,barcode10,barcode11,barcode12,barcode13,barcode14,barcode15,barcode16,barcode17,barcode18,barcode19,barcode20,barcode21,barcode22,barcode23,barcode24)
 
 i<-1 #Reset the incrementation
 #Initialize the phyloseq object
