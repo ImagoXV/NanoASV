@@ -12,7 +12,7 @@ START=$(date +%s) #Set the clock for timer
 #Log system and error handling *********************************************************************************************
 # LOG_FILE="NanoASV_log.txt"
 # exec > >(tee -a $LOG_FILE) 2>&1
-#set -e
+set -e
 #***************************************************************************************************************************
 
 
@@ -197,7 +197,7 @@ fi
 #R Step Only if problem *********************************************************************************************
 if [ "$R_STEP_ONLY" -eq 1 ]; then
 ##Production of phyloseq object *************************************************************************************
-Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE
+Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE $METADATA
 
 #********************************************************************************************************************
 declare -i TIME=$(date +%s)-$START
@@ -434,6 +434,10 @@ cut -f1 no_singletons_unknown_clusters.tsv > Non_singletons_ID
 grep -A1 -f Non_singletons_ID singleline_Consensus_seq_OTU.fasta > non_singleton.fasta
 #Replace Consensus fasta file by subsampled
 mv non_singleton.fasta Consensus_seq_OTU.fasta
+#Remove grep -f artefacts
+sed -i '/^--/d' Consensus_seq_OTU.fasta
+#Simplify headers
+sed -i 's/>centroid=\([^;]*\);.*$/>\1/' Consensus_seq_OTU.fasta
 mv no_singletons_unknown_clusters.tsv unknown_clusters.tsv
 
 #If by any mean you don't have any unknown sequence, then you'll just skip the step (highly improbable)
