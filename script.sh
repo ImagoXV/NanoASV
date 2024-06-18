@@ -110,7 +110,7 @@ DEFAULT_MAXL=1700
 DEFAULT_ID=0.7
 DEFAULT_NUM_PROCESSES=1
 DEFAULT_R_CLEANING=1
-DEFAULT_MINAB=0
+DEFAULT_MINAB=1
 DEFAULT_SUBSAMPLING=50000
 DEFAULT_NUM_PROCESSES=6
 DEFAULT_TREE=1 
@@ -281,10 +281,7 @@ ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file
 rm ${TMP}/FILTERED*
 
 # Subsampling
-
 echo "Step 4/9 : Subsampling"
-
-
 (cd ${TMP}
  for CHOPED_FILE in CHOPED*.fastq.gz ; do
      zcat "${CHOPED_FILE}" | head -n "${SUBSAMPLING}"  > "SUB_${CHOPED_FILE}"
@@ -449,11 +446,10 @@ fi
 
 # Create phylogeny with MAFFT and FastTree *********************************************************************************
 
-echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
-
 ## Get every identified ASV ID
 
 if [ "$TREE" -eq 1 ]; then
+echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 (cd ${TMP}
 
 #So I basically need to do the singleton removal befaore that step
@@ -471,6 +467,8 @@ mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null
 ## FastTree ****************************************************************************************************************
 FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null
 )
+else
+echo "Step 8/9 : SKIPPED - Phylogeny with MAFFT and FastTree"
 fi
 
 ## Export results **********************************************************************************************************
