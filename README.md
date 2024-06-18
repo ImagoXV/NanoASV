@@ -38,8 +38,12 @@ echo 'export PATH=$PATH:/opt/' >> ~/.bashrc && source ~/.bashrc
 Then test if everything is working properly
 The low vsearch clustering identity threshold allows to successfully recover OTUs from a small number of sequences. 
 You should not use such a low identity threshold for analysis. -i 0.7 works fine.
-```sh
+
+```sh singularity
 singularity run nanoasv -d Minimal -o Out_test -i 0.3 [--options]
+```
+```sh docker
+docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker -i 0.3 [--options] 
 ```
 
 ## ADVANCED - Install on MK1C sequencing device
@@ -62,7 +66,7 @@ Or if installed elsewhere
 /path/to/installation/nanoasv -d path/to/sequences -o out [--options] 
 ```
 ## ADVANCED - With Docker
-I highly recommand you not to run it with docker because of root privileges.
+I recommand you not to run it with docker because of root privileges.
 **Don't forget the --docker flag**
 ```sh
 docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker
@@ -72,7 +76,7 @@ You can mount your sequences directory anywhere in the container, but I recomman
 ## Technical recommandations
 If running on a PC, I suggest to not use more than two threads with 32Gb of RAM. Otherwise, you might crash your system. 
 I highly suggest you to run it on a cluster. 
-96 samples (--subsampling 50000) run perfectly fine with 150Gb and 8 threads
+96 samples (--subsampling 50000) took 4h (without tree) with 150Gb and 8 threads. The tree is highly computer intensive.
 
 ## Options
 
