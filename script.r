@@ -162,8 +162,6 @@ for (i in 1:length(temp_ASV)) {
   physeq_list[[barcode_name]] <- physeq_object
 }
 
-#Essaye de merge deux a deux sur une liste 
-
 i<-1 #Reset the incrementation
 #Initialize the phyloseq object
 NanoASV <- merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])

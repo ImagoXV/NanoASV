@@ -4,19 +4,8 @@
  NanoASV is a container based workflow using state of the art bioinformatic software to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C  sequencing device and process data locally. 
 
 # Installation
-## EASY - Download for Singularity
-Just download and uncompress the archive then run with singularity accordingly
-```sh
-wget path/to/archive
-tar -xvzf nanoasv.tar.gz 
-sudo mv nanoasv /opt/
-echo 'export PATH=$PATH:/opt/' >> ~/.bashrc && source ~/.bashrc
-
-```
-Then test if everything is working properly
-```sh
-nanoasv -d Minimal -o out_minimal_test [--options]
-```
+At the moment, the only way to install NanoASV is building it from source with Docker. 
+At this point you can whether run it with Docker or to build a Singularity image file (SIF) from the docker version to run with Singularity. 
 
 ## ADVANCED - Build from source with Docker
 Takes 75 min on my computer (32Gb RAM - 12 cores).
@@ -35,6 +24,22 @@ docker save NanoASV.tar nanoasv
 I recommend building the sif file from the docker archive 
 ```sh
 singularity build nanoasv docker-archive://NanoASV.tar
+```
+
+## NOT WORKING ATM - EASY - Download for Singularity
+Archive is too big at the moment to be a GitHub release. You have to build from source.
+```sh
+wget path/to/archive
+tar -xvzf nanoasv.tar.gz 
+sudo mv nanoasv /opt/
+echo 'export PATH=$PATH:/opt/' >> ~/.bashrc && source ~/.bashrc
+
+```
+Then test if everything is working properly
+The low vsearch clustering identity threshold allows to successfully recover OTUs from a small number of sequences. 
+You should not use such a low identity threshold for analysis. -i 0.7 works fine.
+```sh
+singularity run nanoasv -d Minimal -o Out_test -i 0.3 [--options]
 ```
 
 ## ADVANCED - Install on MK1C sequencing device
@@ -58,7 +63,7 @@ Or if installed elsewhere
 ```
 ## ADVANCED - With Docker
 I highly recommand you not to run it with docker because of root privileges.
-Don't forget the --docker flag
+**Don't forget the --docker flag**
 ```sh
 docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker
 ```
@@ -97,7 +102,7 @@ I highly suggest you to run it on a cluster.
 
 Building from source is pretty long at the moment.
 The main time bottle neck is bwa SILVA138.1 indexing step (~60min on 32Gb RAM PC)
-It is way faster if you download the archive and build with Singularity. However, the archive is pretty heavy. 
+It is way faster if you download the archive and build with Singularity. However, the archive is pretty heavy and not available for download at the moment.
 
 ## Data preparation
 Directly input your /path/to/sequence/data/fastq_pass directory 
@@ -106,7 +111,7 @@ Directly input your /path/to/sequence/data/fastq_pass directory
 ## Filtering
 Chopper will filter for inappropriate sequences.
 Is executed in parrallel (default --num-process = 1 )
-Default parameters will filter for sequences with quality>8 1300bp<length<1700bp
+Default parameters will filter for sequences with quality>8 and 1300bp<length<1700bp
 
 ## Chimera detection
 <!-- Chimera detection is performed with vsearch --uchime_denovo.
@@ -119,15 +124,15 @@ Is executed in parrallel (default --num-process = 1 )
 
 ## Subsampling
 50 000 sequences per barcode is enough for most common questions.
-Default is set to 2.5 millions sequences per barcode. 
+Default is set to 50 000 sequences per barcode. 
 Can be modified with --subsampling int
 
 ## Alignment
-bwa-mem2 will align previously filtered sequences against SILVA 138.1
+bwa will align previously filtered sequences against SILVA 138.1
 Is executed in parrallel (default --num-process = 1 )
 In the future, I will add the possibility to use another database than SILVA
 barcode*_abundance.tsv, Taxonomy_barcode*.csv and barcode*_exact_affiliations.tsv like files are produced.
-Those files can be found in Resumlts directory.
+Those files can be found in Results directory.
 
 ## Unknown sequences clustering
 Non matching sequences fastq are extracted then clustered with vsearch (default --id 0.7).
@@ -143,11 +148,10 @@ This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical es
 ## Phylosequization
 Alignements results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq opbject: NanoASV.rdata
 Please refer to the metadata.csv file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
-In the future, I will add a possibility to just start from output results if metadata.csv is bad format
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using --r_cleaning 0
 ### --ronly option
 Sometimes, your metadata.csv file will not meet phyloseq standards. 
-To avoid you recomputing all the previous steps, a --ronly option can be added. 
+To avoid you recomputing all the previous steps, a --ronly flag can be added. 
 Just precise --dir and --out as in your first treatment. NanoASV will find final datasets and run only the r script. 
 This will save you time.
 
