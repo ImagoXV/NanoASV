@@ -16,7 +16,6 @@ METADATA <- args[5]
 library(phyloseq)
 library(dplyr) #For mget() function
 library(ape) #To handle trees
-#library(tidyverse)
 
 metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)

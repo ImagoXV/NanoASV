@@ -133,7 +133,8 @@ Can be modified with --subsampling int
 
 ## Alignment
 bwa will align previously filtered sequences against SILVA 138.1
-Is executed in parrallel (default --num-process = 1 )
+Can be executed in parrallel (default --num-process = 1 )
+50 000 sequences take 14Gb of RAM per thread. Don't overload your computer. With two threads, some RAM will use more than 2x14Gb of RAM. It is important to have whether SWAP partition or to parallelize your computation function of your computer capacities.
 In the future, I will add the possibility to use another database than SILVA
 barcode*_abundance.tsv, Taxonomy_barcode*.csv and barcode*_exact_affiliations.tsv like files are produced.
 Those files can be found in Results directory.
@@ -163,7 +164,43 @@ This will save you time.
 Please don't forget to cite NanoASV and dependencies if it helped you treat your Nanopore data
 Thank you !
 
+Dependencies citations :Danecek, Petr, James K Bonfield, Jennifer Liddle, John Marshall, Valeriu Ohan, Martin O Pollard,
+Andrew Whitwham, et al. 2021. “Twelve Years of SAMtools and BCFtools.” GigaScience
+10 (2): giab008. https://doi.org/10.1093/gigascience/giab008.
 
+De Coster, Wouter, and Rosa Rademakers. 2023. “NanoPack2: Population-Scale Evaluation of
+Long-Read Sequencing Data.” Edited by Can Alkan. Bioinformatics 39 (5): btad311.
+https://doi.org/10.1093/bioinformatics/btad311.
+
+Katoh, K., and D. M. Standley. 2013. “MAFFT Multiple Sequence Alignment Software Version 7:
+Improvements in Performance and Usability.” Molecular Biology and Evolution 30 (4):
+772–80. https://doi.org/10.1093/molbev/mst010.
+
+McMurdie, Paul J., and Susan Holmes. 2013. “Phyloseq: An R Package for Reproducible
+Interactive Analysis and Graphics of Microbiome Census Data.” Edited by Michael Watson.
+PLoS ONE 8 (4): e61217. https://doi.org/10.1371/journal.pone.0061217.
+
+Md, Vasimuddin, Sanchit Misra, Heng Li, and Srinivas Aluru. 2019. “Efficient Architecture-Aware
+Acceleration of BWA-MEM for Multicore Systems.” arXiv. http://arxiv.org/abs/1907.12931.
+
+Nygaard, Anders B., Hege S. Tunsjø, Roger Meisal, and Colin Charnock. 2020. “A Preliminary
+Study on the Potential of Nanopore MinION and Illumina MiSeq 16S rRNA Gene
+Sequencing to Characterize Building-Dust Microbiomes.” Scientific Reports 10 (1): 3209.
+https://doi.org/10.1038/s41598-020-59771-0.
+
+Price, M. N., P. S. Dehal, and A. P. Arkin. 2009. “FastTree: Computing Large Minimum Evolution
+Trees with Profiles Instead of a Distance Matrix.” Molecular Biology and Evolution 26 (7):
+1641–50. https://doi.org/10.1093/molbev/msp077.
+
+Quast, Christian, Elmar Pruesse, Pelin Yilmaz, Jan Gerken, Timmy Schweer, Pablo Yarza, Jörg
+Peplies, and Frank Oliver Glöckner. 2012. “The SILVA Ribosomal RNA Gene Database
+Project: Improved Data Processing and Web-Based Tools.” Nucleic Acids Research 41 (D1): D590–96. https://doi.org/10.1093/nar/gks1219.
+
+Rodríguez-Pérez, Héctor, Laura Ciuffreda, and Carlos Flores. 2021. “NanoCLUST: A Species-Level Analysis of 16S rRNA Nanopore Sequencing Data.” Edited by Birol Inanc. Bioinformatics 37 (11): 1600–1601. https://doi.org/10.1093/bioinformatics/btaa900.
+
+Rognes, Torbjørn, Tomáš Flouri, Ben Nichols, Christopher Quince, and Frédéric Mahé. 2016. “VSEARCH: A Versatile Open Source Tool for Metagenomics.” PeerJ 4 (October): e2584. https://doi.org/10.7717/peerj.2584. 
+
+Santos, Andres, Ronny van Aerle, Leticia Barrientos, and Jaime Martinez-Urtaza. 2020. “Computational Methods for 16S Metabarcoding Studies Using Nanopore Sequencing Data.” Computational and Structural Biotechnology Journal 18: 296–305. https://doi.org/10.1016/j.csbj.2020.01.005.
 
 
 
