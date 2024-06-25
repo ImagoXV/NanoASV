@@ -197,7 +197,8 @@ fi
 #R Step Only if problem *********************************************************************************************
 if [ "$R_STEP_ONLY" -eq 1 ]; then
 ##Production of phyloseq object *************************************************************************************
-Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE $METADATA
+echo "Launching Ronly option"
+Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE $METADATA 2> /dev/null
 
 #********************************************************************************************************************
 declare -i TIME=$(date +%s)-$START
