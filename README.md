@@ -160,6 +160,10 @@ To avoid you recomputing all the previous steps, a --ronly flag can be added.
 Just precise --dir and --out as in your first treatment. NanoASV will find final datasets and run only the r script. 
 This will save you time.
 
+## Acknowledgments
+
+We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and enerfy with NanoASV beta testing !
+
 ## Citation
 Please don't forget to cite NanoASV and dependencies if it helped you treat your Nanopore data
 Thank you !
