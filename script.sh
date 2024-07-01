@@ -418,18 +418,19 @@ vsearch \
         --clusterout_id \
         --clusterout_sort \
         --consout Consensus_seq_OTU.fasta \
-        --quiet
+        --quiet \
+        --fasta_width 0
         #--randseed 666
 rm seqs
 
 #Remove singletons
 awk '$2 > 5' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv;
 #Transform multiline fasta into singleline fasta
-awk '{if(NR==1) {print $0} else {if($0 ~ /^>/) {print "\n"$0} else {printf $0}}}' Consensus_seq_OTU.fasta > singleline_Consensus_seq_OTU.fasta
+#awk '{if(NR==1) {print $0} else {if($0 ~ /^>/) {print "\n"$0} else {printf $0}}}' Consensus_seq_OTU.fasta > singleline_Consensus_seq_OTU.fasta
 #Extract their ID for fasta sorting
 cut -f1 no_singletons_unknown_clusters.tsv > Non_singletons_ID
 #Sort fasta file
-grep -A1 -f Non_singletons_ID singleline_Consensus_seq_OTU.fasta > non_singleton.fasta
+grep -A1 -f Non_singletons_ID Consensus_seq_OTU.fasta > non_singleton.fasta
 #Replace Consensus fasta file by subsampled
 mv non_singleton.fasta Consensus_seq_OTU.fasta
 #Remove grep -f artefacts
