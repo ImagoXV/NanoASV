@@ -162,13 +162,15 @@ This will save you time.
 
 ## Acknowledgments
 
-We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and enerfy with NanoASV beta testing !
+We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and energy with NanoASV beta testing !
 
 ## Citation
 Please don't forget to cite NanoASV and dependencies if it helped you treat your Nanopore data
 Thank you !
 
-Dependencies citations :Danecek, Petr, James K Bonfield, Jennifer Liddle, John Marshall, Valeriu Ohan, Martin O Pollard,
+Dependencies citations :
+
+Danecek, Petr, James K Bonfield, Jennifer Liddle, John Marshall, Valeriu Ohan, Martin O Pollard,
 Andrew Whitwham, et al. 2021. “Twelve Years of SAMtools and BCFtools.” GigaScience
 10 (2): giab008. https://doi.org/10.1093/gigascience/giab008.
 
