@@ -3,6 +3,18 @@
 # This script is the first version of NanoASV
 # Authors : Arthur Cousson, Frederic Mahe
 # 08/03/2023
+#***************************************************************************************************************************
+# Unset non-essential variables to deal with singularity eating local env variables
+unset $(env | grep -vE '^(HOME|USER$|PWD|TMP|LANG|LC_)' | cut -d= -f1)
+# Unset all BASH_FUNC_* variables
+for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//'); do
+    unset $func
+done
+# Set essential variables explicitly
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export LD_LIBRARY_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+#***************************************************************************************************************************
 
 START=$(date +%s) #Set the clock for timer
 
@@ -328,19 +340,16 @@ echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 # Define a function to process each file
 process_file() {
     FILE="$1"
-    #date
     #echo "${FILE} alignment"
     filename=$(basename "$1")
     bwa mem ${DB}/SILVA_IDX "${FILE}" 2> /dev/null > "${FILE}.sam"
-    #echo samtools start
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
-    samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file} 
+    samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  
     grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
      "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
     grep -o '[^ ]\+$' ${TMP}/${output_file}.tsv > "${TMP}/${filename}_ASV_list.tsv"
-    #echo "${FILE} taxonomy export"
     barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
     output_tax="Taxonomy_barcode${barcode_number}.csv"
     grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
@@ -418,18 +427,26 @@ vsearch \
         --clusterout_id \
         --clusterout_sort \
         --consout Consensus_seq_OTU.fasta \
-        --quiet
+        --fasta_width 0 \
+        --quiet 
         #--randseed 666
 rm seqs
 
 #Remove singletons
-awk '$2 > 5' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv;
+awk '$2 > 5' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv
+
+#This line checks if there are some clusters with abundance > 5
+if [ $(awk 'END {print NR}' no_singletons_unknown_clusters.tsv) -ge 2 ]; then
+
 #Transform multiline fasta into singleline fasta
-awk '{if(NR==1) {print $0} else {if($0 ~ /^>/) {print "\n"$0} else {printf $0}}}' Consensus_seq_OTU.fasta > singleline_Consensus_seq_OTU.fasta
+#awk '{if(NR==1) {print $0} else {if($0 ~ /^>/) {print "\n"$0} else {printf $0}}}' Consensus_seq_OTU.fasta > singleline_Consensus_seq_OTU.fasta
 #Extract their ID for fasta sorting
 cut -f1 no_singletons_unknown_clusters.tsv > Non_singletons_ID
+
+
+
 #Sort fasta file
-grep -A1 -f Non_singletons_ID singleline_Consensus_seq_OTU.fasta > non_singleton.fasta
+grep -A1 -f Non_singletons_ID Consensus_seq_OTU.fasta > non_singleton.fasta
 #Replace Consensus fasta file by subsampled
 mv non_singleton.fasta Consensus_seq_OTU.fasta
 #Remove grep -f artefacts
@@ -438,6 +455,10 @@ sed -i '/^--/d' Consensus_seq_OTU.fasta
 sed -i 's/>centroid=\([^;]*\);.*$/>\1/' Consensus_seq_OTU.fasta
 mv no_singletons_unknown_clusters.tsv unknown_clusters.tsv
 
+else 
+rm unknown_clusters.tsv Consensus_seq_OTU.fasta
+echo "No unknown cluster with abondance greater than 5"
+fi
 #If by any mean you don't have any unknown sequence, then you'll just skip the step (highly improbable)
 else 
 echo "Step 7/9 : Skipped - no unknown sequence"
@@ -476,9 +497,14 @@ fi
 (cd ${TMP}
 mv *_abundance.tsv ${OUTPWD}/Results/ASV/
 mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
-mv Consensus_seq_OTU.fasta unknown_clusters.tsv  ${OUTPWD}/Results/Unknown_clusters/ 2> /dev/null
 mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
 mv ASV.tree ${OUTPWD}/Results/Phylogeny/
+
+if [ -e "Consensus_seq_OTU.fasta" ]; then
+mv Consensus_seq_OTU.fasta unknown_clusters.tsv  ${OUTPWD}/Results/Unknown_clusters/ 2> /dev/null 
+fi 
+
+
 )
 rm -r ${TMP}
 #***************************************************************************************************************************

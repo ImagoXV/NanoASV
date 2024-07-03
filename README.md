@@ -18,7 +18,7 @@ docker build -t nanoasv NanoASV/.
 ### Create Docker archive to build with Singularity
 
 ```sh
-docker save NanoASV.tar nanoasv
+docker save nanoasv -o NanoASV.tar
 ```
 ## ADVANCED - Build image with Singularity
 I recommend building the sif file from the docker archive 
