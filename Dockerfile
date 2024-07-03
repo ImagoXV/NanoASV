@@ -81,8 +81,6 @@ COPY script.sh /script.sh
 COPY script.r /script.r
 COPY help.txt /help.txt
 
-#Test for --containall option equivalent
-RUN export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH
 
 # Set the script as the entry pointbwa-mem2-2.2.1_x64-linux
 ENTRYPOINT ["/script.sh"]
