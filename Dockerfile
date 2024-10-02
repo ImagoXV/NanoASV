@@ -59,11 +59,11 @@ RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Export
     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' | \
      gzip > SILVA_138.1_SSURef_tax_silva.fasta.gz
 
-RUN echo "Building the index, grab a cup of coffe, it's the longest part" 
+#RUN echo "Building the index, grab a cup of coffe, it's the longest part" 
 
 RUN cd database && \
-    #bwa-mem2 index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-    bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+#Changing the indexing step from installation to first run 
+#    bwa index -p SILVA_IDX SILVA_138.1_SSURef_tax_silva.fasta.gz && \
     zgrep "^>" SILVA_138.1_SSURef_tax_silva.fasta.gz | tr -d ">" > Taxonomy_SILVA138.1.csv
 
 RUN apt-get autoremove

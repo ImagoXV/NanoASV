@@ -68,6 +68,11 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    -db|--database)
+      DATABASE="$2"
+      shift
+      shift
+      ;;
     --no-r-cleaning)
       R_CLEANING=0
       shift
@@ -129,6 +134,7 @@ DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
+DEFAULT_DATABASE="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -144,6 +150,12 @@ DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
 SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
+
+if [ -z "$DATABASE" ]; then
+  echo "No personal database path specified. Using Silva 138.1"
+  DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
+fi
+
 #***************************************************************************************************************************
 
 
