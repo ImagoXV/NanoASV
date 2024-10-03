@@ -51,7 +51,6 @@ ENV LC_ALL=C.UTF-8
     samtools \
     vsearch \
     wget \
-    bwa \
     build-essential \
     zlib1g-dev \
     python3-pip \
@@ -69,7 +68,8 @@ ENV LC_ALL=C.UTF-8
 # Instal minimap2
 
 RUN git clone https://github.com/lh3/minimap2 && \
-    cd minimap2/ && make
+    cd minimap2/ && make \
+    ln -S minimap2/mainimap2 /opt/
 
 # Install Porechop
 RUN wget https://github.com/rrwick/Porechop/archive/refs/tags/v0.2.4.tar.gz && \
@@ -101,7 +101,8 @@ RUN apt-get autoremove
 # # Install R packages 
 RUN R -e 'install.packages("dplyr")'
 RUN R -e 'install.packages("BiocManager")'
-RUN R -e 'BiocManager::install("phyloseq", dependencies = TRUE)'
+#RUN R -e 'BiocManager::install("phyloseq", dependencies = TRUE)'
+RUN R -e 'BiocManager::install("phyloseq")'
 
 RUN mkdir Rdata
 
