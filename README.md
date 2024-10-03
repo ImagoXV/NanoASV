@@ -1,7 +1,7 @@
 ![Logo](NanoASV_logo.png)
 
 # NanoASV
-NanoASV is a docker based Nanopore 1500bp 16S Metabarcoding amplicon data analysis workflow. 
+ NanoASV is a container based workflow using state of the art bioinformatic software to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C  sequencing device and process data locally. 
 
 # Installation
 At the moment, the only way to install NanoASV is building it from source with Docker. 
