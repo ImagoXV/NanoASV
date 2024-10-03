@@ -381,16 +381,12 @@ echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 # Define a function to process each file
 process_file() {
     FILE="$1"
-    #echo "${FILE} alignment"
     filename=$(basename "$1")
-    /minimap2/minimap2 -a $DATABASE.mmi ${FILE} > ${FILE}.sam #   ${DB}/SILVA_IDX "${FILE}" 2> /dev/null > "${FILE}.sam"
-    echo "Minimap step worked ok"
+    /minimap2/minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam 
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
     #samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
     samtools fastq -f 4 "${FILE}.sam"  > ${TMP}/${outsamtools_file}  
-
-    echo "Samtool step worked OK"
     grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
      "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
@@ -519,13 +515,9 @@ fi
 if [ "$TREE" -eq 1 ]; then
 echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 (cd ${TMP}
-#cat SUB_CHOPED_FILTERED_barcode01.fastq.gz_ASV_list.tsv #DEBUG
-#So I basically need to do the singleton removal befaore that step
 cat *_ASV_list.tsv | sort -u > ID_ASV
-cat ID_ASV
-#echo "After cat ID ASV"w
+
 #Check if DATABASE is gzipped or not
-echo "Creation of ALL_ASV.fasta"
   if file $DATABASE | grep -q 'gzip compressed'; then
   echo "Database file is zipped"
     zcat $DATABASE | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
@@ -534,9 +526,6 @@ echo "Creation of ALL_ASV.fasta"
     grep -A1 -f ID_ASV $DATABASE | grep -v "^--" > ALL_ASV.fasta
   fi
 
-  echo "Looking at ASV seed file"
-  head ALL_ASV.fasta #DEBUG
-
   if [ -e "Consensus_seq_OTU.fasta" ]; then
   cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV_OTU.fasta
   else 
@@ -544,12 +533,12 @@ echo "Creation of ALL_ASV.fasta"
 fi
 
 ## MAFFT alignement ********************************************************************************************************
-#mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null #Verbose debugging
-mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 
+mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null 
+
 
 ## FastTree ****************************************************************************************************************
-#FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null #Verbose debugging
-FastTree -nt -fastest ALL_ASV.aln > ASV.tree
+FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null #Verbose debugging
+
 )
 else
 echo "Step 8/9 : SKIPPED - Phylogeny with MAFFT and FastTree"
