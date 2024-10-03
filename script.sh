@@ -7,8 +7,8 @@
 # Unset non-essential variables to deal with singularity eating local env variables
 unset $(env | grep -vE '^(HOME|USER$|PWD|TMP|LANG|LC_)' | cut -d= -f1)
 # Unset all BASH_FUNC_* variables
-for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//'); do
-    unset $func
+for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//'); do 
+    unset $func 
 done
 # Set essential variables explicitly
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -234,6 +234,35 @@ echo "Don't forget to cite NanoASV and its dependencies if it helps you treating
 exit
 fi
 
+#Database indexing *********************************************************************************************
+DATABASE_DIR=$(dirname "$DATABASE")
+DATABASE_NAME=$(basename "$DATABASE" .mmi)
+
+if [[ -f "$DATABASE.mmi" ]]; then
+    echo "Minimap2 index is present in the directory: $DATABASE_DIR, using $DATABASE_NAME as database"
+    IDX="$DATABASE.mmi"
+    echo $IDX
+else
+    echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
+    /minimap2/minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE"
+    IDX="$DATABASE.mmi"
+    echo $IDX
+
+    echo "Preparing taxonomy from fasta file"
+    if file "$DATABASE" | grep -q 'gzip compressed'; then
+    zcat "$DATABASE" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' | \
+    gzip -c > "$DATABASE"
+    zgrep "^>" "$DATABASE" | tr -d ">" > $DATABASE_DIR/TAXONOMY_$DATABASE_NAME
+    else
+    awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' "$DATABASE" > $TMP/SINGLELINE_database.fasta
+    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $DATABASE_DIR/TAXONOMY_${DATABASE_NAME}
+
+    fi
+
+fi
+
+TAX="${DATABASE_DIR}/TAXONOMY_${DATABASE_NAME}"
+
 
 ## Concatenation of fastq files *********************************************************************************************
 
@@ -342,10 +371,10 @@ echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 # #***************************************************************************************************************************
 
 
-# Bwa alignments ***********************************************************************************************************
+# Minimap2 alignments ***********************************************************************************************************
 
- SILVA="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
- TAX="/database/Taxonomy_SILVA138.1.csv"
+ #SILVA="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
+ #TAX="/database/Taxonomy_SILVA138.1.csv"
  DB="/database"
 #***************************************************************************************************************************
 
@@ -354,10 +383,14 @@ process_file() {
     FILE="$1"
     #echo "${FILE} alignment"
     filename=$(basename "$1")
-    bwa mem ${DB}/SILVA_IDX "${FILE}" 2> /dev/null > "${FILE}.sam"
+    /minimap2/minimap2 -a $DATABASE.mmi ${FILE} > ${FILE}.sam #   ${DB}/SILVA_IDX "${FILE}" 2> /dev/null > "${FILE}.sam"
+    echo "Minimap step worked ok"
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
-    samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  
+    #samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
+    samtools fastq -f 4 "${FILE}.sam"  > ${TMP}/${outsamtools_file}  
+
+    echo "Samtool step worked OK"
     grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
      "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
@@ -365,15 +398,16 @@ process_file() {
     barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
     output_tax="Taxonomy_barcode${barcode_number}.csv"
     grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
+    echo "Taxonomy step worked ok"
 }
 
 # Export the function
 export -f process_file
 #***************************************************************************************************************************
-echo "Step 6/9 : Reads alignements with bwa against SILVA_138.1"
+echo "Step 6/9 : Reads alignements with minimap2 against $DATABASE"
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
-MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
+find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" \
+MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" DATABASE="${DATABASE}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
 #***************************************************************************************************************************
 
@@ -485,21 +519,37 @@ fi
 if [ "$TREE" -eq 1 ]; then
 echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 (cd ${TMP}
-
+#cat SUB_CHOPED_FILTERED_barcode01.fastq.gz_ASV_list.tsv #DEBUG
 #So I basically need to do the singleton removal befaore that step
 cat *_ASV_list.tsv | sort -u > ID_ASV
-zcat ${SILVA} | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
-if [ -e "Consensus_seq_OTU.fasta" ]; then
-cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV_OTU.fasta
-else 
-cat ALL_ASV.fasta > ALL_ASV_OTU.fasta
+cat ID_ASV
+#echo "After cat ID ASV"w
+#Check if DATABASE is gzipped or not
+echo "Creation of ALL_ASV.fasta"
+  if file $DATABASE | grep -q 'gzip compressed'; then
+  echo "Database file is zipped"
+    zcat $DATABASE | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
+  else
+    echo "Database is unzipped, grepping this shit"
+    grep -A1 -f ID_ASV $DATABASE | grep -v "^--" > ALL_ASV.fasta
+  fi
+
+  echo "Looking at ASV seed file"
+  head ALL_ASV.fasta #DEBUG
+
+  if [ -e "Consensus_seq_OTU.fasta" ]; then
+  cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV_OTU.fasta
+  else 
+  cat ALL_ASV.fasta > ALL_ASV_OTU.fasta
 fi
 
 ## MAFFT alignement ********************************************************************************************************
-mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null
+#mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null #Verbose debugging
+mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 
 
 ## FastTree ****************************************************************************************************************
-FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null
+#FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null #Verbose debugging
+FastTree -nt -fastest ALL_ASV.aln > ASV.tree
 )
 else
 echo "Step 8/9 : SKIPPED - Phylogeny with MAFFT and FastTree"
