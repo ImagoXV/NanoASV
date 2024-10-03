@@ -170,8 +170,8 @@ fi
 /bin/which porechop > /dev/null || \
     { echo "porechop is not there. Please reinstall" ; exit 1 ; }
 
-/bin/which bwa > /dev/null || \
-    { echo "bwa is not there. Please reinstall" ; exit 1 ; }
+/bin/which /opt/minimap2 > /dev/null || \
+    { echo "minimap2 is not there. Please reinstall" ; exit 1 ; }
 
 /bin/which samtools > /dev/null || \
     { echo "samtools is not there. Please reinstall" ; exit 1 ; }
@@ -244,21 +244,19 @@ if [[ -f "$DATABASE.mmi" ]]; then
     echo $IDX
 else
     echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
-    /minimap2/minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE"
+    /opt/minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE"
     IDX="$DATABASE.mmi"
     echo $IDX
 
+#Modification, to avoid altering user database file
     echo "Preparing taxonomy from fasta file"
     if file "$DATABASE" | grep -q 'gzip compressed'; then
-    zcat "$DATABASE" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' | \
-    gzip -c > "$DATABASE"
-    zgrep "^>" "$DATABASE" | tr -d ">" > $DATABASE_DIR/TAXONOMY_$DATABASE_NAME
+    zcat "$DATABASE" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > $TMP/SINGLELINE_database.fasta
+    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $DATABASE_DIR/TAXONOMY_${DATABASE_NAME}
     else
     awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' "$DATABASE" > $TMP/SINGLELINE_database.fasta
     grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $DATABASE_DIR/TAXONOMY_${DATABASE_NAME}
-
     fi
-
 fi
 
 TAX="${DATABASE_DIR}/TAXONOMY_${DATABASE_NAME}"
@@ -382,7 +380,7 @@ echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 process_file() {
     FILE="$1"
     filename=$(basename "$1")
-    /minimap2/minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam 
+    /opt/minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam 
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
     #samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
@@ -517,20 +515,19 @@ echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 (cd ${TMP}
 cat *_ASV_list.tsv | sort -u > ID_ASV
 
-#Check if DATABASE is gzipped or not
-  if file $DATABASE | grep -q 'gzip compressed'; then
-  echo "Database file is zipped"
-    zcat $DATABASE | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
-  else
-    echo "Database is unzipped, grepping this shit"
-    grep -A1 -f ID_ASV $DATABASE | grep -v "^--" > ALL_ASV.fasta
-  fi
 
+#Fred's solution
+zgrep --no-group-separator -A 1 "ID_ASV" "${DATABASE}" > ALL_ASV.fasta
+
+#Check if unknown sequences and add them to the fasta file for tree generation if any.
   if [ -e "Consensus_seq_OTU.fasta" ]; then
   cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV_OTU.fasta
   else 
   cat ALL_ASV.fasta > ALL_ASV_OTU.fasta
 fi
+
+
+zgrep --no-group-separator -A 1 "ID_ASV" "${DATABASE}" > ALL_ASV.fasta
 
 ## MAFFT alignement ********************************************************************************************************
 mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null 
