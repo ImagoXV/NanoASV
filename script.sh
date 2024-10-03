@@ -158,19 +158,18 @@ fi
 
 #***************************************************************************************************************************
 
-
 #***************************************************************************************************************************
 # Check if the required binaries are correctly installed
 /bin/which mafft > /dev/null || \
     { echo "mafft is not there. Please reinstall" ; exit 1 ; }
 
-/bin/which /opt/chopper > /dev/null || \
+/bin/which chopper > /dev/null || \
     { echo "chopper is not there. Please reinstall" ; exit 1 ; }
 
 /bin/which porechop > /dev/null || \
     { echo "porechop is not there. Please reinstall" ; exit 1 ; }
 
-/bin/which /opt/minimap2 > /dev/null || \
+/bin/which minimap2 > /dev/null || \
     { echo "minimap2 is not there. Please reinstall" ; exit 1 ; }
 
 /bin/which samtools > /dev/null || \
@@ -244,7 +243,7 @@ if [[ -f "$DATABASE.mmi" ]]; then
     echo $IDX
 else
     echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
-    /opt/minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE"
+    minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE"
     IDX="$DATABASE.mmi"
     echo $IDX
 
@@ -286,7 +285,7 @@ filter_file() {
   (
   filename=$(basename "$1")
   output_file="FILTERED_$filename"
-  zcat "$1" | /opt/chopper -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" 2> /dev/null | gzip > "${TMP}/${output_file}"
+  zcat "$1" | chopper -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" 2> /dev/null | gzip > "${TMP}/${output_file}"
   )
 }
 
@@ -380,7 +379,7 @@ echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 process_file() {
     FILE="$1"
     filename=$(basename "$1")
-    /opt/minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam 
+    minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam 
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
     #samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose

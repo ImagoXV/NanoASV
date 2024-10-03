@@ -51,7 +51,6 @@ ENV LC_ALL=C.UTF-8
     samtools \
     vsearch \
     wget \
-    bwa \
     build-essential \
     zlib1g-dev \
     python3-pip \
@@ -69,7 +68,8 @@ ENV LC_ALL=C.UTF-8
 # Instal minimap2
 
 RUN git clone https://github.com/lh3/minimap2 && \
-    cd minimap2/ && make
+    cd minimap2/ && make &&\
+    mv minimap2 /bin/minimap2
 
 # Install Porechop
 RUN wget https://github.com/rrwick/Porechop/archive/refs/tags/v0.2.4.tar.gz && \
@@ -80,7 +80,7 @@ RUN wget https://github.com/rrwick/Porechop/archive/refs/tags/v0.2.4.tar.gz && \
 
 #Install Chopper
 RUN wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-linux.zip &&  unzip chopper-linux.zip
-RUN chmod ugo+rwx chopper && mv chopper /opt/
+RUN chmod ugo+rwx chopper && mv chopper /bin/chopper
 
 # Download SILVA138.1
 # RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
@@ -102,6 +102,7 @@ RUN apt-get autoremove
 RUN R -e 'install.packages("dplyr")'
 RUN R -e 'install.packages("BiocManager")'
 RUN R -e 'BiocManager::install("phyloseq", dependencies = TRUE)'
+#RUN R -e 'BiocManager::install("phyloseq")'
 
 RUN mkdir Rdata
 
