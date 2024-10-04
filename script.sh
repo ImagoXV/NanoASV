@@ -7,8 +7,8 @@
 # Unset non-essential variables to deal with singularity eating local env variables
 unset $(env | grep -vE '^(HOME|USER$|PWD|TMP|LANG|LC_)' | cut -d= -f1)
 # Unset all BASH_FUNC_* variables
-for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//'); do 
-    unset $func 2> /dev/null
+for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//') 2> /dev/null ; do 
+    unset $func 
 done
 # Set essential variables explicitly
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -151,10 +151,10 @@ SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
 
-# if [ -z "$DATABASE" ]; then
-#   echo "No personal database path specified. Using Silva 138.1"
-#   DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
-# fi
+if [ -z "$DATABASE" ]; then
+  echo "No personal database path specified. Using Silva 138.1"
+  DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
+fi
 
 #***************************************************************************************************************************
 
@@ -205,7 +205,7 @@ if [[ "${DOCKER}" -eq 1 ]]; then
 #Docker version ************************************************************************************************************
 mkdir --parents \
     ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-mkdir ${DIR}/${OUT}/SILVA/ 2> /dev/null
+#mkdir ${DIR}/${OUT}/SILVA/ 2> /dev/null
 OUTPWD=${DIR}/${OUT}
 fi
 
@@ -214,28 +214,28 @@ if [[ "${DOCKER}" -eq 0 ]]; then
 #Singularity version *******************************************************************************************************
 mkdir --parents \
     ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-mkdir ${OUT}/SILVA/ 2> /dev/null
+#mkdir ${OUT}/SILVA/ 2> /dev/null
 OUTPWD=$(pwd)/${OUT}
 fi
 #***************************************************************************************************************************
 
 # Check if DATABASE is empty and no default value is provided **************************************************************
-if [[ -z $DATABASE ]]; then
-    read -p "No database specified. Do you wish to download SILVA 138.1? (y/n): " response
-    if [[ "$response" == "y" ]]; then
-        echo "Downloading database..."
-        if ! wget -P "${OUTPWD}/SILVA/" https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz; then
-        echo "Error: Failed to download the database."
-        exit 1
-        fi
-        DATABASE="${OUTPWD}/SILVA/SILVA_138.1_SSURef_tax_silva.fasta.gz"
-    else
-        echo "You need to specify a database. Please insure your reference database matches NanoASV requirements. Run nanoasv --requirements for more informations"
-        exit 1
-    fi
-else
-    echo "Using provided database: $DATABASE"
-fi
+# if [[ -z $DATABASE ]]; then
+#     read -p "No database specified. Do you wish to download SILVA 138.1? (y/n): " response
+#     if [[ "$response" == "y" ]]; then
+#         echo "Downloading database..."
+#         if ! wget -P "${OUTPWD}/SILVA/" https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz; then
+#         echo "Error: Failed to download the database."
+#         exit 1
+#         fi
+#         DATABASE="${OUTPWD}/SILVA/SILVA_138.1_SSURef_tax_silva.fasta.gz"
+#     else
+#         echo "You need to specify a database. Please insure your reference database matches NanoASV requirements. Run nanoasv --requirements for more informations"
+#         exit 1
+#     fi
+# else
+#     echo "Using provided database: $DATABASE"
+# fi
 
 #R Step Only if problem *********************************************************************************************
 if [ "$R_STEP_ONLY" -eq 1 ]; then
@@ -263,22 +263,22 @@ if [[ -f "$DATABASE.mmi" ]]; then
     echo $IDX
 else
     echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
-    minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE"
+    minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE" 2> /dev/null
     IDX="$DATABASE.mmi"
     echo $IDX
 
 #Modification, to avoid altering user database file
-    echo "Preparing taxonomy from fasta file"
+    echo "Preparing taxonomy from fasta file. Are you sure your database fits NanoASV requirements ?"
     if file "$DATABASE" | grep -q 'gzip compressed'; then
     zcat "$DATABASE" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > $TMP/SINGLELINE_database.fasta
-    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $DATABASE_DIR/TAXONOMY_${DATABASE_NAME}
+    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $TMP/TAXONOMY_${DATABASE_NAME}
     else
     awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' "$DATABASE" > $TMP/SINGLELINE_database.fasta
-    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $DATABASE_DIR/TAXONOMY_${DATABASE_NAME}
+    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $TMP/TAXONOMY_${DATABASE_NAME}
     fi
 fi
 
-TAX="${DATABASE_DIR}/TAXONOMY_${DATABASE_NAME}"
+TAX="${TMP}/TAXONOMY_${DATABASE_NAME}"
 
 
 ## Concatenation of fastq files *********************************************************************************************
@@ -402,14 +402,22 @@ process_file() {
     minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam 
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
-    #samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
-    samtools fastq -f 4 "${FILE}.sam"  > ${TMP}/${outsamtools_file}  
-    grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
-     "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
+    samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
+    #samtools fastq -f 4 "${FILE}.sam"  > ${TMP}/${outsamtools_file}  
+
+    samtools view -h -F 4 "${FILE}.sam" tee >(cut -f 1,2,3 > \
+    "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > "${TMP}/${output_file}.tsv"
+
+    #grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
+    # "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
+
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
+
     grep -o '[^ ]\+$' ${TMP}/${output_file}.tsv > "${TMP}/${filename}_ASV_list.tsv"
+
     barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
     output_tax="Taxonomy_barcode${barcode_number}.csv"
+
     grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
 }
 
