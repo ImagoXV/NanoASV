@@ -7,8 +7,8 @@
 # Unset non-essential variables to deal with singularity eating local env variables
 unset $(env | grep -vE '^(HOME|USER$|PWD|TMP|LANG|LC_)' | cut -d= -f1)
 # Unset all BASH_FUNC_* variables
-for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//') 2> /dev/null ; do 
-    unset $func 
+for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//') ; do
+    unset $func 2> /dev/null
 done
 # Set essential variables explicitly
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -260,7 +260,8 @@ DATABASE_NAME=$(basename "$DATABASE" .mmi)
 if [[ -f "$DATABASE.mmi" ]]; then
     echo "Minimap2 index is present in the directory: $DATABASE_DIR, using $DATABASE_NAME as database"
     IDX="$DATABASE.mmi"
-    echo $IDX
+    awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' "$DATABASE" > $TMP/SINGLELINE_database.fasta
+    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $TMP/TAXONOMY_${DATABASE_NAME}
 else
     echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
     minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE" 2> /dev/null
@@ -399,16 +400,36 @@ echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 process_file() {
     FILE="$1"
     filename=$(basename "$1")
-    minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam 
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
+    #minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam #this line is working fine
+    minimap2 -a $DATABASE.mmi "${FILE}" 2> /dev/null > ${FILE}.sam
+    echo "Check sam head"
+    head ${FILE}.sam
     samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
+    cat ${TMP}/${outsamtools_file}
+    echo "Next step is conversion to bam"
     #samtools fastq -f 4 "${FILE}.sam"  > ${TMP}/${outsamtools_file}  
+    samtools view -h -b "${FILE}.sam" -o "${FILE}.bam"
 
-    samtools view -h -F 4 "${FILE}.sam" tee >(cut -f 1,2,3 > \
-    "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > "${TMP}/${output_file}.tsv"
+    #cat "${FILE}.bam"
+    echo "Next step is sorting"
+    samtools sort "${FILE}.bam" > "${FILE}_sorted.bam"
+    echo "Bam file is sorted - Indexing"
+    samtools index "${FILE}_sorted.bam"
+    echo "If no error then correctly indexed"
 
-    #grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
+    #ls $TMP
+    echo "Next step is samtools view alone to check"
+    samtools view  "${FILE}_sorted.bam"
+    echo "Next step is samtools view to extract mapped reads"
+
+    samtools view -F 4 "${FILE}_sorted.bam" | \
+    tee >(cut -f 1,2,3 > "${FILE}_Exact_affiliations.tsv") | \
+    cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr > "${TMP}/${output_file}.tsv"
+    
+
+    # grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
     # "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
 
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
