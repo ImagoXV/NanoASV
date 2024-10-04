@@ -538,10 +538,6 @@ else
 echo "Step 8/9 : SKIPPED - Phylogeny with MAFFT and FastTree"
 fi
 
-echo "LS TMP DEBUG"
-
-ls ${TMP}
-
 ## Export results **********************************************************************************************************
 (cd ${TMP}
 mv *_abundance.tsv ${OUTPWD}/Results/ASV/
