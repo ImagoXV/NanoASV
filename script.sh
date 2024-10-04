@@ -391,7 +391,6 @@ process_file() {
     barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
     output_tax="Taxonomy_barcode${barcode_number}.csv"
     grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
-    echo "Taxonomy step worked ok"
 }
 
 # Export the function
@@ -402,6 +401,8 @@ echo "Step 6/9 : Reads alignements with minimap2 against $DATABASE"
 find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" \
 MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" DATABASE="${DATABASE}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
+
+ls ${TMP} #DEBUG
 #***************************************************************************************************************************
 
 # Homogenization of exact affiliations file names **************************************************************************
@@ -514,9 +515,8 @@ echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 (cd ${TMP}
 cat *_ASV_list.tsv | sort -u > ID_ASV
 
-
 #Fred's solution
-zgrep --no-group-separator -A 1 "ID_ASV" "${DATABASE}" > ALL_ASV.fasta
+zgrep --no-group-separator -A 1 -f ID_ASV "${DATABASE}" > ALL_ASV.fasta
 
 #Check if unknown sequences and add them to the fasta file for tree generation if any.
   if [ -e "Consensus_seq_OTU.fasta" ]; then
@@ -525,8 +525,6 @@ zgrep --no-group-separator -A 1 "ID_ASV" "${DATABASE}" > ALL_ASV.fasta
   cat ALL_ASV.fasta > ALL_ASV_OTU.fasta
 fi
 
-
-zgrep --no-group-separator -A 1 "ID_ASV" "${DATABASE}" > ALL_ASV.fasta
 
 ## MAFFT alignement ********************************************************************************************************
 mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null 
@@ -539,6 +537,10 @@ FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null #Verbose debugging
 else
 echo "Step 8/9 : SKIPPED - Phylogeny with MAFFT and FastTree"
 fi
+
+echo "LS TMP DEBUG"
+
+ls ${TMP}
 
 ## Export results **********************************************************************************************************
 (cd ${TMP}
