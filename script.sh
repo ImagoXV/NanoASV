@@ -265,11 +265,17 @@ if [[ -f "$DATABASE.mmi" ]]; then
     grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $TMP/TAXONOMY_${DATABASE_NAME}
 else
     echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
-    minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE" 2> /dev/null
-    ls -alh $DATABASE_DIR
-    IDX="$DATABASE.mmi"
-    #echo $IDX
-
+    if [[ "${DOCKER}" -eq 1 ]]; then
+      minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE" 2> /dev/null
+      ls -alh $DATABASE_DIR
+      IDX="$DATABASE.mmi"
+      #echo $IDX
+    else 
+    minimap2 -x map-ont -d "$TMP/$DATABASE_NAME.mmi" "$DATABASE" 2> /dev/null
+    ls -alh $TMP
+    IDX="$TMP/$DATABASE_NAME.mmi"
+    echo $IDX
+    fi
 #Modification, to avoid altering user database file
     echo "Preparing taxonomy from fasta file. Are you sure your database fits NanoASV requirements ?"
     if file "$DATABASE" | grep -q 'gzip compressed'; then
@@ -404,7 +410,7 @@ process_file() {
     filename=$(basename "$1")
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
-    minimap2 -a $DATABASE.mmi "${FILE}" 2> /dev/null > ${FILE}.sam
+    minimap2 -a $IDX "${FILE}" 2> /dev/null > ${FILE}.sam
     samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
     samtools view -h -b "${FILE}.sam" -o "${FILE}.bam"
     samtools sort "${FILE}.bam" > "${FILE}_sorted.bam"
@@ -427,7 +433,7 @@ export -f process_file
 echo "Step 6/9 : Reads alignements with minimap2 against $DATABASE"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" \
-MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" DATABASE="${DATABASE}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
+MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" DATABASE="${DATABASE}" TAX="${TAX}" IDX="${IDX}" parallel -j "${NUM_PROCESSES}" process_file
 
 #***************************************************************************************************************************
 
