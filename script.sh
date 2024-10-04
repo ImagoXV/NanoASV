@@ -257,6 +257,7 @@ fi
 DATABASE_DIR=$(dirname "$DATABASE")
 DATABASE_NAME=$(basename "$DATABASE" .mmi)
 
+
 if [[ -f "$DATABASE.mmi" ]]; then
     echo "Minimap2 index is present in the directory: $DATABASE_DIR, using $DATABASE_NAME as database"
     IDX="$DATABASE.mmi"
@@ -265,8 +266,9 @@ if [[ -f "$DATABASE.mmi" ]]; then
 else
     echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
     minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE" 2> /dev/null
+    ls -alh $DATABASE_DIR
     IDX="$DATABASE.mmi"
-    echo $IDX
+    #echo $IDX
 
 #Modification, to avoid altering user database file
     echo "Preparing taxonomy from fasta file. Are you sure your database fits NanoASV requirements ?"
@@ -402,44 +404,21 @@ process_file() {
     filename=$(basename "$1")
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
-    #minimap2 -a $DATABASE.mmi ${FILE} 2> /dev/null > ${FILE}.sam #this line is working fine
     minimap2 -a $DATABASE.mmi "${FILE}" 2> /dev/null > ${FILE}.sam
-    echo "Check sam head"
-    head ${FILE}.sam
     samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
-    cat ${TMP}/${outsamtools_file}
-    echo "Next step is conversion to bam"
-    #samtools fastq -f 4 "${FILE}.sam"  > ${TMP}/${outsamtools_file}  
     samtools view -h -b "${FILE}.sam" -o "${FILE}.bam"
-
-    #cat "${FILE}.bam"
-    echo "Next step is sorting"
     samtools sort "${FILE}.bam" > "${FILE}_sorted.bam"
-    echo "Bam file is sorted - Indexing"
+    #echo "Bam file is sorted - Indexing"
     samtools index "${FILE}_sorted.bam"
-    echo "If no error then correctly indexed"
-
-    #ls $TMP
-    echo "Next step is samtools view alone to check"
-    samtools view  "${FILE}_sorted.bam"
-    echo "Next step is samtools view to extract mapped reads"
-
     samtools view -F 4 "${FILE}_sorted.bam" | \
     tee >(cut -f 1,2,3 > "${FILE}_Exact_affiliations.tsv") | \
     cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr > "${TMP}/${output_file}.tsv"
-    
-
-    # grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
-    # "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
-
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
-
     grep -o '[^ ]\+$' ${TMP}/${output_file}.tsv > "${TMP}/${filename}_ASV_list.tsv"
-
     barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
     output_tax="Taxonomy_barcode${barcode_number}.csv"
-
     grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
+    rm ${FILE}.sam ${FILE}.bam ${FILE}_sorted.bam ${FILE}_sorted.bam.bai
 }
 
 # Export the function
@@ -450,8 +429,6 @@ echo "Step 6/9 : Reads alignements with minimap2 against $DATABASE"
 find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" \
 MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" DATABASE="${DATABASE}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
 
-
-ls ${TMP} #DEBUG
 #***************************************************************************************************************************
 
 # Homogenization of exact affiliations file names **************************************************************************
