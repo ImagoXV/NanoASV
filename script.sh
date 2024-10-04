@@ -8,7 +8,7 @@
 unset $(env | grep -vE '^(HOME|USER$|PWD|TMP|LANG|LC_)' | cut -d= -f1)
 # Unset all BASH_FUNC_* variables
 for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//'); do 
-    unset $func 
+    unset $func 2> /dev/null
 done
 # Set essential variables explicitly
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -151,10 +151,10 @@ SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
 
-if [ -z "$DATABASE" ]; then
-  echo "No personal database path specified. Using Silva 138.1"
-  DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
-fi
+# if [ -z "$DATABASE" ]; then
+#   echo "No personal database path specified. Using Silva 138.1"
+#   DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
+# fi
 
 #***************************************************************************************************************************
 
@@ -205,6 +205,7 @@ if [[ "${DOCKER}" -eq 1 ]]; then
 #Docker version ************************************************************************************************************
 mkdir --parents \
     ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+mkdir ${DIR}/${OUT}/SILVA/ 2> /dev/null
 OUTPWD=${DIR}/${OUT}
 fi
 
@@ -213,9 +214,28 @@ if [[ "${DOCKER}" -eq 0 ]]; then
 #Singularity version *******************************************************************************************************
 mkdir --parents \
     ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+mkdir ${OUT}/SILVA/ 2> /dev/null
 OUTPWD=$(pwd)/${OUT}
 fi
 #***************************************************************************************************************************
+
+# Check if DATABASE is empty and no default value is provided **************************************************************
+if [[ -z $DATABASE ]]; then
+    read -p "No database specified. Do you wish to download SILVA 138.1? (y/n): " response
+    if [[ "$response" == "y" ]]; then
+        echo "Downloading database..."
+        if ! wget -P "${OUTPWD}/SILVA/" https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz; then
+        echo "Error: Failed to download the database."
+        exit 1
+        fi
+        DATABASE="${OUTPWD}/SILVA/SILVA_138.1_SSURef_tax_silva.fasta.gz"
+    else
+        echo "You need to specify a database. Please insure your reference database matches NanoASV requirements. Run nanoasv --requirements for more informations"
+        exit 1
+    fi
+else
+    echo "Using provided database: $DATABASE"
+fi
 
 #R Step Only if problem *********************************************************************************************
 if [ "$R_STEP_ONLY" -eq 1 ]; then
