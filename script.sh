@@ -551,11 +551,8 @@ cat *_ASV_list.tsv | sort -u > ID_ASV
 zgrep --no-group-separator -A 1 -f ID_ASV "${DATABASE}" > ALL_ASV.fasta
 
 #Check if unknown sequences and add them to the fasta file for tree generation if any.
-  if [ -e "Consensus_seq_OTU.fasta" ]; then
-  cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV_OTU.fasta
-  else 
-  cat ALL_ASV.fasta > ALL_ASV_OTU.fasta
-fi
+cp ALL_ASV.fasta ALL_ASV_OTU.fasta
+[[ -e "Consensus_seq_OTU.fasta" ]] && cat Consensus_seq_OTU.fasta >> ALL_ASV_OTU.fasta
 
 
 ## MAFFT alignement ********************************************************************************************************
