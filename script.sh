@@ -160,27 +160,10 @@ fi
 
 #***************************************************************************************************************************
 # Check if the required binaries are correctly installed
-/bin/which mafft > /dev/null || \
-    { echo "mafft is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which chopper > /dev/null || \
-    { echo "chopper is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which porechop > /dev/null || \
-    { echo "porechop is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which minimap2 > /dev/null || \
-    { echo "minimap2 is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which samtools > /dev/null || \
-    { echo "samtools is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which FastTree > /dev/null || \
-    { echo "FasTree is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which Rscript > /dev/null || \
-    { echo "R is not there. Please reinstall" ; exit 1 ; }
-
+for BINARY in mafft chopper porechop minimap2 samtools FastTree Rscript ; do
+  /bin/which ${BINARY} > /dev/null || \
+    { echo "${BINARY} is not there. Please reinstall" ; exit 1 ; }
+done
 
 
 #***************************************************************************************************************************
