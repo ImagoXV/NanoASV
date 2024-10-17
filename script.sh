@@ -7,8 +7,8 @@
 # Unset non-essential variables to deal with singularity eating local env variables
 unset $(env | grep -vE '^(HOME|USER$|PWD|TMP|LANG|LC_)' | cut -d= -f1)
 # Unset all BASH_FUNC_* variables
-for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//'); do
-    unset $func
+for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//') ; do
+    unset $func 2> /dev/null
 done
 # Set essential variables explicitly
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -65,6 +65,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     -p|--num-process)
       NUM_PROCESSES="$2"
+      shift
+      shift
+      ;;
+    -db|--database)
+      DATABASE="$2"
       shift
       shift
       ;;
@@ -129,6 +134,7 @@ DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
+DEFAULT_DATABASE="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -144,32 +150,20 @@ DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
 SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
-#***************************************************************************************************************************
 
+if [ -z "$DATABASE" ]; then
+  echo "No personal database path specified. Using Silva 138.1"
+  DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
+fi
+
+#***************************************************************************************************************************
 
 #***************************************************************************************************************************
 # Check if the required binaries are correctly installed
-/bin/which mafft > /dev/null || \
-    { echo "mafft is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which /opt/chopper > /dev/null || \
-    { echo "chopper is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which porechop > /dev/null || \
-    { echo "porechop is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which bwa > /dev/null || \
-    { echo "bwa is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which samtools > /dev/null || \
-    { echo "samtools is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which FastTree > /dev/null || \
-    { echo "FasTree is not there. Please reinstall" ; exit 1 ; }
-
-/bin/which Rscript > /dev/null || \
-    { echo "R is not there. Please reinstall" ; exit 1 ; }
-
+for BINARY in mafft chopper porechop minimap2 samtools FastTree Rscript ; do
+  /bin/which ${BINARY} > /dev/null || \
+    { echo "${BINARY} is not there. Please reinstall" ; exit 1 ; }
+done
 
 
 #***************************************************************************************************************************
@@ -194,6 +188,7 @@ if [[ "${DOCKER}" -eq 1 ]]; then
 #Docker version ************************************************************************************************************
 mkdir --parents \
     ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+#mkdir ${DIR}/${OUT}/SILVA/ 2> /dev/null
 OUTPWD=${DIR}/${OUT}
 fi
 
@@ -202,9 +197,28 @@ if [[ "${DOCKER}" -eq 0 ]]; then
 #Singularity version *******************************************************************************************************
 mkdir --parents \
     ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+#mkdir ${OUT}/SILVA/ 2> /dev/null
 OUTPWD=$(pwd)/${OUT}
 fi
 #***************************************************************************************************************************
+
+# Check if DATABASE is empty and no default value is provided **************************************************************
+# if [[ -z $DATABASE ]]; then
+#     read -p "No database specified. Do you wish to download SILVA 138.1? (y/n): " response
+#     if [[ "$response" == "y" ]]; then
+#         echo "Downloading database..."
+#         if ! wget -P "${OUTPWD}/SILVA/" https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz; then
+#         echo "Error: Failed to download the database."
+#         exit 1
+#         fi
+#         DATABASE="${OUTPWD}/SILVA/SILVA_138.1_SSURef_tax_silva.fasta.gz"
+#     else
+#         echo "You need to specify a database. Please insure your reference database matches NanoASV requirements. Run nanoasv --requirements for more informations"
+#         exit 1
+#     fi
+# else
+#     echo "Using provided database: $DATABASE"
+# fi
 
 #R Step Only if problem *********************************************************************************************
 if [ "$R_STEP_ONLY" -eq 1 ]; then
@@ -221,6 +235,42 @@ echo "Don't forget to cite NanoASV and its dependencies if it helps you treating
 #********************************************************************************************************************
 exit
 fi
+
+#Database indexing *********************************************************************************************
+DATABASE_DIR=$(dirname "$DATABASE")
+DATABASE_NAME=$(basename "$DATABASE" .mmi)
+
+
+if [[ -f "$DATABASE.mmi" ]]; then
+    echo "Minimap2 index is present in the directory: $DATABASE_DIR, using $DATABASE_NAME as database"
+    IDX="$DATABASE.mmi"
+    awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' "$DATABASE" > $TMP/SINGLELINE_database.fasta
+    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $TMP/TAXONOMY_${DATABASE_NAME}
+else
+    echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
+    if [[ "${DOCKER}" -eq 1 ]]; then
+      minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE" 2> /dev/null
+      ls -alh $DATABASE_DIR
+      IDX="$DATABASE.mmi"
+      #echo $IDX
+    else 
+    minimap2 -x map-ont -d "$TMP/$DATABASE_NAME.mmi" "$DATABASE" 2> /dev/null
+    ls -alh $TMP
+    IDX="$TMP/$DATABASE_NAME.mmi"
+    echo $IDX
+    fi
+#Modification, to avoid altering user database file
+    echo "Preparing taxonomy from fasta file. Are you sure your database fits NanoASV requirements ?"
+    if file "$DATABASE" | grep -q 'gzip compressed'; then
+    zcat "$DATABASE" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > $TMP/SINGLELINE_database.fasta
+    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $TMP/TAXONOMY_${DATABASE_NAME}
+    else
+    awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' "$DATABASE" > $TMP/SINGLELINE_database.fasta
+    grep "^>" $TMP/SINGLELINE_database.fasta | tr -d ">" > $TMP/TAXONOMY_${DATABASE_NAME}
+    fi
+fi
+
+TAX="${TMP}/TAXONOMY_${DATABASE_NAME}"
 
 
 ## Concatenation of fastq files *********************************************************************************************
@@ -247,7 +297,7 @@ filter_file() {
   (
   filename=$(basename "$1")
   output_file="FILTERED_$filename"
-  zcat "$1" | /opt/chopper -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" 2> /dev/null | gzip > "${TMP}/${output_file}"
+  zcat "$1" | chopper -q "${QUAL}" -l "${MINL}" --maxlength "${MAXL}" 2> /dev/null | gzip > "${TMP}/${output_file}"
   )
 }
 
@@ -330,38 +380,43 @@ echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 # #***************************************************************************************************************************
 
 
-# Bwa alignments ***********************************************************************************************************
+# Minimap2 alignments ***********************************************************************************************************
 
- SILVA="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
- TAX="/database/Taxonomy_SILVA138.1.csv"
+ #SILVA="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
+ #TAX="/database/Taxonomy_SILVA138.1.csv"
  DB="/database"
 #***************************************************************************************************************************
 
 # Define a function to process each file
 process_file() {
     FILE="$1"
-    #echo "${FILE} alignment"
     filename=$(basename "$1")
-    bwa mem ${DB}/SILVA_IDX "${FILE}" 2> /dev/null > "${FILE}.sam"
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
-    samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  
-    grep -v '^@' ${FILE}.sam | grep -v '[[:blank:]]2064[[:blank:]]' | grep -v '[[:blank:]]2048[[:blank:]]' | tee >(cut -f 1,2,3 > \
-     "${FILE}_Exact_affiliations.tsv") | cut -f3 | sort | uniq -c | awk '$1 != 0' | sort -nr > ${TMP}/${output_file}.tsv
+    minimap2 -a $IDX "${FILE}" 2> /dev/null > ${FILE}.sam
+    samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
+    samtools view -h -b "${FILE}.sam" -o "${FILE}.bam"
+    samtools sort "${FILE}.bam" > "${FILE}_sorted.bam"
+    #echo "Bam file is sorted - Indexing"
+    samtools index "${FILE}_sorted.bam"
+    samtools view -F 4 "${FILE}_sorted.bam" | \
+    tee >(cut -f 1,2,3 > "${FILE}_Exact_affiliations.tsv") | \
+    cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr > "${TMP}/${output_file}.tsv"
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
     grep -o '[^ ]\+$' ${TMP}/${output_file}.tsv > "${TMP}/${filename}_ASV_list.tsv"
     barcode_number=$(echo "$filename" | sed -E 's/.*barcode([0-9]+).*\.fastq.gz/\1/')
     output_tax="Taxonomy_barcode${barcode_number}.csv"
     grep -f "${TMP}/${filename}_ASV_list.tsv" "${TAX}" > ${TMP}/${output_tax}
+    rm ${FILE}.sam ${FILE}.bam ${FILE}_sorted.bam ${FILE}_sorted.bam.bai
 }
 
 # Export the function
 export -f process_file
 #***************************************************************************************************************************
-echo "Step 6/9 : Reads alignements with bwa against SILVA_138.1"
+echo "Step 6/9 : Reads alignements with minimap2 against $DATABASE"
 # Iterate over the files in parallel
-find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env DB="${DB}" TMP="${TMP}" QUAL="${QUAL}" \
-MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" SILVA="${SILVA}" TAX="${TAX}" parallel -j "${NUM_PROCESSES}" process_file
+find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" \
+MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" DATABASE="${DATABASE}" TAX="${TAX}" IDX="${IDX}" parallel -j "${NUM_PROCESSES}" process_file
 
 #***************************************************************************************************************************
 
@@ -474,20 +529,25 @@ if [ "$TREE" -eq 1 ]; then
 echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 (cd ${TMP}
 
-#So I basically need to do the singleton removal befaore that step
-cat *_ASV_list.tsv | sort -u > ID_ASV
-zcat ${SILVA} | grep -A 1 -f ID_ASV | grep -v "^--" > ALL_ASV.fasta
-if [ -e "Consensus_seq_OTU.fasta" ]; then
-cat ALL_ASV.fasta Consensus_seq_OTU.fasta > ALL_ASV_OTU.fasta
-else 
-cat ALL_ASV.fasta > ALL_ASV_OTU.fasta
-fi
+#Fred's solution
+zgrep \
+  --no-group-separator \
+  --after-context 1 \
+  --file <(cat *_ASV_list.tsv | sort -u) \
+  "${DATABASE}" > ALL_ASV.fasta
+
+#Check if unknown sequences and add them to the fasta file for tree generation if any.
+cp ALL_ASV.fasta ALL_ASV_OTU.fasta
+[[ -e "Consensus_seq_OTU.fasta" ]] && cat Consensus_seq_OTU.fasta >> ALL_ASV_OTU.fasta
+
 
 ## MAFFT alignement ********************************************************************************************************
-mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null
+mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null 
+
 
 ## FastTree ****************************************************************************************************************
-FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null
+FastTree -nt -fastest ALL_ASV.aln > ASV.tree 2> /dev/null #Verbose debugging
+
 )
 else
 echo "Step 8/9 : SKIPPED - Phylogeny with MAFFT and FastTree"
