@@ -530,11 +530,13 @@ echo "Step 8/9 : Phylogeny with MAFFT and FastTree"
 (cd ${TMP}
 
 #Fred's solution
-zgrep \
-  --no-group-separator \
-  --after-context 1 \
-  --file <(cat *_ASV_list.tsv | sort -u) \
-  "${DATABASE}" > ALL_ASV.fasta
+
+zgrep --no-group-separator -A 1 -f <(cat *_ASV_list.tsv) "${DATABASE}" > ALL_ASV.fasta
+# zgrep \
+#   --no-group-separator \
+#   --after-context 1 \
+#   --file <(cat *_ASV_list.tsv | sort -u) \
+#   "${DATABASE}" > ALL_ASV.fasta
 
 #Check if unknown sequences and add them to the fasta file for tree generation if any.
 cp ALL_ASV.fasta ALL_ASV_OTU.fasta
