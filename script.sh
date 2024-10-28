@@ -284,7 +284,7 @@ else
         minimap2 -x map-ont -d "$TMP/$DATABASE_NAME.mmi" "$DATABASE" 2> /dev/null
         #ls -alh $TMP
         IDX="$TMP/$DATABASE_NAME.mmi"
-        echo $IDX
+        #echo $IDX
     fi
     #Modification, to avoid altering user database file
     echo "Preparing taxonomy from fasta file. Are you sure your database fits NanoASV requirements ?"
