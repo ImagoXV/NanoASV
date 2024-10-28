@@ -8,7 +8,7 @@
 unset $(env | grep -vE '^(HOME|USER$|PWD|TMP|LANG|LC_)' | cut -d= -f1)
 # Unset all BASH_FUNC_* variables
 for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//') ; do
-    unset $func 2> /dev/null
+    unset "$func" 2> /dev/null
 done
 # Set essential variables explicitly
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -488,7 +488,7 @@ vsearch \
 rm seqs
 
 #Remove singletons
-awk '$2 > 5' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv
+awk '$2 > ${DEFAULT_MINAB}' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv
 
 #This line checks if there are some clusters with abundance > 5
 if [ $(awk 'END {print NR}' no_singletons_unknown_clusters.tsv) -ge 2 ]; then
