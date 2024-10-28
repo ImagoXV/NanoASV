@@ -509,9 +509,9 @@ UNIQ_ID=$(uuidgen)
          --otutabout unknown_clusters.tsv \
          --clusterout_id \
          --clusterout_sort \
-         --consout Consensus_seq_OTU.fasta \
          --fasta_width 0 \
-         --quiet
+         --quiet \
+         --consout Consensus_seq_OTU.fasta
      #--randseed 666
      rm seqs
 
