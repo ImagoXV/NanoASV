@@ -42,7 +42,7 @@ while [[ $# -gt 0 ]]; do
       OUT="$2"
       shift
       shift
-      ;;    
+      ;;
     -q|--quality)
       QUAL="$2"
       shift
@@ -130,7 +130,7 @@ DEFAULT_R_CLEANING=1
 DEFAULT_MINAB=5
 DEFAULT_SUBSAMPLING=50000
 DEFAULT_NUM_PROCESSES=1
-DEFAULT_TREE=1 
+DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
@@ -281,7 +281,7 @@ else
       #ls -alh $DATABASE_DIR
       IDX="$DATABASE.mmi"
       #echo $IDX
-    else 
+    else
     minimap2 -x map-ont -d "$TMP/$DATABASE_NAME.mmi" "$DATABASE" 2> /dev/null
     #ls -alh $TMP
     IDX="$TMP/$DATABASE_NAME.mmi"
@@ -339,7 +339,7 @@ export -f filter_file
 # Iterate over the files in parallel
 echo "Step 2/9 : Filtering with Chopper"
 find "${TMP}" -maxdepth 1 -name "barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
-  parallel -j "${NUM_PROCESSES}" filter_file  
+  parallel -j "${NUM_PROCESSES}" filter_file
 #echo Unfiltered files are being deleted
 rm ${TMP}/barcode*.fastq.gz
 
@@ -365,7 +365,7 @@ export -f chop_file
 echo "Step 3/9 : Adapter trimming with Porechop"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" \
-ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file  
+ID="${ID}"  parallel -j "${NUM_PROCESSES}" chop_file
 
 #echo Filtered datasets are being deleted
 #rm ${TMP}/NONCHIM*
@@ -400,7 +400,7 @@ rm ${TMP}/CHOPED*
 echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 # #Iterate in parallel
 # find "${TMP}" -maxdepth 1 -name "FILTERED*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" MINL="${MINL}" MAXL="${MAXL}" ID="${ID}"\
-#   parallel -j "${NUM_PROCESSES}" chimera_detection  
+#   parallel -j "${NUM_PROCESSES}" chimera_detection
 
 # #echo Filtered datasets are being deleted
 # rm ${TMP}/FILTERED*
@@ -487,7 +487,7 @@ for file in barcode*_unmatched.fastq.gz; do
   sample=$(echo "$file" | \
   sed 's/barcode\(.*\)_unmatched.fastq.gz/\1/');\
   awk '{if (NR%4==1) {sub("^@", "@"); print $0 ";barcodelabel=barcode'"$sample"'"} else print $0}' "$file" >\
-  "$file.tmp" && mv "$file.tmp" "$file"; 
+  "$file.tmp" && mv "$file.tmp" "$file";
   fi
 done
 )
@@ -511,7 +511,7 @@ vsearch \
         --clusterout_sort \
         --consout Consensus_seq_OTU.fasta \
         --fasta_width 0 \
-        --quiet 
+        --quiet
         #--randseed 666
 rm seqs
 
@@ -538,12 +538,12 @@ sed -i '/^--/d' Consensus_seq_OTU.fasta
 sed -i 's/>centroid=\([^;]*\);.*$/>\1/' Consensus_seq_OTU.fasta
 mv no_singletons_unknown_clusters.tsv unknown_clusters.tsv
 
-else 
+else
 rm unknown_clusters.tsv Consensus_seq_OTU.fasta
 echo "No unknown cluster with abondance greater than 5"
 fi
 #If by any mean you don't have any unknown sequence, then you'll just skip the step (highly improbable)
-else 
+else
 echo "Step 7/9 : Skipped - no unknown sequence"
 fi
 )
@@ -572,7 +572,7 @@ cp ALL_ASV.fasta ALL_ASV_OTU.fasta
 
 
 ## MAFFT alignement ********************************************************************************************************
-mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null 
+mafft --thread "${NUM_PROCESSES}" ALL_ASV_OTU.fasta > ALL_ASV.aln 2> /dev/null
 
 
 ## FastTree ****************************************************************************************************************
@@ -591,8 +591,8 @@ mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
 mv ASV.tree ${OUTPWD}/Results/Phylogeny/
 
 if [ -e "Consensus_seq_OTU.fasta" ]; then
-mv Consensus_seq_OTU.fasta unknown_clusters.tsv  ${OUTPWD}/Results/Unknown_clusters/ 2> /dev/null 
-fi 
+mv Consensus_seq_OTU.fasta unknown_clusters.tsv  ${OUTPWD}/Results/Unknown_clusters/ 2> /dev/null
+fi
 
 
 )
