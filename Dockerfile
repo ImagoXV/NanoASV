@@ -83,11 +83,11 @@ RUN wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-l
 RUN chmod ugo+rwx chopper && mv chopper /bin/chopper
 
 # Download SILVA138.1
-# RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
-#     mkdir database && \
-#     mv SILVA_138.1_SSURef_tax_silva.fasta.gz ./database/ && \
-#     zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' | \
-#      gzip > SILVA_138.1_SSURef_tax_silva.fasta.gz
+RUN wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz && \
+    mkdir database && \
+    mv SILVA_138.1_SSURef_tax_silva.fasta.gz ./database/ && \
+    zcat SILVA_138.1_SSURef_tax_silva.fasta.gz | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' | \
+     gzip > SILVA_138.1_SSURef_tax_silva.fasta.gz
 
 #RUN echo "Building the index, grab a cup of coffe, it's the longest part" 
 
