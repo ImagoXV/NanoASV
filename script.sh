@@ -127,7 +127,7 @@ DEFAULT_MAXL=1700
 DEFAULT_ID=0.7
 DEFAULT_NUM_PROCESSES=1
 DEFAULT_R_CLEANING=1
-DEFAULT_MINAB=1
+DEFAULT_MINAB=5
 DEFAULT_SUBSAMPLING=50000
 DEFAULT_NUM_PROCESSES=1
 DEFAULT_TREE=1 
@@ -150,6 +150,8 @@ DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
 SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
+MINAB="${MINAB:-$DEFAULT_MINAB}"
+
 
 if [ -z "$DATABASE" ]; then
   echo "No personal database path specified. Using Silva 138.1"
@@ -179,7 +181,7 @@ if [[ -z $OUT ]]; then
 fi
 
 #Metadata sanity checks **********************************************
-(cd "${DIR}"
+(cd "${METADATA}"
   #Check if metadata.csv has been provided by the user
   [[ -s metadata.csv ]] || \
   { /usr/games/cowsay -d "Error : Please provide a metadata.csv" >&2 ; exit 1 ; }
@@ -514,7 +516,7 @@ vsearch \
 rm seqs
 
 #Remove singletons
-awk '$2 > ${DEFAULT_MINAB}' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv
+awk '$2 > ${MINAB}' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv
 
 #This line checks if there are some clusters with abundance > 5
 if [ $(awk 'END {print NR}' no_singletons_unknown_clusters.tsv) -ge 2 ]; then
