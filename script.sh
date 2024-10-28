@@ -516,7 +516,7 @@ UNIQ_ID=$(uuidgen)
      rm seqs
 
      #Remove singletons
-     awk '$2 > ${MINAB}' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv
+     awk '$2 > ${MINAB}' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv  # warning: does not work as you think it does!
 
      #This line checks if there are some clusters with abundance > 5
      if [ $(awk 'END {print NR}' no_singletons_unknown_clusters.tsv) -ge 2 ]; then
