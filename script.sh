@@ -194,14 +194,6 @@ mkdir --parents \
    "${OUTPWD}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
 
 #***************************************************************************************************************************
-# if [[ "${DOCKER}" -eq 0 ]]; then
-#   #Singularity version *******************************************************************************************************
-#   mkdir --parents \
-#       "${OUT}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-#   OUTPWD="$(pwd)/${OUT}"
-# fi
-#***************************************************************************************************************************
-
 # Check if DATABASE is empty and no default value is provided **************************************************************
 # if [[ -z $DATABASE ]]; then
 #     read -p "No database specified. Do you wish to download SILVA 138.1? (y/n): " response
