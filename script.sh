@@ -494,55 +494,49 @@ find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env TM
 
 # Vsearch Unknown sequences clustering step ********************************************************************************
 UNIQ_ID=$(uuidgen)
-(cd ${TMP}
+(cd "${TMP}"
  cat barcode*_unmatched.fastq.gz > seqs 2> /dev/null
  # Check if seqs is not empty
- if [ -s "seqs" ]; then
+ if [[ -s "seqs" ]] ; then
      echo "Step 7/9 : Unknown sequences clustering with vsearch"
 
+     # clusterize, and eliminate low-abundant clusters
      vsearch \
          --cluster_size seqs \
          --threads "${NUM_PROCESSES}" \
-         --id ${ID} \
-         --relabel ${UNIQ_ID}_Unknown_cluster_ \
+         --id "${ID}" \
+         --relabel "${UNIQ_ID}_Unknown_cluster_" \
          --sizeout \
-         --otutabout unknown_clusters.tsv \
+         --otutabout >(awk -v MINAB="${MINAB}" \
+                       'BEGIN {FS = OFS = "\t"}
+                        NR == 1 {print $0}
+                        NR > 1 {s = 0
+                                for (i=2; i<=NF; i++) {s += $i}
+                                if (s >= MINAB) {print $0}
+                        }' > unknown_clusters.tsv) \
          --clusterout_id \
          --clusterout_sort \
          --fasta_width 0 \
          --quiet \
-         --consout Consensus_seq_OTU.fasta
+         --consout - | \
+         sed -E '/^>/ s/^>centroid=/>/ ; s/;seqs=[1-9]+//' | \
+         vsearch \
+             --fastx_filter - \
+             --sizein \
+             --sizeout \
+             --quiet \
+             --minsize "${MINAB}" \
+             --fastaout Consensus_seq_OTU.fasta
 
      rm seqs
 
-     #Remove singletons
-     awk '$2 > ${MINAB}' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv  # warning: does not work as you think it does!
-
-     #This line checks if there are some clusters with abundance > 5
-     if [ $(awk 'END {print NR}' no_singletons_unknown_clusters.tsv) -ge 2 ]; then
-
-         #Transform multiline fasta into singleline fasta
-         #awk '{if(NR==1) {print $0} else {if($0 ~ /^>/) {print "\n"$0} else {printf $0}}}' Consensus_seq_OTU.fasta > singleline_Consensus_seq_OTU.fasta
-         #Extract their ID for fasta sorting
-         cut -f1 no_singletons_unknown_clusters.tsv > Non_singletons_ID
-
-
-
-         #Sort fasta file
-         grep -A1 -f Non_singletons_ID Consensus_seq_OTU.fasta > non_singleton.fasta
-         #Replace Consensus fasta file by subsampled
-         mv non_singleton.fasta Consensus_seq_OTU.fasta
-         #Remove grep -f artefacts
-         sed -i '/^--/d' Consensus_seq_OTU.fasta
-         #Simplify headers
-         sed -i 's/>centroid=\([^;]*\);.*$/>\1/' Consensus_seq_OTU.fasta
-         mv no_singletons_unknown_clusters.tsv unknown_clusters.tsv
-
-     else
+     # check if there are clusters with abundance >= MINAB
+     if [[ ! -s Consensus_seq_OTU.fasta ]] ; then
          rm unknown_clusters.tsv Consensus_seq_OTU.fasta
-         echo "No unknown cluster with abondance greater than 5"
+         echo "No unknown cluster with abondance greater than ${MINAB}"
      fi
-     #If by any mean you don't have any unknown sequence, then you'll just skip the step (highly improbable)
+     # If by any mean you don't have any unknown sequence, then you'll
+     # just skip the step (highly improbable)
  else
      echo "Step 7/9 : Skipped - no unknown sequence"
  fi
