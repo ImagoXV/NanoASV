@@ -180,6 +180,10 @@ fi
 
 #Metadata sanity checks **********************************************
 (cd "${DIR}"
+  #Check if metadata.csv has been provided by the user
+  [[ -s metadata.csv ]] || \
+  { /usr/games/cowsay -d "Error : Please provide a metadata.csv" >&2 ; exit 1 ; }
+
   #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
   awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
   { echo "ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?" ; exit 1 ; }
