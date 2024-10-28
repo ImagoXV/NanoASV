@@ -502,6 +502,7 @@ UNIQ_ID=$(uuidgen)
 
      vsearch \
          --cluster_size seqs \
+         --threads "${NUM_PROCESSES}" \
          --id ${ID} \
          --relabel ${UNIQ_ID}_Unknown_cluster_ \
          --sizeout \
