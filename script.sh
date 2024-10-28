@@ -202,7 +202,7 @@ fi
   # Check if metadata barcodes are found within DIR
   cut -f1 -d "," metadata.csv | \
    tail -n +2 | \
-   while read sample_name ; do 
+   while read -r sample_name ; do 
    [[ -d ${sample_name} ]] || \
     { echo "ERROR, ${sample_name} not found. Please check metadata.csv and barcodes directories" ; exit 1 ; }
     done
