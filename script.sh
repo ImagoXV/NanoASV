@@ -184,19 +184,22 @@ fi
 TMP="$(mktemp --directory || exit 1)"
 
 #****************************************************************************************************************************
-if [[ "${DOCKER}" -eq 1 ]]; then
-  #Docker version ************************************************************************************************************
-  mkdir --parents "${DIR}/${OUT}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-  OUTPWD="${DIR}/${OUT}"
+if [[ "${DOCKER}" -eq 1 ]]; then #Check for Docker's way to navigate through files
+    OUTPWD="${DIR}/${OUT}"
+else
+    OUTPWD="$(pwd)/${OUT}"
 fi
 
+mkdir --parents \
+   "${OUTPWD}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+
 #***************************************************************************************************************************
-if [[ "${DOCKER}" -eq 0 ]]; then
-  #Singularity version *******************************************************************************************************
-  mkdir --parents \
-      "${OUT}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-  OUTPWD="$(pwd)/${OUT}"
-fi
+# if [[ "${DOCKER}" -eq 0 ]]; then
+#   #Singularity version *******************************************************************************************************
+#   mkdir --parents \
+#       "${OUT}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+#   OUTPWD="$(pwd)/${OUT}"
+# fi
 #***************************************************************************************************************************
 
 # Check if DATABASE is empty and no default value is provided **************************************************************
