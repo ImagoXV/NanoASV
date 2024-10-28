@@ -185,18 +185,17 @@ TMP="$(mktemp --directory || exit 1)"
 
 #****************************************************************************************************************************
 if [[ "${DOCKER}" -eq 1 ]]; then
-#Docker version ************************************************************************************************************
-mkdir --parents "${DIR}/${OUT}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-OUTPWD="${DIR}/${OUT}"
+  #Docker version ************************************************************************************************************
+  mkdir --parents "${DIR}/${OUT}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+  OUTPWD="${DIR}/${OUT}"
 fi
 
 #***************************************************************************************************************************
 if [[ "${DOCKER}" -eq 0 ]]; then
-#Singularity version *******************************************************************************************************
-mkdir --parents \
-    ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-#mkdir ${OUT}/SILVA/ 2> /dev/null
-OUTPWD=$(pwd)/${OUT}
+  #Singularity version *******************************************************************************************************
+  mkdir --parents \
+      "${OUT}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+  OUTPWD="$(pwd)/${OUT}"
 fi
 #***************************************************************************************************************************
 
