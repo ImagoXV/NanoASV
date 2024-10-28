@@ -180,11 +180,19 @@ fi
 
 #Metadata sanity checks **********************************************
 (cd "${DIR}"
-# Check if metadata barcodes are found within DIR
 
-cut -f1 -d "," metadata.csv | tail -n +2 | while read f ; do [[ -d ${f} ]] || { echo "ERROR, ${f} not found. Please check metadata.csv and barcodes directories" ; exit 1 ; } ; done
+  # Check if metadata barcodes are found within DIR
+  cut -f1 -d "," metadata.csv | \
+   tail -n +2 | \
+   while read f ; do 
+   [[ -d ${f} ]] || \
+    { echo "ERROR, ${f} not found. Please check metadata.csv and barcodes directories" ; exit 1 ; } ; done
 
-awk -F "," '{print NF}' metadata.csv | sort -u | awk 'END {exit NR == 1 ? 0 : 1}' || { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; }
+  #Check if number of fields is consistent is consistent accross all number of lines
+  awk -F "," '{print NF}' metadata.csv | \
+  sort -u | \
+  awk 'END {exit NR == 1 ? 0 : 1}' || \
+  { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; }
 )
 
 ## Create temporary directory ***********************************************************************************************
