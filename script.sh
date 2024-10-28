@@ -250,12 +250,12 @@ else
     echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
     if [[ "${DOCKER}" -eq 1 ]]; then
       minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE" 2> /dev/null
-      ls -alh $DATABASE_DIR
+      #ls -alh $DATABASE_DIR
       IDX="$DATABASE.mmi"
       #echo $IDX
     else 
     minimap2 -x map-ont -d "$TMP/$DATABASE_NAME.mmi" "$DATABASE" 2> /dev/null
-    ls -alh $TMP
+    #ls -alh $TMP
     IDX="$TMP/$DATABASE_NAME.mmi"
     echo $IDX
     fi
