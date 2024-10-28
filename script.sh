@@ -180,7 +180,7 @@ fi
 
 # Check if metadata barcodes are found within DIR
 (cd "${DIR}"
-cut -f1 -d "," metadata.csv | tail -n +2 | while read f ; do [[ -d ${f} ]] || { echo "ERROR, ${f} not found. Please check metadata.csv" ; exit 1 ; } ; done
+cut -f1 -d "," metadata.csv | tail -n +2 | while read f ; do [[ -d ${f} ]] || { echo "ERROR, ${f} not found. Please check metadata.csv and barcodes directories" ; exit 1 ; } ; done
 )
 
 ## Create temporary directory ***********************************************************************************************
