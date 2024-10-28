@@ -186,10 +186,8 @@ TMP="$(mktemp --directory || exit 1)"
 #****************************************************************************************************************************
 if [[ "${DOCKER}" -eq 1 ]]; then
 #Docker version ************************************************************************************************************
-mkdir --parents \
-    ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-#mkdir ${DIR}/${OUT}/SILVA/ 2> /dev/null
-OUTPWD=${DIR}/${OUT}
+mkdir --parents "${DIR}/${OUT}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+OUTPWD="${DIR}/${OUT}"
 fi
 
 #***************************************************************************************************************************
