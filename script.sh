@@ -512,7 +512,7 @@ UNIQ_ID=$(uuidgen)
          --fasta_width 0 \
          --quiet \
          --consout Consensus_seq_OTU.fasta
-     #--randseed 666
+
      rm seqs
 
      #Remove singletons
