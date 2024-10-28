@@ -8,7 +8,7 @@
 unset $(env | grep -vE '^(HOME|USER$|PWD|TMP|LANG|LC_)' | cut -d= -f1)
 # Unset all BASH_FUNC_* variables
 for func in $(env | grep -o '^BASH_FUNC_.*=' | sed 's/=$//') ; do
-    unset $func 2> /dev/null
+    unset "$func" 2> /dev/null
 done
 # Set essential variables explicitly
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -127,7 +127,7 @@ DEFAULT_MAXL=1700
 DEFAULT_ID=0.7
 DEFAULT_NUM_PROCESSES=1
 DEFAULT_R_CLEANING=1
-DEFAULT_MINAB=1
+DEFAULT_MINAB=5
 DEFAULT_SUBSAMPLING=50000
 DEFAULT_NUM_PROCESSES=1
 DEFAULT_TREE=1
@@ -150,6 +150,8 @@ DOCKER="${DOCKER:-$DEFAULT_DOCKER}"
 SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
+MINAB="${MINAB:-$DEFAULT_MINAB}"
+
 
 if [ -z "$DATABASE" ]; then
   echo "No personal database path specified. Using Silva 138.1"
@@ -178,30 +180,56 @@ if [[ -z $OUT ]]; then
   exit 1
 fi
 
+#Metadata sanity checks **********************************************
+(cd "${METADATA}"
+  #Check if metadata.csv has been provided by the user
+  [[ -s metadata.csv ]] || \
+  { /usr/games/cowsay -d "Error : Please provide a metadata.csv" >&2 ; exit 1 ; }
+
+  #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
+  awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
+  { echo "ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?" ; exit 1 ; }
+
+  #Check if metadata.csv rownames structure is correct
+  awk -F "," 'NR == 1 { exit $1 == "" ? 0 : 1}' metadata.csv || \
+  { echo "ERROR: First field of first line should be empty. Please check metadata.csv file structure." ; exit 1 ; }
+
+  #Check if metadata.csv contains enough lines
+  awk 'END{ exit NR > 1 ? 0 : 1}' metadata.csv || \
+  { echo "ERROR: metadata.csv: Missing header and/or data information. Too few lines." ; exit 1 ; }
+
+
+  # Check if metadata barcodes are found within DIR
+  cut -f1 -d "," metadata.csv | \
+   tail -n +2 | \
+   while read sample_name ; do 
+   [[ -d ${sample_name} ]] || \
+    { echo "ERROR, ${sample_name} not found. Please check metadata.csv and barcodes directories" ; exit 1 ; }
+    done
+
+  #Check if number of fields is consistent is consistent accross all number of lines
+  awk -F "," '{print NF}' metadata.csv | \
+  sort -u | \
+  awk 'END {exit NR == 1 ? 0 : 1}' || \
+  { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; }
+)
+
 ## Create temporary directory ***********************************************************************************************
 # date
 # echo Creating temporary directory at /tmp/
 TMP="$(mktemp --directory || exit 1)"
 
 #****************************************************************************************************************************
-if [[ "${DOCKER}" -eq 1 ]]; then
-#Docker version ************************************************************************************************************
-mkdir --parents \
-    ${DIR}/${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-#mkdir ${DIR}/${OUT}/SILVA/ 2> /dev/null
-OUTPWD=${DIR}/${OUT}
+if [[ "${DOCKER}" -eq 1 ]]; then #Check for Docker's way to navigate through files
+    OUTPWD="${DIR}/${OUT}"
+else
+    OUTPWD="$(pwd)/${OUT}"
 fi
 
-#***************************************************************************************************************************
-if [[ "${DOCKER}" -eq 0 ]]; then
-#Singularity version *******************************************************************************************************
 mkdir --parents \
-    ${OUT}/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
-#mkdir ${OUT}/SILVA/ 2> /dev/null
-OUTPWD=$(pwd)/${OUT}
-fi
-#***************************************************************************************************************************
+   "${OUTPWD}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
 
+#***************************************************************************************************************************
 # Check if DATABASE is empty and no default value is provided **************************************************************
 # if [[ -z $DATABASE ]]; then
 #     read -p "No database specified. Do you wish to download SILVA 138.1? (y/n): " response
@@ -224,7 +252,7 @@ fi
 if [ "$R_STEP_ONLY" -eq 1 ]; then
 ##Production of phyloseq object *************************************************************************************
 echo "Launching Ronly option"
-Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE $METADATA 2> /dev/null
+Rscript /script.r "${DIR}" "${OUTPWD}" "${R_CLEANING}" "${TREE}" "${METADATA}" 2> /dev/null
 
 #********************************************************************************************************************
 declare -i TIME=$(date +%s)-$START
@@ -250,12 +278,12 @@ else
     echo "Minimap2 index is missing in the directory: $DATABASE_DIR : Indexing"
     if [[ "${DOCKER}" -eq 1 ]]; then
       minimap2 -x map-ont -d "$DATABASE.mmi" "$DATABASE" 2> /dev/null
-      ls -alh $DATABASE_DIR
+      #ls -alh $DATABASE_DIR
       IDX="$DATABASE.mmi"
       #echo $IDX
     else
     minimap2 -x map-ont -d "$TMP/$DATABASE_NAME.mmi" "$DATABASE" 2> /dev/null
-    ls -alh $TMP
+    #ls -alh $TMP
     IDX="$TMP/$DATABASE_NAME.mmi"
     echo $IDX
     fi
@@ -488,7 +516,7 @@ vsearch \
 rm seqs
 
 #Remove singletons
-awk '$2 > 5' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv
+awk '$2 > ${MINAB}' unknown_clusters.tsv > no_singletons_unknown_clusters.tsv
 
 #This line checks if there are some clusters with abundance > 5
 if [ $(awk 'END {print NR}' no_singletons_unknown_clusters.tsv) -ge 2 ]; then
@@ -573,8 +601,7 @@ rm -r ${TMP}
 
 ##Production of phyloseq object ********************************************************************************************
 echo "Step 9/9 : Phylosequization with R and phyloseq"
-Rscript /script.r $DIR $OUTPWD $R_CLEANING $TREE $METADATA 2> /dev/null
-
+Rscript /script.r "${DIR}" "${OUTPWD}" "${R_CLEANING}" "${TREE}" "${METADATA}" 2> /dev/null
 #***************************************************************************************************************************
 declare -ir TIME=$(( $(date +%s) - ${START} ))
 #***************************************************************************************************************************
