@@ -1,7 +1,7 @@
 
 ### Installation
 
-Clone the repository from [github](https://github.com/cbib/arsenal.git)
+Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
 ```git clone https://github.com/ImagoXV/NanoASV.git```
 
