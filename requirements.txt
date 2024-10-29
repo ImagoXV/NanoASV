@@ -3,7 +3,7 @@ NanoASV reference fasta file format requirements :
 Your reference fasta file must fit the following :
 
 - Correct fasta format with ">" based header, followed by sequence.
-- Singleleave and interleaved fasta files are both handled
+- Singleleaved and interleaved fasta files are both handled
 - The header must contain in correct order :
     * A unique identifier (ex: AP017610.220271.221808)
     * A whitespace between the unique ID and the taxonomic informations
