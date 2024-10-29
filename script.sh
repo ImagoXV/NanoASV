@@ -592,8 +592,9 @@ fi
  mv *_abundance.tsv ${OUTPWD}/Results/ASV/
  mv Taxonomy*.csv ${OUTPWD}/Results/Tax/
  mv *_exact_affiliations.tsv ${OUTPWD}/Results/Exact_affiliations/
- mv ASV.tree ${OUTPWD}/Results/Phylogeny/
-
+ if [ "$TREE" -eq 1 ]; then
+    mv ASV.tree ${OUTPWD}/Results/Phylogeny/
+ fi
  if [ -e "Consensus_seq_OTU.fasta" ]; then
      mv Consensus_seq_OTU.fasta unknown_clusters.tsv  ${OUTPWD}/Results/Unknown_clusters/ 2> /dev/null
  fi
