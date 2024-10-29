@@ -13,4 +13,5 @@
    --metadata            Specify metadata.csv file directory, default is demultiplexed directory (--dir) 
    --notree              To remove phylogeny step and subsequent tree from phyloseq object
    --docker              To run NanoASV with Docker
-   --ronly               To run only the R phyloseq step                                                                                
+   --ronly               To run only the R phyloseq step    
+   --requirements        To display personal reference fasta requirements                                                                               
