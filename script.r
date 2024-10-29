@@ -29,7 +29,7 @@ if (TREE ==1){
 if (file.exists(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"))) {
 U_OTU <- read.csv(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"), sep = "\t", header = T, row.names = 1)
 
-U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
+#U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
 
 unknown_taxonomy <- rep("Unknown", times = 7) #Adapt taxonomy dataframe so it fits later on with bad entries for cleaning
 
