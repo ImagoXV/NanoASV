@@ -8,7 +8,7 @@ Your reference fasta file must fit the following :
     * A unique identifier (ex: AP017610.220271.221808)
     * A whitespace between the unique ID and the taxonomic informations
     * At least one level of taxonomic information. Multi-level taxonomy must be separated with semicolons (;)
-        NanoASV currently handles up to 26 taxonomic levels which should be enough for most application. If it's not, please open an issue on github.
+        NanoASV currently handles up to 25 taxonomic levels which should be enough for most application. If it's not, please open an issue on github.
 
 When using personal reference file, you should use the --no-r-cleaning flag. R cleaning step has been mostly intended to work with SILVA and bacterial sequences.
 
