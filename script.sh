@@ -226,7 +226,7 @@ else
 fi
 
 mkdir --parents \
-      "${OUTPWD}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata} 2> /dev/null
+      "${OUTPWD}"/Results/{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata,CSV} 2> /dev/null
 
 #***************************************************************************************************************************
 # Check if DATABASE is empty and no default value is provided **************************************************************
