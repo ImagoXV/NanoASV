@@ -109,6 +109,10 @@ while [[ $# -gt 0 ]]; do
             shift
             shift
             ;;
+        --requirements)
+            REQUIREMENTS=1
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             cat /help.txt

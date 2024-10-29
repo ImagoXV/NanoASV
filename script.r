@@ -189,7 +189,7 @@ if(R_CLEANING == 1){
 }
 
 #Phyloseq export ----
-print("Exporting phyloseq object")
+print("Exporting results")
 save(NanoASV, file = paste0(OUTPWD,"/Results/Rdata/NanoASV.rdata"))
 
 #CSV export -----
