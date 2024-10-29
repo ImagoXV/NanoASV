@@ -193,5 +193,7 @@ print("Exporting phyloseq object")
 save(NanoASV, file = paste0(OUTPWD,"/Results/Rdata/NanoASV.rdata"))
 
 #CSV export -----
-
-
+#Create the TAXOTU file, encompassing taxonomy and abundance
+TAXOTU <- data.frame(NanoASV@tax_table, NanoASV@otu_table)
+#Exporting the file for people needing this format as well
+write.csv(TAXOTU, file = paste0(OUTPWD,"/Results/CSV/Taxonomy-Abundance_table.csv"))
