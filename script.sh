@@ -63,6 +63,11 @@ while [[ $# -gt 0 ]]; do
             shift
             shift
             ;;
+        -ab|--minab)
+            MINAB="$2"
+            shift
+            shift
+            ;;
         -p|--num-process)
             NUM_PROCESSES="$2"
             shift
