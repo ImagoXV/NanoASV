@@ -427,7 +427,7 @@ process_file() {
     filename=$(basename "$1")
     outsamtools_file="Unmatched_$filename"
     output_file="ASV_abundance_$filename"
-    minimap2 -a -x map-ont $IDX "${FILE}" 2> /dev/null > ${FILE}.sam
+    minimap2 -a -x map-ont --seed 666 $IDX "${FILE}" 2> /dev/null > ${FILE}.sam
     samtools fastq -f 4 "${FILE}.sam" 2> /dev/null > ${TMP}/${outsamtools_file}  #Uncomment to remove verbose
     samtools view -h -b "${FILE}.sam" -o "${FILE}.bam"
     samtools sort "${FILE}.bam" > "${FILE}_sorted.bam"
