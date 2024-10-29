@@ -17,7 +17,7 @@ library(phyloseq)
 library(dplyr) #For mget() function
 library(ape) #To handle trees
 
-metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
+metadata <- read.csv(paste0(METADATA), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
 ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
