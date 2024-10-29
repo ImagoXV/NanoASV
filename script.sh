@@ -419,9 +419,6 @@ echo "Step 5/9 : Chimera detection with vsearch - INACTIVATED"
 
 # Minimap2 alignments ***********************************************************************************************************
 
-#SILVA="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
-#TAX="/database/Taxonomy_SILVA138.1.csv"
-DB="/database"
 #***************************************************************************************************************************
 
 # Define a function to process each file
