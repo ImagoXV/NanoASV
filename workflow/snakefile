@@ -2,7 +2,6 @@ QUAL=config["QUAL"]
 MINL=config["MINL"]
 MAXL=config["MAXL"]
 ID=config["ID"]
-NUM_PROCESSES=config["NUM_PROCESSES"]
 R_CLEANING=config["R_CLEANING"]
 MINAB=config["MINAB"]
 SUBSAMPLING=config["SUBSAMPLING"]
@@ -21,9 +20,7 @@ DATABASE_NAME = DATABASE.split("/")[-1].split(".fasta")[0]
 
 rule all:
     input:
-        # phyloseq.done,
         expand("results/06_sam_to_bam_format/Taxonomy_{BARCODE}.csv", BARCODE=INPUT.barcode),
-        "results/08_phylogeny/phylogeny.done",
         "results/rscript.done"
 
 
