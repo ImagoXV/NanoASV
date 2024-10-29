@@ -98,6 +98,7 @@ I highly suggest you to run it on a cluster.
 | `--notree`           | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
 | `--docker`           | Flag - To run NanoASV with Docker                                              |
 | `--ronly`            | Flag - To run only the R phyloseq step                                         |
+| `--requirements`     | Flag - To display personal reference fasta requirements                        |
 ```
 
 # How it works 
