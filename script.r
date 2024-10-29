@@ -20,8 +20,9 @@ library(ape) #To handle trees
 metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
-ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
-
+if (TREE ==1){
+  ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
+}
 
 ##Unknown OTUs ----
 
@@ -190,3 +191,7 @@ if(R_CLEANING == 1){
 #Phyloseq export ----
 print("Exporting phyloseq object")
 save(NanoASV, file = paste0(OUTPWD,"/Results/Rdata/NanoASV.rdata"))
+
+#CSV export -----
+
+
