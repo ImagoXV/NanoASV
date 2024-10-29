@@ -433,7 +433,7 @@ process_file() {
     samtools sort "${FILE}.bam" > "${FILE}_sorted.bam"
     #echo "Bam file is sorted - Indexing"
     samtools index "${FILE}_sorted.bam"
-    samtools view -F 4 "${FILE}_sorted.bam" | \
+    samtools view -F 4 -F 256 -F 272 -F 2048 "${FILE}_sorted.bam" | \
         tee >(cut -f 1,2,3 > "${FILE}_Exact_affiliations.tsv") | \
         cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr > "${TMP}/${output_file}.tsv"
     sed -i 's/^[[:space:]]*//' ${TMP}/${output_file}.tsv
