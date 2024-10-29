@@ -447,7 +447,7 @@ process_file() {
 # Export the function
 export -f process_file
 #***************************************************************************************************************************
-echo "Step 6/9 : Reads alignements with minimap2 against $DATABASE"
+echo "Step 6/9 : Reads alignements with minimap2 against $(basename "${DATABASE}")"
 # Iterate over the files in parallel
 find "${TMP}" -maxdepth 1 -name "SUB_CHOPED_FILTERED_barcode*.fastq.gz" | env TMP="${TMP}" QUAL="${QUAL}" \
                                                                               MINL="${MINL}" MAXL="${MAXL}" ID="${ID}" DATABASE="${DATABASE}" TAX="${TAX}" IDX="${IDX}" parallel -j "${NUM_PROCESSES}" process_file

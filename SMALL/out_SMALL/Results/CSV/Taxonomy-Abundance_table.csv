@@ -30,7 +30,6 @@
 "JX505095.1.1430","Bacteria","Proteobacteria","Alphaproteobacteria","Elsterales","uncultured","uncultured Stella sp.","",5,2
 "JX133361.1.1474","Bacteria","Acidobacteriota","Acidobacteriae","Acidobacteriales","uncultured","uncultured bacterium","",5,3
 "JN023819.1.1462","Bacteria","Proteobacteria","Alphaproteobacteria","Elsterales","uncultured","uncultured bacterium","",5,3
-"JN023209.1.1456","Bacteria","WPS-2","uncultured bacterium","","","","",5,0
 "HQ674908.1.1487","Bacteria","Planctomycetota","Planctomycetes","Isosphaerales","Isosphaeraceae","uncultured","uncultured Singulisphaera sp.",5,2
 "GQ402666.1.1399","Bacteria","Proteobacteria","Alphaproteobacteria","Rhizobiales","Xanthobacteraceae","uncultured","uncultured bacterium",5,3
 "EU881243.1.1513","Bacteria","Planctomycetota","Planctomycetes","Gemmatales","Gemmataceae","uncultured","uncultured bacterium",5,5
@@ -41,6 +40,7 @@
 "KC554440.1.1516","Bacteria","Actinobacteriota","Actinobacteria","Frankiales","Geodermatophilaceae","Blastococcus","uncultured bacterium",4,0
 "JX114430.1.1488","Bacteria","Bacteroidota","Bacteroidia","Chitinophagales","Chitinophagaceae","Ferruginibacter","uncultured Chitinophagaceae bacterium",4,3
 "JQNN01000001.5084326.5085834","Bacteria","Proteobacteria","Gammaproteobacteria","Burkholderiales","Oxalobacteraceae","Massilia","Massilia sp. 9096",4,2
+"JN023209.1.1456","Bacteria","WPS-2","uncultured bacterium","","","","",4,0
 "HQ674907.1.1496","Bacteria","Planctomycetota","Planctomycetes","Isosphaerales","Isosphaeraceae","uncultured","uncultured Singulisphaera sp.",4,3
 "HM062355.1.1439","Bacteria","Acidobacteriota","Acidobacteriae","Acidobacteriales","uncultured","uncultured Acidobacteria bacterium","",4,0
 "GU172176.1.1486","Bacteria","Proteobacteria","Alphaproteobacteria","Elsterales","uncultured","uncultured bacterium","",4,4
@@ -367,7 +367,6 @@
 "KJ540778.1.1438","Bacteria","Armatimonadota","Armatimonadia","Armatimonadales","uncultured Armatimonadetes bacterium","","",1,0
 "KJ540737.1.1445","Bacteria","Armatimonadota","Armatimonadia","Armatimonadales","uncultured Armatimonadetes bacterium","","",1,0
 "KJ457342.1.1499","Bacteria","Proteobacteria","Gammaproteobacteria","Burkholderiales","Burkholderiaceae","Ralstonia","uncultured bacterium",1,0
-"KJ410653.1.1318","Bacteria","Verrucomicrobiota","Verrucomicrobiae","Chthoniobacterales","Chthoniobacteraceae","Candidatus Udaeobacter","uncultured Spartobacteria bacterium",1,0
 "KJ410593.1.1215","Bacteria","Proteobacteria","Alphaproteobacteria","Rhizobiales","Methyloligellaceae","uncultured","uncultured Rhizobiales bacterium",1,0
 "KJ192099.1.1513","Bacteria","Planctomycetota","Planctomycetes","Gemmatales","Gemmataceae","uncultured Planctomycetaceae bacterium","",1,1
 "KJ192069.1.1487","Bacteria","Gemmatimonadota","Gemmatimonadetes","Gemmatimonadales","Gemmatimonadaceae","Gemmatimonas","uncultured Gemmatimonas sp.",1,0
@@ -585,7 +584,6 @@
 "HQ597839.1.1455","Bacteria","Acidobacteriota","Acidobacteriae","Bryobacterales","Bryobacteraceae","Bryobacter","uncultured Acidobacteria bacterium",1,0
 "HQ597761.1.1507","Bacteria","Acidobacteriota","Vicinamibacteria","Subgroup 17","uncultured Acidobacteria bacterium","","",1,0
 "HQ597080.1.1482","Bacteria","Acidobacteriota","Subgroup 5","uncultured Acidobacteria bacterium","","","",1,0
-"HQ450134.1.1457","Bacteria","Proteobacteria","Alphaproteobacteria","Rhizobiales","Xanthobacteraceae","uncultured","uncultured bacterium",1,0
 "HQ445783.1.1520","Bacteria","Myxococcota","Myxococcia","Myxococcales","Anaeromyxobacteraceae","Anaeromyxobacter","uncultured bacterium",1,0
 "HQ445782.1.1492","Bacteria","Acidobacteriota","Subgroup 5","uncultured bacterium","","","",1,0
 "HQ445772.1.1479","Bacteria","Acidobacteriota","Acidobacteriae","Acidobacteriales","uncultured","uncultured bacterium","",1,0
@@ -617,7 +615,6 @@
 "HM989892.1.1453","Bacteria","Actinobacteriota","Actinobacteria","Micrococcales","Intrasporangiaceae","Terracoccus","bacterium WM06i_B9F",1,0
 "HM829270.1.1366","Bacteria","Actinobacteriota","Thermoleophilia","Solirubrobacterales","Solirubrobacteraceae","Conexibacter","uncultured bacterium",1,0
 "HM748714.1.1435","Bacteria","Acidobacteriota","Acidobacteriae","Solibacterales","Solibacteraceae","Candidatus Solibacter","bacterium Ellin7504",1,0
-"HM598253.1.1421","Bacteria","Patescibacteria","Parcubacteria","Candidatus Kaiserbacteria","uncultured bacterium","","",1,0
 "HM459623.1.1430","Bacteria","Armatimonadota","Armatimonadia","Armatimonadales","uncultured bacterium","","",1,0
 "HM445436.1.1482","Bacteria","Actinobacteriota","Actinobacteria","Pseudonocardiales","Pseudonocardiaceae","Crossiella","uncultured bacterium",1,0
 "HM445071.1.1349","Bacteria","Elusimicrobiota","Elusimicrobia","Lineage IV","uncultured bacterium","","",1,0
@@ -642,7 +639,6 @@
 "HM036047.1.1504","Bacteria","Firmicutes","Bacilli","Thermoactinomycetales","Thermoactinomycetaceae","uncultured","uncultured bacterium",1,0
 "HL282157.1.1508","Bacteria","Firmicutes","Clostridia","Oscillospirales","Hungateiclostridiaceae","Hungateiclostridium","unidentified",1,0
 "HL281733.1.1493","Bacteria","Firmicutes","Bacilli","Bacillales","Bacillaceae","Bacillus","unidentified",1,0
-"HG799948.1.1681","Bacteria","Firmicutes","Bacilli","Lactobacillales","Enterococcaceae","Enterococcus","Enterococcus durans",1,1
 "HF558569.1.1494","Bacteria","Firmicutes","Limnochordia","Limnochordales","Limnochordaceae","uncultured bacterium","",1,0
 "HE654549.1.1509","Bacteria","Actinobacteriota","Actinobacteria","Frankiales","Geodermatophilaceae","Geodermatophilus","Geodermatophilus tzadiensis",1,0
 "HE604055.1.1478","Bacteria","Planctomycetota","Planctomycetes","Isosphaerales","Isosphaeraceae","uncultured","uncultured bacterium",1,1
@@ -942,7 +938,6 @@
 "AB759674.1.1500","Bacteria","Firmicutes","Bacilli","Paenibacillales","Paenibacillaceae","Paenibacillus","uncultured bacterium",1,0
 "AB753980.1.1466","Bacteria","Bdellovibrionota","Oligoflexia","0319-6G20","uncultured bacterium","","",1,0
 "AB748631.1.1440","Bacteria","Acidobacteriota","Acidobacteriae","Acidobacteriales","uncultured","uncultured bacterium","",1,0
-"AB696223.1.1426","Bacteria","Cyanobacteria","Sericytochromatia","uncultured bacterium","","","",1,0
 "AB696166.1.1453","Bacteria","Proteobacteria","Gammaproteobacteria","Burkholderiales","Comamonadaceae","Ramlibacter","uncultured bacterium",1,1
 "AB696116.1.1451","Bacteria","Bacteroidota","Bacteroidia","Chitinophagales","Chitinophagaceae","Segetibacter","uncultured bacterium",1,0
 "AB696025.1.1475","Bacteria","Firmicutes","Bacilli","Bacillales","Bacillaceae","Bacillus","uncultured bacterium",1,0
@@ -1436,7 +1431,6 @@
 "KF917150.1.1493","Bacteria","Firmicutes","Bacilli","Paenibacillales","Paenibacillaceae","Paenibacillus","Paenibacillus sp. BAB-3420",0,1
 "KF912991.1.1517","Bacteria","Myxococcota","Polyangia","Polyangiales","Polyangiaceae","Pajaroellobacter","uncultured bacterium",0,1
 "KF827074.1.1400","Bacteria","Planctomycetota","Planctomycetes","Gemmatales","Gemmataceae","Fimbriiglobus","uncultured planctomycete",0,1
-"KF799088.1.1516","Bacteria","Proteobacteria","Gammaproteobacteria","Legionellales","Legionellaceae","uncultured","uncultured bacterium",0,1
 "KF712637.1.1500","Bacteria","Myxococcota","Myxococcia","Myxococcales","Myxococcaceae","uncultured","uncultured bacterium",0,1
 "KF673492.1.1514","Bacteria","Actinobacteriota","Actinobacteria","Pseudonocardiales","Pseudonocardiaceae","Saccharopolyspora","Saccharopolyspora griseoalba",0,1
 "KF494499.1.1520","Bacteria","Firmicutes","Bacilli","Paenibacillales","Paenibacillaceae","Cohnella","uncultured bacterium",0,1
