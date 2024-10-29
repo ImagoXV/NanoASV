@@ -13,7 +13,7 @@ conda env create -f environment.yml
 
 Then activate the environment:
 
-```conda activate arsenal```
+```conda activate nanoASV```
 
 ### Usage
 
@@ -24,7 +24,7 @@ First download the SILVA database (if needed):
 
 Ensure the conda environment is active:
 ```
-conda activate arsenal
+conda activate nanoASV
 ```
 
 Test your configuration by performing a dry-run:
