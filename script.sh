@@ -137,7 +137,6 @@ DEFAULT_SUBSAMPLING=50000
 DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
-DEFAULT_REQUIREMENTS=0
 DEFAULT_METADATA=${DIR}
 DEFAULT_DATABASE="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
 #***************************************************************************************************************************
