@@ -86,6 +86,7 @@ I highly suggest you to run it on a cluster.
 | `-h`, `--help`       | Show help message                                                              |
 | `-v`, `--version`    | Show version information                                                       |
 | `-d`, `--dir`        | Path to fastq_pass/                                                            |
+| `-db`, `--database`  | Path to reference fasta file                                                   |
 | `-q`, `--quality`    | Quality threshold for Chopper, default: 8                                      |
 | `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
 | `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
