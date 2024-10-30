@@ -118,9 +118,9 @@ rule vsearch:
         """
         cat results/06_sam_to_bam_format/barcode*_unmatched.fastq > results/07_unknown_sequences_clustering/seqs
         UNIQ_ID=$(uuidgen)
-        if [ -s "seqs" ]; then
+        if [ -s "results/07_unknown_sequences_clustering/seqs" ]; then
             vsearch \
-            --cluster_size seqs \
+            --cluster_size results/07_unknown_sequences_clustering/seqs \
             --threads {NUM_PROCESSES} \
             --id {ID} \
             --iddef 4 \
@@ -147,7 +147,8 @@ rule vsearch:
                 --minsize {MINAB} \
                 --fastaout Consensus_seq_OTU.fasta
 
-        rm seqs
+        rm results/07_unknown_sequences_clustering/seqs
+        
         fi
         touch {output}
         """
