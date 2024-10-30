@@ -117,6 +117,7 @@ rule vsearch:
         "results/07_unknown_sequences_clustering/vsearch.done"
     shell:
         """
+        cat results/06_sam_to_bam_format/barcode*_unmatched.fastq > results/07_unknown_sequences_clustering/seqs
         UNIQ_ID=$(uuidgen)
         if [ -s "seqs" ]; then
             vsearch \
