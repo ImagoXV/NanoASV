@@ -187,7 +187,7 @@ rule export_results:
         "Results/export.done"
     shell:
         """
-        mkdir -p Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,Rdata}}
+        mkdir -p Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
         cp results/06_sam_to_bam_format/*_abundance.tsv Results/ASV/
         cp results/06_sam_to_bam_format/Taxonomy_*.csv Results/Tax/
         cp results/06_sam_to_bam_format/*_Exact_affiliations.tsv Results/Exact_affiliations/
@@ -205,7 +205,7 @@ rule phyloseq:
         "results/rscript.done"
     shell:
         """
-        Rscript workflow/scripts/script.r {INPUT_DIR} . {R_CLEANING} {TREE} {METADATA} 2> /dev/null
+        Rscript workflow/scripts/script.r {INPUT_DIR} . {R_CLEANING} {TREE} {METADATA} #2> /dev/null
         touch {output}
         """
 
