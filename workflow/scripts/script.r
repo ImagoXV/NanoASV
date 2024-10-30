@@ -17,18 +17,19 @@ library(phyloseq)
 library(dplyr) #For mget() function
 library(ape) #To handle trees
 
-metadata <- read.csv(paste0(METADATA), row.names = 1, header = TRUE, check.names = FALSE)
+metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
-ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
-
+if (TREE ==1){
+  ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
+}
 
 ##Unknown OTUs ----
 
 if (file.exists(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"))) {
 U_OTU <- read.csv(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"), sep = "\t", header = T, row.names = 1)
 
-U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
+#U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
 
 unknown_taxonomy <- rep("Unknown", times = 7) #Adapt taxonomy dataframe so it fits later on with bad entries for cleaning
 
@@ -179,16 +180,20 @@ phy_tree(NanoASV) <- phy_tree(ASV.tree)
 ##Dataset cleaning ----
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
 if(R_CLEANING == 1){
-NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
-NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
-NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
+  NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
+  NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
+  NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
+  ##Taxonomy cleaning ----
+  #After those functions, there is no more taxa with mixed up names so we can remove supp fields of taxa table
+  tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
 }
 
-##Taxonomy cleaning ----
-#After those functions, there is no more taxa with fucked up names so we can remove supp fields of taxa table
-tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
-
-
 #Phyloseq export ----
-print("Exporting phyloseq object")
+print("Exporting results")
 save(NanoASV, file = paste0(OUTPWD,"/Results/Rdata/NanoASV.rdata"))
+
+#CSV export -----
+#Create the TAXOTU file, encompassing taxonomy and abundance
+TAXOTU <- data.frame(NanoASV@tax_table, NanoASV@otu_table)
+#Exporting the file for people needing this format as well
+write.csv(TAXOTU, file = paste0(OUTPWD,"/Results/CSV/Taxonomy-Abundance_table.csv"))
