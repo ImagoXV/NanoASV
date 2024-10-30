@@ -99,9 +99,8 @@ rule sam_to_bam_format:
     shell:
         """
         samtools fastq -f 4 {input.sam_file} | awk '{{if (NR%4==1) {{sub("^@", "@"); print $0 ";barcodelabel={wildcards.barcode}"}} else print $0}}' > {output.unmatched_fastq}
-        samtools view -h -b {input.sam_file} | samtools sort - > results/06_sam_to_bam_format/{wildcards.barcode}_sorted.bam
-        samtools index results/06_sam_to_bam_format/{wildcards.barcode}_sorted.bam
-        samtools view -F 4 results/06_sam_to_bam_format/{wildcards.barcode}_sorted.bam | \
+
+        samtools view -F 4 -F 256 -F 272 -F 2048 {input.sam_file} | \
         tee >(cut -f 1,2,3 > results/06_sam_to_bam_format/{wildcards.barcode}_Exact_affiliations.tsv) | \
         cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr | \
         sed 's/^[[:space:]]*//' > results/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv
