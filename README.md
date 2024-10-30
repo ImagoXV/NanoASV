@@ -86,10 +86,12 @@ I highly suggest you to run it on a cluster.
 | `-h`, `--help`       | Show help message                                                              |
 | `-v`, `--version`    | Show version information                                                       |
 | `-d`, `--dir`        | Path to fastq_pass/                                                            |
+| `-db`, `--database`  | Path to reference fasta file                                                   |
 | `-q`, `--quality`    | Quality threshold for Chopper, default: 8                                      |
 | `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
 | `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
 | `-i`, `--id-vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
+| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept                             |
 | `-p`, `--num-process`| Number of cores for parallelization, default: 1                                |
 | `--subsampling`      | Max number of sequences per barcode, default: 50,000                           |
 | `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
@@ -98,6 +100,7 @@ I highly suggest you to run it on a cluster.
 | `--notree`           | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
 | `--docker`           | Flag - To run NanoASV with Docker                                              |
 | `--ronly`            | Flag - To run only the R phyloseq step                                         |
+| `--requirements`     | Flag - To display personal reference fasta requirements                        |
 ```
 
 # How it works 
