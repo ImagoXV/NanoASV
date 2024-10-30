@@ -205,7 +205,7 @@ rule phyloseq:
         "results/rscript.done"
     shell:
         """
-        Rscript workflow/scripts/script.r {INPUT_DIR} . {R_CLEANING} {TREE} {METADATA} #2> /dev/null
+        Rscript workflow/scripts/script.r {INPUT_DIR} . {R_CLEANING} {TREE} {METADATA} 2> /dev/null
         touch {output}
         """
 
