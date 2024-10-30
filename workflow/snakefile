@@ -84,7 +84,7 @@ rule minimap2:
     output:
         "results/05_minimap2/{barcode}.sam"
     shell:
-        "minimap2 -a -x map-ont --seed 666 results/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
+        "minimap2 -a -x asm5 --seed 666 results/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
 
 # Step 6/9 : Reads alignements with minimap2 against the database
 rule sam_to_bam_format:
