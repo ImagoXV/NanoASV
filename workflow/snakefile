@@ -188,6 +188,7 @@ rule export_results:
     shell:
         """
         mkdir -p Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
+        cp results/07_unknown_sequences_clustering/* Results/Unknown_clusters/
         cp results/06_sam_to_bam_format/*_abundance.tsv Results/ASV/
         cp results/06_sam_to_bam_format/Taxonomy_*.csv Results/Tax/
         cp results/06_sam_to_bam_format/*_Exact_affiliations.tsv Results/Exact_affiliations/
