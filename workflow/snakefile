@@ -33,7 +33,7 @@ rule database_indexing:
         "results/00_database_indexing/indexing.done"
     shell:
         """
-        minimap2 -x asm10 -d results/00_database_indexing/{DATABASE_NAME}.mmi {input}
+        minimap2 -x map-ont -d results/00_database_indexing/{DATABASE_NAME}.mmi {input}
         zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > results/00_database_indexing/TAXONOMY_{DATABASE_NAME}
         touch {output}
         """
@@ -84,7 +84,7 @@ rule minimap2:
     output:
         "results/05_minimap2/{barcode}.sam"
     shell:
-        "minimap2 -a -x asm10 --seed 666 results/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
+        "minimap2 -a -x map-ont --seed 666 results/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
 
 # Step 6/9 : Reads alignements with minimap2 against the database
 rule sam_to_bam_format:
