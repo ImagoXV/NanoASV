@@ -19,7 +19,7 @@ Then activate the environment:
 
 First download the SILVA database (if needed):
 
-```wget https://www.arb-silva.de/fileadmin/silva_databases/release_138/Exports/SILVA_138_SSURef_tax_silva.fasta.gz -P resources/```
+```wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/```
 
 
 Ensure the conda environment is active:
