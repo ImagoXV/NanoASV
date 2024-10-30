@@ -33,7 +33,7 @@ rule database_indexing:
         "results/00_database_indexing/indexing.done"
     shell:
         """
-        minimap2 -d results/00_database_indexing/{DATABASE_NAME}.mmi {input}
+        minimap2 -x asm5 -d results/00_database_indexing/{DATABASE_NAME}.mmi {input}
         zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > results/00_database_indexing/TAXONOMY_{DATABASE_NAME}
         touch {output}
         """
