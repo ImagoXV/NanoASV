@@ -117,46 +117,63 @@ rule vsearch:
         "results/07_unknown_sequences_clustering/vsearch.done"
     shell:
         """
-        cat results/06_sam_to_bam_format/barcode*_unmatched.fastq > results/07_unknown_sequences_clustering/seqs
-        UNIQ_ID=$(uuidgen)
-        if [ -s "seqs" ]; then
-            vsearch --cluster_size results/07_unknown_sequences_clustering/seqs \
-                    --id {ID} \
-                    --relabel ${{UNIQ_ID}}_Unknown_cluster_ \
-                    --sizeout \
-                    --otutabout results/07_unknown_sequences_clustering/unknown_clusters.tsv \
-                    --clusterout_id --clusterout_sort \
-                    --consout results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta \
-                    --fasta_width 0 \
-                    --quiet
-                    #--randseed 666
-            rm results/07_unknown_sequences_clustering/seqs
-            #Remove singletons
-            awk '$2 > 5' results/07_unknown_sequences_clustering/unknown_clusters.tsv > results/07_unknown_sequences_clustering/no_singletons_unknown_clusters.tsv
 
-            #This line checks if there are some clusters with abundance > 5
-            if [ $(awk 'END {{print NR}}' results/07_unknown_sequences_clustering/no_singletons_unknown_clusters.tsv) -ge 2 ]; then
-                #Extract their ID for fasta sorting
-                cut -f1 results/07_unknown_sequences_clustering/no_singletons_unknown_clusters.tsv > results/07_unknown_sequences_clustering/Non_singletons_ID
-                #Sort fasta file
-                grep -A1 -f results/07_unknown_sequences_clustering/Non_singletons_ID results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta > results/07_unknown_sequences_clustering/non_singleton.fasta
-                #Replace Consensus fasta file by subsampled
-                mv results/07_unknown_sequences_clustering/non_singleton.fasta results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
-                #Remove grep -f artefacts
-                sed -i '/^--/d' results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
-                #Simplify headers
-                sed -i 's/>centroid=\([^;]*\);.*$/>\\1/' results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
-                mv results/07_unknown_sequences_clustering/no_singletons_unknown_clusters.tsv results/07_unknown_sequences_clustering/unknown_clusters.tsv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        # cat results/06_sam_to_bam_format/barcode*_unmatched.fastq > results/07_unknown_sequences_clustering/seqs
+        # UNIQ_ID=$(uuidgen)
+        # if [ -s "seqs" ]; then
+        #     vsearch --cluster_size results/07_unknown_sequences_clustering/seqs \
+        #             --id {ID} \
+        #             --relabel ${{UNIQ_ID}}_Unknown_cluster_ \
+        #             --sizeout \
+        #             --otutabout results/07_unknown_sequences_clustering/unknown_clusters.tsv \
+        #             --clusterout_id --clusterout_sort \
+        #             --consout results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta \
+        #             --fasta_width 0 \
+        #             --quiet
+        #             #--randseed 666
+        #     rm results/07_unknown_sequences_clustering/seqs
+        #     #Remove singletons
+        #     awk '$2 > 5' results/07_unknown_sequences_clustering/unknown_clusters.tsv > results/07_unknown_sequences_clustering/no_singletons_unknown_clusters.tsv
+
+        #     #This line checks if there are some clusters with abundance > 5
+        #     if [ $(awk 'END {{print NR}}' results/07_unknown_sequences_clustering/no_singletons_unknown_clusters.tsv) -ge 2 ]; then
+        #         #Extract their ID for fasta sorting
+        #         cut -f1 results/07_unknown_sequences_clustering/no_singletons_unknown_clusters.tsv > results/07_unknown_sequences_clustering/Non_singletons_ID
+        #         #Sort fasta file
+        #         grep -A1 -f results/07_unknown_sequences_clustering/Non_singletons_ID results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta > results/07_unknown_sequences_clustering/non_singleton.fasta
+        #         #Replace Consensus fasta file by subsampled
+        #         mv results/07_unknown_sequences_clustering/non_singleton.fasta results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
+        #         #Remove grep -f artefacts
+        #         sed -i '/^--/d' results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
+        #         #Simplify headers
+        #         sed -i 's/>centroid=\([^;]*\);.*$/>\\1/' results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
+        #         mv results/07_unknown_sequences_clustering/no_singletons_unknown_clusters.tsv results/07_unknown_sequences_clustering/unknown_clusters.tsv
                 
-                cp results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta results/07_unknown_sequences_clustering/unknown_clusters.tsv Results/Unknown_clusters/
-            else 
-                rm results/07_unknown_sequences_clustering/unknown_clusters.tsv results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
-                echo "No unknown cluster with abondance greater than 5"
-            fi
-        #If by any mean you don't have any unknown sequence, then you'll just skip the step (highly improbable)
-        else 
-            echo "Step 7/9 : Skipped - no unknown sequence"
-        fi
+        #         cp results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta results/07_unknown_sequences_clustering/unknown_clusters.tsv Results/Unknown_clusters/
+        #     else 
+        #         rm results/07_unknown_sequences_clustering/unknown_clusters.tsv results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
+        #         echo "No unknown cluster with abondance greater than 5"
+        #     fi
+        # #If by any mean you don't have any unknown sequence, then you'll just skip the step (highly improbable)
+        # else 
+        #     echo "Step 7/9 : Skipped - no unknown sequence"
+        # fi
         touch {output}
         """
 
