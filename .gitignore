@@ -2,4 +2,5 @@ resources/
 results/
 Results/
 SMALL/
-.snakemake/SAVE_ID_0.4_Results
+.snakemake/
+SAVE_ID_0.4_Results/
