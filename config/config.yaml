@@ -8,6 +8,6 @@ MINAB: 1
 SUBSAMPLING: 50000
 NUM_PROCESSES: 1
 TREE: 1
-INPUT_DIR: "Minimal/fastq"
-METADATA: "Minimal/metadata.csv"
-DATABASE: "resources/SILVA_138_SSURef_tax_silva.fasta.gz"
+INPUT_DIR: "SMALL/"
+METADATA: "SMALL/metadata.csv"
+DATABASE: "SMALL/NO_Chloroflexi_SMALL_reference.fasta"
