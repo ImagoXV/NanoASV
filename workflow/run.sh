@@ -140,6 +140,7 @@ SUBSAMPLING=$((SUBSAMPLING * 4))
 R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
 MINAB="${MINAB:-$DEFAULT_MINAB}"
+TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
