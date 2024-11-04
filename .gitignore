@@ -5,3 +5,4 @@ SMALL/
 .snakemake/
 SAVE_ID_0.4_Results/
 SAVE_Results/
+TEST_out/
