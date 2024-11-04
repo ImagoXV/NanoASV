@@ -191,13 +191,16 @@ rule export_results:
     shell:
         """
         mkdir -p {OUT}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
-        cp results/07_unknown_sequences_clustering/* {OUT}/Results/Unknown_clusters/
         cp results/06_sam_to_bam_format/*_abundance.tsv {OUT}/Results/ASV/
         cp results/06_sam_to_bam_format/Taxonomy_*.csv {OUT}/Results/Tax/
         cp results/06_sam_to_bam_format/*_Exact_affiliations.tsv {OUT}/Results/Exact_affiliations/
         if [ {TREE} -eq 1 ]; then
             cp results/08_phylogeny/ASV.tree {OUT}/Results/Phylogeny/
         fi
+        if [ -e "results/07_unknown_sequences_clustering/unknown_clusters." ]; then
+            cp results/07_unknown_sequences_clustering/* {OUT}/Results/Unknown_clusters/
+        fi
+
         touch {output}
         """
 
