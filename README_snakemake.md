@@ -9,6 +9,10 @@ Install the required dependencies with Conda:
 ```
 cd NanoASV
 conda env create -f environment.yml
+echo "export NANOASV_PATH=$(pwd)" >> ~/.bashrc
+source .bashrc
+chmod ugo+x workflow/run.sh
+sudo ln -s "$(pwd)/workflow/run.sh" /bin/nanoasv
 ```
 
 Then activate the environment:
