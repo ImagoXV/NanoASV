@@ -75,7 +75,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --keep-tmp)
-            TMP_FILES=1
+            TMP_FILES=0
             shift
             ;;
         -v|--version)
@@ -123,7 +123,7 @@ DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
 DEFAULT_DATABASE=$NANOASV_PATH/ressources
-DEFAULT_TMP_FILES=0
+DEFAULT_TMP_FILES=1
 #DEFAULT_DATABASE="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
@@ -220,5 +220,7 @@ snakemake -p -s "${NANOASV_PATH}"/workflow/snakefile \
 if [[ "${TMP_FILES}" -eq 0 ]]; then #Check for Docker's way to navigate through files
     rm -r tmp_files
 fi
+
+tree $OUT
 
 conda deactivate 
