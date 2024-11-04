@@ -9,10 +9,13 @@ Install the required dependencies with Conda:
 ```
 cd NanoASV
 conda env create -f environment.yml
-echo "export NANOASV_PATH=$(pwd)" >> ~/.bashrc
-source ~/.bashrc
+ACTIVATE_DIR=$(conda info --base)/envs/NanoASV/etc/conda/activate.d
+cp config/alias.sh $ACTIVATE_DIR/
+cp config/paths.sh $ACTIVATE_DIR/
+echo "export NANOASV_PATH=$(pwd)" >> $ACTIVATE_DIR/paths.sh
+DEACTIVATE_DIR=$(conda info --base)/envs/NanoASV/etc/conda/deactivate.d
 chmod ugo+x workflow/run.sh
-sudo ln -s "$(pwd)/workflow/run.sh" /bin/nanoasv
+
 ```
 
 Then activate the environment:
@@ -25,11 +28,6 @@ First download the SILVA database (if needed):
 
 ```wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/```
 
-
-Ensure the conda environment is active:
-```
-conda activate nanoASV
-```
 
 Test your configuration by performing a dry-run:
 
