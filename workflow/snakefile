@@ -1,0 +1,219 @@
+QUAL=config["QUAL"]
+MINL=config["MINL"]
+MAXL=config["MAXL"]
+ID=config["ID"]
+R_CLEANING=config["R_CLEANING"]
+MINAB=config["MINAB"]
+SUBSAMPLING=config["SUBSAMPLING"]
+NUM_PROCESSES=config["NUM_PROCESSES"]
+TREE=config["TREE"]
+# R_STEP_ONLY=config["R_STEP_ONLY"]
+METADATA=config["METADATA"]
+DATABASE=config["DATABASE"]
+OUT=config["OUT"]
+INPUT_DIR=config["INPUT_DIR"]
+NANOASV_PATH=config["NANOASV_PATH"]
+
+INPUT = glob_wildcards(INPUT_DIR+"/{barcode}/{FASTQ_FILE}.fastq.gz")
+DATABASE_NAME = DATABASE.split("/")[-1].split(".fasta")[0]
+
+
+
+rule all:
+    input:
+        expand("tmp_files/06_sam_to_bam_format/Taxonomy_{BARCODE}.csv", BARCODE=INPUT.barcode),
+        "tmp_files/.rscript.done"
+
+
+
+# Step 1/9 : Indexing of the database
+rule database_indexing:
+    input:
+        DATABASE
+    output:
+        "tmp_files/00_database_indexing/.indexing.done"
+    shell:
+        """
+        minimap2 -x map-ont -d tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input}
+        zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME}
+        touch {output}
+        """
+
+# Step 2/9 : Concatenation of fastq files
+rule concatenate_fastq_files:
+    input:
+        INPUT_DIR+"/{barcode}/"
+    output:
+        "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
+    shell:
+        "cat {input}/*fastq.gz > {output}"
+
+
+# Step 3/9 : Filtering sequences based on quality with Chopper
+rule sequence_quality_filtering:
+    input:
+        "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
+    output:
+        "tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"
+    shell:
+        "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} -i {input} | gzip > {output}"
+
+
+# Step 4/9 : Trim adapaters with Porechop
+rule adapters_trimming:
+    input:
+        "tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"
+    output:
+        "tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz"
+    shell:
+        "porechop --verbosity 0 -i {input} -o {output}"
+
+
+# Step 5/9 : Subsampling
+rule subsampling:
+    input:
+        "tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz"
+    output:
+        "tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq"
+    shell:
+        "head -n {SUBSAMPLING} < <(zcat {input}) > {output}"
+
+rule minimap2:
+    input:
+        fastq_file="tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq",
+        indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
+    output:
+        "tmp_files/05_minimap2/{barcode}.sam"
+    shell:
+        "minimap2 -a -x map-ont --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
+
+# Step 6/9 : Reads alignements with minimap2 against the database
+rule sam_to_bam_format:
+    input:
+        sam_file="tmp_files/05_minimap2/{barcode}.sam",
+        indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
+    output:
+        taxonomy_file="tmp_files/06_sam_to_bam_format/Taxonomy_{barcode}.csv",
+        ASV_list="tmp_files/06_sam_to_bam_format/{barcode}_ASV_list.tsv",
+        unmatched_fastq="tmp_files/06_sam_to_bam_format/{barcode}_unmatched.fastq"
+
+    shell:
+        """
+        samtools fastq -f 4 {input.sam_file} | awk '{{if (NR%4==1) {{sub("^@", "@"); print $0 ";barcodelabel={wildcards.barcode}"}} else print $0}}' > {output.unmatched_fastq}
+
+        samtools view -F 4 -F 256 -F 272 -F 2048 {input.sam_file} | \
+        tee >(cut -f 1,2,3 > tmp_files/06_sam_to_bam_format/{wildcards.barcode}_Exact_affiliations.tsv) | \
+        cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr | \
+        sed 's/^[[:space:]]*//' > tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv
+        grep -o '[^ ]\+$' tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv > {output.ASV_list}
+        grep -f {output.ASV_list} tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME} > {output.taxonomy_file}
+        """
+
+# Step 7/9 : Unknown sequences clustering with vsearch
+rule vsearch:
+    input:
+        expand("tmp_files/06_sam_to_bam_format/{barcode}_unmatched.fastq", barcode=INPUT.barcode)
+    output:
+        "tmp_files/07_unknown_sequences_clustering/.vsearch.done"
+    shell:
+        """
+        cat tmp_files/06_sam_to_bam_format/barcode*_unmatched.fastq > tmp_files/07_unknown_sequences_clustering/seqs
+        UNIQ_ID=$(uuidgen)
+        if [ -s "tmp_files/07_unknown_sequences_clustering/seqs" ]; then
+            vsearch \
+            --cluster_size tmp_files/07_unknown_sequences_clustering/seqs \
+            --threads {NUM_PROCESSES} \
+            --id {ID} \
+            --iddef 4 \
+            --relabel "${{UNIQ_ID}}_Unknown_cluster_" \
+            --sizeout \
+            --otutabout >(awk -v MINAB={MINAB} \
+                        'BEGIN {{FS = OFS = "\t"}}
+                            NR == 1 {{print $0}}
+                            NR > 1 {{s = 0
+                                    for (i=2; i<=NF; i++) {{s += $i}}
+                                    if (s >= MINAB) {{print $0}}
+                            }}' > tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv) \
+            --clusterout_id \
+            --clusterout_sort \
+            --fasta_width 0 \
+            --quiet \
+            --consout - | \
+            sed -E '/^>/ s/^>centroid=/>/ ; s/;seqs=[1-9]+//' | \
+            vsearch \
+                --fastx_filter - \
+                --sizein \
+                --sizeout \
+                --quiet \
+                --minsize {MINAB} \
+                --fastaout tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
+
+        rm tmp_files/07_unknown_sequences_clustering/seqs
+            if [ $(wc -l < tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv) -lt 2 ]; then
+                rm tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
+            fi
+        fi
+        touch {output}
+        """
+
+
+
+# Phylogeny with MAFFT and FastTree
+rule phylogeny:
+    input:
+        expand("tmp_files/06_sam_to_bam_format/{barcode}_ASV_list.tsv", barcode=INPUT.barcode),
+        "tmp_files/07_unknown_sequences_clustering/.vsearch.done"
+    output:
+        "tmp_files/08_phylogeny/.phylogeny.done"
+    threads: 20
+    shell:
+        """
+        if [ {TREE} -eq 1 ]; then
+            zgrep --no-group-separator -A 1 -f <(cat tmp_files/06_sam_to_bam_format/*_ASV_list.tsv) {DATABASE} > tmp_files/08_phylogeny/ALL_ASV.fasta
+            cp tmp_files/08_phylogeny/ALL_ASV.fasta tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
+            [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]] && cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
+            mafft --thread {threads} tmp_files/08_phylogeny/ALL_ASV_OTU.fasta > tmp_files/08_phylogeny/ALL_ASV.aln 2> /dev/null 
+            ## FastTree
+            FastTree -nt -fastest tmp_files/08_phylogeny/ALL_ASV.aln > tmp_files/08_phylogeny/ASV.tree 2> /dev/null #Verbose debugging
+        else
+            echo "Step 8/9 : Skipped - no phylogeny"
+        fi
+        touch {output}
+        """
+
+
+# Export results
+rule export_results:
+    input:
+        expand("tmp_files/06_sam_to_bam_format/Taxonomy_{barcode}.csv", barcode=INPUT.barcode),
+        "tmp_files/08_phylogeny/.phylogeny.done"
+    output:
+        "tmp_files/.export.done"
+    shell:
+        """
+        mkdir -p {OUT}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
+        cp tmp_files/06_sam_to_bam_format/*_abundance.tsv {OUT}/Results/ASV/
+        cp tmp_files/06_sam_to_bam_format/Taxonomy_*.csv {OUT}/Results/Tax/
+        cp tmp_files/06_sam_to_bam_format/*_Exact_affiliations.tsv {OUT}/Results/Exact_affiliations/
+        if [ {TREE} -eq 1 ]; then
+            cp tmp_files/08_phylogeny/ASV.tree {OUT}/Results/Phylogeny/
+        fi
+        if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters." ]; then
+            cp tmp_files/07_unknown_sequences_clustering/* {OUT}/Results/Unknown_clusters/
+        fi
+
+        touch {output}
+        """
+
+# Phyloseq
+rule phyloseq:
+    input:
+        "tmp_files/.export.done" 
+    output:
+        "tmp_files/.rscript.done"
+    shell:
+        """
+        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 2> /dev/null
+        touch {output}
+        """
+
