@@ -194,11 +194,6 @@ fi
 
 #Run the pipeline
 
-
-ls $NANOASV_PATH
-
-echo $(pwd)
-
 snakemake -p -s "${NANOASV_PATH}"/workflow/snakefile \
     --config \
         QUAL=$QUAL \
