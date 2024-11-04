@@ -74,6 +74,10 @@ while [[ $# -gt 0 ]]; do
             R_STEP_ONLY=1
             shift
             ;;
+        --keep-tmp)
+            TMP_FILES=1
+            shift
+            ;;
         -v|--version)
             echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson and Frederic Mahe"
             exit
@@ -119,6 +123,7 @@ DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
 DEFAULT_DATABASE=$NANOASV_PATH/ressources
+DEFAULT_TMP_FILES=0
 #DEFAULT_DATABASE="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
@@ -211,6 +216,9 @@ snakemake -p -s "${NANOASV_PATH}"/workflow/snakefile \
         DATABASE=$DATABASE \
         NANOASV_PATH=$NANOASV_PATH
 
-
+#Remove tmp files if flag is not set
+if [[ "${TMP_FILES}" -eq 0 ]]; then #Check for Docker's way to navigate through files
+    rm -r tmp_files
+fi
 
 conda deactivate 
