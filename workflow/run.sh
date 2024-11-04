@@ -74,7 +74,7 @@ while [[ $# -gt 0 ]]; do
             R_STEP_ONLY=1
             shift
             ;;
-        --keep-tmp)
+        --remove-tmp)
             TMP_FILES=0
             shift
             ;;
