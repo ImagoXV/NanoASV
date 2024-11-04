@@ -5,12 +5,6 @@ Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
 ```git clone https://github.com/ImagoXV/NanoASV```
 
-## EASY : Run install.sh to install NanoASV
-
-```
-cd NanoASV
-```
-
 Install the required dependencies with Conda:
 ```
 cd NanoASV
