@@ -209,6 +209,6 @@ snakemake -p -s "${NANOASV_PATH}"/workflow/snakefile \
         METADATA=$METADATA \
         DATABASE=$DATABASE
 
-echo "OK"
+
 
 conda deactivate 
