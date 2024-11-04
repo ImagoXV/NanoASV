@@ -149,6 +149,43 @@ if [[ -z $OUT ]]; then
     exit 1
 fi
 
+
+
+#Metadata sanity checks **********************************************
+(cd "${METADATA}"
+ #Check if metadata.csv has been provided by the user
+ [[ -s metadata.csv ]] || \
+     { /usr/games/cowsay -d "Error : Please provide a metadata.csv" >&2 ; exit 1 ; }
+
+ #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
+ awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
+     { echo "ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?" ; exit 1 ; }
+
+ #Check if metadata.csv rownames structure is correct
+ awk -F "," 'NR == 1 { exit $1 == "" ? 0 : 1}' metadata.csv || \
+     { echo "ERROR: First field of first line should be empty. Please check metadata.csv file structure." ; exit 1 ; }
+
+ #Check if metadata.csv contains enough lines
+ awk 'END{ exit NR > 1 ? 0 : 1}' metadata.csv || \
+     { echo "ERROR: metadata.csv: Missing header and/or data information. Too few lines." ; exit 1 ; }
+
+
+ # Check if metadata barcodes are found within DIR
+ cut -f1 -d "," metadata.csv | \
+     tail -n +2 | \
+     while read sample_name ; do
+         [[ -d ${sample_name} ]] || \
+             { echo "ERROR, ${sample_name} not found. Please check metadata.csv and barcodes directories" ; exit 1 ; }
+     done
+
+ #Check if number of fields is consistent is consistent accross all number of lines
+ awk -F "," '{print NF}' metadata.csv | \
+     sort -u | \
+     awk 'END {exit NR == 1 ? 0 : 1}' || \
+     { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; }
+)
+
+
 #Run the pipeline
 
 
@@ -168,6 +205,7 @@ snakemake -p -s "${NANOASV_PATH}"/workflow/snakefile \
         SUBSAMPLING=$SUBSAMPLING \
         TREE=$TREE \
         INPUT_DIR=$DIR \
+        OUT=$OUT \
         METADATA=$METADATA \
         DATABASE=$DATABASE
 
