@@ -1,6 +1,8 @@
 #/bin/bash
 
 #This script is a wrapper to launch NanoASV snakemake version with ease
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda init 2> /dev/null 1> /dev/null
 conda activate NanoASV
 # Read the arguments passed to the script
 while [[ $# -gt 0 ]]; do
