@@ -54,6 +54,7 @@ dependencies:
   - conda-inject=1.3.2=pyhd8ed1ab_0
   - configargparse=1.7=pyhd8ed1ab_0
   - connection_pool=0.0.3=pyhd3deb0d_0
+  - cowpy=1.1.5=pyhd8ed1ab_1
   - curl=8.10.1=hbbe4b11_0
   - datrie=0.8.2=py312h66e93f0_8
   - docutils=0.21.2=pyhd8ed1ab_0
