@@ -14,6 +14,7 @@ cp config/alias.sh $ACTIVATE_DIR/
 cp config/paths.sh $ACTIVATE_DIR/
 echo "export NANOASV_PATH=$(pwd)" >> $ACTIVATE_DIR/paths.sh
 DEACTIVATE_DIR=$(conda info --base)/envs/NanoASV/etc/conda/deactivate.d
+cp config/unalias.sh $DEACTIVATE_DIR/
 chmod ugo+x workflow/run.sh
 
 ```
