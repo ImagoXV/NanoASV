@@ -149,8 +149,6 @@ rule vsearch:
 
         rm results/07_unknown_sequences_clustering/seqs
 
-        if [[ $(wc -l < "results/07_unknown_sequences_clustering/unknown_clusters.tsv)") -gt 2 ]]; then
-            rm results/07_unknown_sequences_clustering/unknown_clusters.tsv results/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
         fi
         touch {output}
         """
@@ -209,7 +207,7 @@ rule phyloseq:
         "results/.rscript.done"
     shell:
         """
-        Rscript workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 
+        Rscript workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 2> /dev/null
         touch {output}
         """
 
