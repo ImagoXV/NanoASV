@@ -191,15 +191,15 @@ rule export_results:
         "tmp_files/.export.done"
     shell:
         """
-        mkdir -p {OUT}/tmp_files/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
-        cp tmp_files/06_sam_to_bam_format/*_abundance.tsv {OUT}/tmp_files/ASV/
-        cp tmp_files/06_sam_to_bam_format/Taxonomy_*.csv {OUT}/tmp_files/Tax/
-        cp tmp_files/06_sam_to_bam_format/*_Exact_affiliations.tsv {OUT}/tmp_files/Exact_affiliations/
+        mkdir -p {OUT}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
+        cp tmp_files/06_sam_to_bam_format/*_abundance.tsv {OUT}/Results/ASV/
+        cp tmp_files/06_sam_to_bam_format/Taxonomy_*.csv {OUT}/Results/Tax/
+        cp tmp_files/06_sam_to_bam_format/*_Exact_affiliations.tsv {OUT}/Results/Exact_affiliations/
         if [ {TREE} -eq 1 ]; then
-            cp tmp_files/08_phylogeny/ASV.tree {OUT}/tmp_files/Phylogeny/
+            cp tmp_files/08_phylogeny/ASV.tree {OUT}/Results/Phylogeny/
         fi
         if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters." ]; then
-            cp tmp_files/07_unknown_sequences_clustering/* {OUT}/tmp_files/Unknown_clusters/
+            cp tmp_files/07_unknown_sequences_clustering/* {OUT}/Results/Unknown_clusters/
         fi
 
         touch {output}
