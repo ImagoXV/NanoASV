@@ -1,4 +1,4 @@
-![Logo](NanoASV_logo.png)
+![Logo](config/NanoASV_logo.png)
 
 # NanoASV
  NanoASV is a conda environment snakemake based workflow using state of the art bioinformatic softwares to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C  sequencing device and process data locally. 
