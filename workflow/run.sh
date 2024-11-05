@@ -79,12 +79,12 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -v|--version)
-            echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson and Frederic Mahe"
+            echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and "
             exit
             shift
             ;;
         -h|--help)
-            cat /help.txt
+            cat $NANOASV_PATH/config/help.txt
             exit
             shift
             ;;
@@ -100,7 +100,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown option: $1"
-            cat /help.txt
+            cat $NANOASV_PATH/config/help.txt
             exit 1
             shift
             ;;
@@ -147,6 +147,7 @@ TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 if [[ -z $DIR ]]; then
     cowpy -e dead "Error: -d needs an argument, I don't know where your sequences are." >&2
     conda deactivate
+    cat $NANOASV_PATH/config/help.txt
     exit 1
 fi
 # Check if OUT is empty and no default value is provided
