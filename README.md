@@ -65,9 +65,13 @@ wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SI
 
 ## Test your installation
 ### With a dry run
-```nanoasv --dry-run```
+```
+nanoasv --dry-run
+```
 ### With mock dataset
-```nanoasv --mock```
+```
+nanoasv --mock
+```
 You can inspect NanoASV output structure in Mock_run_OUPUT
 
 
