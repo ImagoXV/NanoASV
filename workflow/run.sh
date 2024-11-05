@@ -86,7 +86,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --requirements)
-            cat requirements.txt
+            cat $NANOASV_PATH/config/requirements.txt
             exit
             shift
             ;;
