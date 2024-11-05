@@ -92,6 +92,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         --dry-run)
             DRY="-n"
+            DIR="config/MOCK
             shift
             ;;
         *)
