@@ -29,7 +29,13 @@ Then activate the environment:
 
 ```conda activate NanoASV```
 
+## Database setup
+NanoASV can be used with any reference fasta file. But is you want to have a broad idea of your community taxonomy, we recommend you to use Silva (or any reference dataset you prefer)
 
+Download the database 
+```wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/```
+
+## Test
 
 
 
