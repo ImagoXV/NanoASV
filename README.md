@@ -46,7 +46,7 @@ ACTIVATE_DIR=$(conda env list | grep 'NanoASV' | awk '{print $2}')/etc/conda/act
 cp config/alias.sh $ACTIVATE_DIR/
 cp config/paths.sh $ACTIVATE_DIR/
 echo "export NANOASV_PATH=$(pwd)" >> $ACTIVATE_DIR/paths.sh
-ACTIVATE_DIR=$(conda env list | grep 'NanoASV' | awk '{print $2}')/etc/conda/deactivate.d
+DEACTIVATE_DIR=$(conda env list | grep 'NanoASV' | awk '{print $2}')/etc/conda/deactivate.d
 cp config/unalias.sh $DEACTIVATE_DIR/
 chmod +x workflow/run.sh
 ```
