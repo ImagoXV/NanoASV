@@ -6,26 +6,26 @@
  # Options
 
 ```
-| Option               | Description                                                                    |
-| -------------------- | ------------------------------------------------------------------------------ |
-| `-h`, `--help`       | Show help message                                                              |
-| `-v`, `--version`    | Show version information                                                       |
-| `-d`, `--dir`        | Path to fastq_pass/                                                            |
-| `-db`, `--database`  | Path to reference fasta file                                                   |
-| `-q`, `--quality`    | Quality threshold for Chopper, default: 8                                      |
-| `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
-| `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
-| `-i`, `--id-vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
-| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept                             |
-| `-p`, `--num-process`| Number of cores for parallelization, default: 1                                |
-| `--subsampling`      | Max number of sequences per barcode, default: 50,000                           |
-| `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
-|                      | from phyloseq object                                                           |
-| `--metadata`         | Specify metadata.csv file directory, default is demultiplexed directory (--dir)|
-| `--notree`           | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
-| `--requirements`     | Flag - To display personal reference fasta requirements                        |
-| `--dry-run`          | Flag - NanoASV Snakemake dry run                                               |
-| `--mock`             | Flag - Run mock dataset with NanoASV                                           |
+| Option               | Description                                                          |
+| -------------------- | ---------------------------------------------------------------------|
+| `-h`, `--help`       | Show help message                                                    |
+| `-v`, `--version`    | Show version information                                             |
+| `-d`, `--dir`        | Path to fastq_pass/                                                  |
+| `-db`, `--database`  | Path to reference fasta file                                         |
+| `-q`, `--quality`    | Quality threshold for Chopper, default: 8                            |
+| `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                   |
+| `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                   |
+| `-i`, `--id-vsearch` | Identity threshold for vsearch clustering step, default: 0.7         |
+| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept                   |
+| `-p`, `--num-process`| Number of cores for parallelization, default: 1                      |
+| `--subsampling`      | Max number of sequences per barcode, default: 50,000                 |
+| `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences    |
+|                      | from phyloseq object                                                 |
+| `--metadata`         | Specify metadata.csv file directory, default is --dir                |
+| `--notree`           | Flag - To remove phylogeny step and tree from phyloseq object        |
+| `--requirements`     | Flag - To display personal reference fasta requirements              |
+| `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
+| `--mock`             | Flag - Run mock dataset with NanoASV                                 |
 ```
 
 
@@ -66,6 +66,12 @@ Download the database and put it in ressources
 ```nanoasv --dry-run```
 ### With mock dataset
 ```nanoasv --mock```
+You can inspect NanoASV output structure in Mock_run_OUPUT
+
+
+
+
+
 
 
 ##### Work in progress
