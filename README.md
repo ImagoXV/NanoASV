@@ -30,12 +30,26 @@ Then activate the environment:
 ```conda activate NanoASV```
 
 ## Database setup
-NanoASV can be used with any reference fasta file. But is you want to have a broad idea of your community taxonomy, we recommend you to use Silva (or any reference dataset you prefer)
+NanoASV can be used with any reference fasta file. If you want to have a broad idea of your community taxonomy, we recommend you to use latest [Silva](https://www.arb-silva.de/)
 
-Download the database 
+Download the database and put it in ressources
 ```wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/```
 
-## Test
+## Test your installation
+### With a dry run
+```nanoasv --dry-run```
+### With mock dataset
+```nanoasv --mock```
+
+
+##### Work in progress
+
+The workflow can be executed on a cluster using snakemake cluster configuration. Install a [profile](https://github.com/Snakemake-Profiles) for your cluster's job submission system. Edit the defaults in the file `cluster.json` and run the workflow. For example:
+
+```
+snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflow/snakefile --configfile config/config.yaml
+```
+
 
 
 
