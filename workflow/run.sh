@@ -212,10 +212,13 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile \
         NANOASV_PATH=$NANOASV_PATH
 
 #Remove tmp files if flag is not set
-if [[ "${TMP_FILES}" -eq 0 ]]; then #Check for Docker's way to navigate through files
+if [[ "${TMP_FILES}" -eq 0 ]]; then 
     rm -r tmp_files
 fi
 
-tree $OUT
+if [[ "${DRY}" -eq 0 ]]; then 
+    tree $OUT
+fi
+
 
 conda deactivate 
