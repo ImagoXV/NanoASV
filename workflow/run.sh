@@ -92,9 +92,9 @@ while [[ $# -gt 0 ]]; do
             ;;
         --dry-run)
             DRY="n"
-            DIR="config/MOCK"
-            OUT="Mock_run_OUTPUT"
-            DATABASE="config/MOCK/mock_references/complete-reference.fasta"
+            DIR="$NANOASV_PATH/config/MOCK"
+            OUT="$NANOASV_PATH/Mock_run_OUTPUT"
+            DATABASE="$NANOASV_PATH/config/MOCK/mock_references/complete-reference.fasta"
             shift
             ;;
         *)
@@ -216,9 +216,8 @@ if [[ "${TMP_FILES}" -eq 0 ]]; then
     rm -r tmp_files
 fi
 
-if [[ "${DRY}" -eq 0 ]]; then 
+if [[ "${DRY}" != "n" ]]; then 
     tree $OUT
 fi
-
 
 conda deactivate 
