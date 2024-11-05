@@ -32,7 +32,7 @@
 # Installation with Conda
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
-```git clone https://github.com/ImagoXV/NanoASV ~/```
+```git clone https://github.com/ImagoXV/NanoASV ~/NanoASV```
 
 First step is Conda environment creation and required dependencies installation :
 
