@@ -91,8 +91,10 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --dry-run)
-            DRY="-n"
-            DIR="config/MOCK
+            DRY="n"
+            DIR="config/MOCK"
+            OUT="Mock_run_OUTPUT"
+            DATABASE="config/MOCK/mock_references/complete-reference.fasta"
             shift
             ;;
         *)
@@ -192,7 +194,7 @@ fi
 
 #Run the pipeline
 
-snakemake -p -s $DRY "${NANOASV_PATH}"/workflow/snakefile \
+snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile \
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
