@@ -90,6 +90,10 @@ while [[ $# -gt 0 ]]; do
             exit
             shift
             ;;
+        --dry-run)
+            DRY="-n"
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             cat $NANOASV_PATH/config/help.txt
@@ -187,7 +191,7 @@ fi
 
 #Run the pipeline
 
-snakemake -p -s "${NANOASV_PATH}"/workflow/snakefile \
+snakemake -p -s $DRY "${NANOASV_PATH}"/workflow/snakefile \
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
