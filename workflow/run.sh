@@ -116,7 +116,6 @@ DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
 DEFAULT_DATABASE=$NANOASV_PATH/ressources
 DEFAULT_TMP_FILES=1
-#DEFAULT_DATABASE="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
