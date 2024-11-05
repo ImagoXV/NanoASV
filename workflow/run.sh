@@ -66,10 +66,6 @@ while [[ $# -gt 0 ]]; do
             TREE=0
             shift
             ;;
-        --ronly)
-            R_STEP_ONLY=1
-            shift
-            ;;
         --remove-tmp)
             TMP_FILES=0
             shift
