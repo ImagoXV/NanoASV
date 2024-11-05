@@ -59,7 +59,9 @@ Then activate the environment:
 NanoASV can be used with any reference fasta file. If you want to have a broad idea of your community taxonomy, we recommend you to use latest [Silva](https://www.arb-silva.de/)
 
 Download the database and put it in ressources
-```wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/```
+```
+wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/
+```
 
 ## Test your installation
 ### With a dry run
