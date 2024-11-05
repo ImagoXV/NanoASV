@@ -1,2 +1,2 @@
 #/bin/bash
-unalias nanoasv
+unalias nanoasv 2> /dev/null
