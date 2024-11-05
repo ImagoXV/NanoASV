@@ -66,10 +66,6 @@ while [[ $# -gt 0 ]]; do
             TREE=0
             shift
             ;;
-        --docker)
-            DOCKER=1
-            shift
-            ;;
         --ronly)
             R_STEP_ONLY=1
             shift
