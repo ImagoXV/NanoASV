@@ -3,48 +3,41 @@
 # NanoASV
  NanoASV is a conda environment snakemake based workflow using state of the art bioinformatic softwares to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C  sequencing device and process data locally. 
 
-# Installation
-At the moment, the only way to install NanoASV is building it from source with Docker. 
-At this point you can whether run it with Docker or to build a Singularity image file (SIF) from the docker version to run with Singularity. 
+# Installation with Conda
+Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
-## ADVANCED - Build from source with Docker
-Takes 75 min on my computer (32Gb RAM - 12 cores).
-The longest part is SILVA indexing step.
-Avoid this step by downloading the (heavy) NanoASV.tar archive
-```sh
-git clone https://github.com/ImagoXV/NanoASV
-docker build -t nanoasv NanoASV/.
-```
-### Create Docker archive to build with Singularity
+```git clone https://github.com/ImagoXV/NanoASV ~/```
 
-```sh
-docker save nanoasv -o NanoASV.tar
-```
-## ADVANCED - Build image with Singularity
-I recommend building the sif file from the docker archive 
-```sh
-singularity build nanoasv docker-archive://NanoASV.tar
-```
-
-## NOT WORKING ATM - EASY - Download for Singularity
-Archive is too big at the moment to be a GitHub release. You have to build from source.
-```sh
-wget path/to/archive
-tar -xvzf nanoasv.tar.gz 
-sudo mv nanoasv /opt/
-echo 'export PATH=$PATH:/opt/' >> ~/.bashrc && source ~/.bashrc
+First step is Conda environment creation and required dependencies installation :
 
 ```
-Then test if everything is working properly
-The low vsearch clustering identity threshold allows to successfully recover OTUs from a small number of sequences. 
-You should not use such a low identity threshold for analysis. -i 0.7 works fine.
+cd ~/NanoASV
+conda env create -f environment.yml
+```
+You then need to setup the created Conda environment with the following
+```
+ACTIVATE_DIR=$(conda info --base)/envs/NanoASV/etc/conda/activate.d
+cp config/alias.sh $ACTIVATE_DIR/
+cp config/paths.sh $ACTIVATE_DIR/
+echo "export NANOASV_PATH=$(pwd)" >> $ACTIVATE_DIR/paths.sh
+DEACTIVATE_DIR=$(conda info --base)/envs/NanoASV/etc/conda/deactivate.d
+cp config/unalias.sh $DEACTIVATE_DIR/
+chmod +x workflow/run.sh
+```
 
-```sh singularity
-singularity run nanoasv -d Minimal -o Out_test -i 0.3 [--options]
-```
-```sh docker
-docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker -i 0.3 [--options] 
-```
+Then activate the environment:
+
+```conda activate NanoASV```
+
+
+
+
+
+
+
+
+
+
 
 ## ADVANCED - Install on MK1C sequencing device
 
