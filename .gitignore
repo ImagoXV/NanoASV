@@ -1,3 +1,4 @@
+Mock_run_OUPUT/
 resources/
 results/
 Results/
@@ -6,3 +7,4 @@ SMALL/
 SAVE_ID_0.4_Results/
 SAVE_Results/
 TEST_out/
+tmp_files/

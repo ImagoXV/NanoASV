@@ -66,25 +66,17 @@ while [[ $# -gt 0 ]]; do
             TREE=0
             shift
             ;;
-        --docker)
-            DOCKER=1
-            shift
-            ;;
-        --ronly)
-            R_STEP_ONLY=1
-            shift
-            ;;
         --remove-tmp)
             TMP_FILES=0
             shift
             ;;
         -v|--version)
-            echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson and Frederic Mahe"
+            echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and "
             exit
             shift
             ;;
         -h|--help)
-            cat /help.txt
+            cat $NANOASV_PATH/config/help.txt
             exit
             shift
             ;;
@@ -94,13 +86,28 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --requirements)
-            cat requirements.txt
+            cat $NANOASV_PATH/config/requirements.txt
             exit
+            shift
+            ;;
+        --dry-run)
+            DRY="n"
+            DIR="$NANOASV_PATH/config/MOCK"
+            OUT="$NANOASV_PATH/Mock_run_OUTPUT"
+            DATABASE="$NANOASV_PATH/config/MOCK/mock_references/complete-reference.fasta"
+            shift
+            ;;
+        --mock)
+            DIR="$NANOASV_PATH/config/MOCK"
+            OUT="$NANOASV_PATH/Mock_run_OUTPUT"
+            DATABASE="$NANOASV_PATH/config/MOCK/mock_references/complete-reference.fasta"
+            NUM_PROCESSES=2
+            TMP_FILES=0
             shift
             ;;
         *)
             echo "Unknown option: $1"
-            cat /help.txt
+            cat $NANOASV_PATH/config/help.txt
             exit 1
             shift
             ;;
@@ -124,7 +131,6 @@ DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
 DEFAULT_DATABASE=$NANOASV_PATH/ressources
 DEFAULT_TMP_FILES=1
-#DEFAULT_DATABASE="/database/SILVA_138.1_SSURef_tax_silva.fasta.gz"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -147,6 +153,7 @@ TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 if [[ -z $DIR ]]; then
     cowpy -e dead "Error: -d needs an argument, I don't know where your sequences are." >&2
     conda deactivate
+    cat $NANOASV_PATH/config/help.txt
     exit 1
 fi
 # Check if OUT is empty and no default value is provided
@@ -162,19 +169,19 @@ fi
 (cd "${METADATA}"
  #Check if metadata.csv has been provided by the user
  [[ -s metadata.csv ]] || \
-     { /usr/games/cowsay -d "Error : Please provide a metadata.csv" >&2 ; exit 1 ; }
+     { /usr/games/cowsay -d "Error : Please provide a metadata.csv" >&2 ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 
  #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
  awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
-     { echo "ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?" ; exit 1 ; }
+     { echo "ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?" ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 
  #Check if metadata.csv rownames structure is correct
  awk -F "," 'NR == 1 { exit $1 == "" ? 0 : 1}' metadata.csv || \
-     { echo "ERROR: First field of first line should be empty. Please check metadata.csv file structure." ; exit 1 ; }
+     { echo "ERROR: First field of first line should be empty. Please check metadata.csv file structure." ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 
  #Check if metadata.csv contains enough lines
  awk 'END{ exit NR > 1 ? 0 : 1}' metadata.csv || \
-     { echo "ERROR: metadata.csv: Missing header and/or data information. Too few lines." ; exit 1 ; }
+     { echo "ERROR: metadata.csv: Missing header and/or data information. Too few lines." ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 
 
  # Check if metadata barcodes are found within DIR
@@ -182,20 +189,20 @@ fi
      tail -n +2 | \
      while read sample_name ; do
          [[ -d ${sample_name} ]] || \
-             { echo "ERROR, ${sample_name} not found. Please check metadata.csv and barcodes directories" ; exit 1 ; }
+             { echo "ERROR, ${sample_name} not found. Please check metadata.csv and barcodes directories" ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
      done
 
  #Check if number of fields is consistent is consistent accross all number of lines
  awk -F "," '{print NF}' metadata.csv | \
      sort -u | \
      awk 'END {exit NR == 1 ? 0 : 1}' || \
-     { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; }
+     { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 )
 
 
 #Run the pipeline
 
-snakemake -p -s "${NANOASV_PATH}"/workflow/snakefile \
+snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile \
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
@@ -213,10 +220,12 @@ snakemake -p -s "${NANOASV_PATH}"/workflow/snakefile \
         NANOASV_PATH=$NANOASV_PATH
 
 #Remove tmp files if flag is not set
-if [[ "${TMP_FILES}" -eq 0 ]]; then #Check for Docker's way to navigate through files
+if [[ "${TMP_FILES}" -eq 0 ]]; then 
     rm -r tmp_files
 fi
 
-tree $OUT
+if [[ "${DRY}" != "n" ]]; then 
+    tree $OUT
+fi
 
 conda deactivate 

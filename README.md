@@ -1,106 +1,91 @@
-![Logo](NanoASV_logo.png)
+![Logo](config/NanoASV_logo.png)
 
 # NanoASV
- NanoASV is a container based workflow using state of the art bioinformatic software to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C  sequencing device and process data locally. 
+ NanoASV is a conda environment snakemake based workflow using state of the art bioinformatic softwares to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C  sequencing device and process data locally. 
 
-# Installation
-At the moment, the only way to install NanoASV is building it from source with Docker. 
-At this point you can whether run it with Docker or to build a Singularity image file (SIF) from the docker version to run with Singularity. 
-
-## ADVANCED - Build from source with Docker
-Takes 75 min on my computer (32Gb RAM - 12 cores).
-The longest part is SILVA indexing step.
-Avoid this step by downloading the (heavy) NanoASV.tar archive
-```sh
-git clone https://github.com/ImagoXV/NanoASV
-docker build -t nanoasv NanoASV/.
-```
-### Create Docker archive to build with Singularity
-
-```sh
-docker save nanoasv -o NanoASV.tar
-```
-## ADVANCED - Build image with Singularity
-I recommend building the sif file from the docker archive 
-```sh
-singularity build nanoasv docker-archive://NanoASV.tar
-```
-
-## NOT WORKING ATM - EASY - Download for Singularity
-Archive is too big at the moment to be a GitHub release. You have to build from source.
-```sh
-wget path/to/archive
-tar -xvzf nanoasv.tar.gz 
-sudo mv nanoasv /opt/
-echo 'export PATH=$PATH:/opt/' >> ~/.bashrc && source ~/.bashrc
+ # Options
 
 ```
-Then test if everything is working properly
-The low vsearch clustering identity threshold allows to successfully recover OTUs from a small number of sequences. 
-You should not use such a low identity threshold for analysis. -i 0.7 works fine.
-
-```sh singularity
-singularity run nanoasv -d Minimal -o Out_test -i 0.3 [--options]
+| Option               | Description                                                          |
+| -------------------- | ---------------------------------------------------------------------|
+| `-h`, `--help`       | Show help message                                                    |
+| `-v`, `--version`    | Show version information                                             |
+| `-d`, `--dir`        | Path to fastq_pass/                                                  |
+| `-db`, `--database`  | Path to reference fasta file                                         |
+| `-q`, `--quality`    | Quality threshold for Chopper, default: 8                            |
+| `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                   |
+| `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                   |
+| `-i`, `--id-vsearch` | Identity threshold for vsearch clustering step, default: 0.7         |
+| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept                   |
+| `-p`, `--num-process`| Number of cores for parallelization, default: 1                      |
+| `--subsampling`      | Max number of sequences per barcode, default: 50,000                 |
+| `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences    |
+|                      | from phyloseq object                                                 |
+| `--metadata`         | Specify metadata.csv file directory, default is --dir                |
+| `--notree`           | Flag - To remove phylogeny step and tree from phyloseq object        |
+| `--requirements`     | Flag - To display personal reference fasta requirements              |
+| `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
+| `--mock`             | Flag - Run mock dataset with NanoASV                                 |
 ```
-```sh docker
-docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker -i 0.3 [--options] 
-```
 
-## ADVANCED - Install on MK1C sequencing device
 
-All previous steps can be used to install on MK1C, but be sure to use the aarch64 version. **IT WILL NOT RUN IF IT'S NOT AARCH64 VERSION**
+# Installation with Conda
+Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
-# Usage
-## RECOMMENDED - With Singularity
-If added to the path
+```git clone https://github.com/ImagoXV/NanoASV ~/NanoASV```
 
-```sh
-nanoasv -d path/to/sequences -o out [--options]
-```
-Or 
-```sh
-singularity run nanoasv -d path/to/sequences -o out [--options]
-```
-Or if installed elsewhere 
-```
-/path/to/installation/nanoasv -d path/to/sequences -o out [--options] 
-```
-## ADVANCED - With Docker
-I recommand you not to run it with docker because of root privileges.
-**Don't forget the --docker flag**
-```sh
-docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker
-```
-You can mount your sequences directory anywhere in the container, but I recommand you to mount in /data/
-
-## Technical recommandations
-If running on a PC, I suggest to not use more than two threads with 32Gb of RAM. Otherwise, you might crash your system. 
-I highly suggest you to run it on a cluster. 
-96 samples (--subsampling 50000) took 4h (without tree) with 150Gb and 8 threads. The tree is highly computer intensive.
-
-## Options
+First step is Conda environment creation and required dependencies installation :
 
 ```
-| Option               | Description                                                                    |
-| -------------------- | ------------------------------------------------------------------------------ |
-| `-h`, `--help`       | Show help message                                                              |
-| `-v`, `--version`    | Show version information                                                       |
-| `-d`, `--dir`        | Path to fastq_pass/                                                            |
-| `-db`, `--database`  | Path to reference fasta file                                                   |
-| `-q`, `--quality`    | Quality threshold for Chopper, default: 8                                      |
-| `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
-| `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
-| `-i`, `--id-vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
-| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept                             |
-| `-p`, `--num-process`| Number of cores for parallelization, default: 1                                |
-| `--subsampling`      | Max number of sequences per barcode, default: 50,000                           |
-| `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
-|                      | from phyloseq object                                                           |
-| `--metadata`         | Specify metadata.csv file directory, default is demultiplexed directory (--dir)|
-| `--notree`           | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
-| `--docker`           | Flag - To run NanoASV with Docker                                              |
-| `--ronly`            | Flag - To run only the R phyloseq step                                         |
-| `--requirements`     | Flag - To display personal reference fasta requirements                        |
+cd ~/NanoASV
+conda env create -f environment.yml
+```
+You then need to setup the created Conda environment with the following
+```
+ACTIVATE_DIR=$(conda info --base)/envs/NanoASV/etc/conda/activate.d
+cp config/alias.sh $ACTIVATE_DIR/
+cp config/paths.sh $ACTIVATE_DIR/
+echo "export NANOASV_PATH=$(pwd)" >> $ACTIVATE_DIR/paths.sh
+DEACTIVATE_DIR=$(conda info --base)/envs/NanoASV/etc/conda/deactivate.d
+cp config/unalias.sh $DEACTIVATE_DIR/
+chmod +x workflow/run.sh
+```
+
+Then activate the environment:
+
+```conda activate NanoASV```
+
+## Database setup
+NanoASV can be used with any reference fasta file. If you want to have a broad idea of your community taxonomy, we recommend you to use latest [Silva](https://www.arb-silva.de/)
+
+Download the database and put it in ressources
+```
+wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/
+```
+
+## Test your installation
+### With a dry run
+```
+nanoasv --dry-run
+```
+### With mock dataset
+```
+nanoasv --mock
+```
+You can inspect NanoASV output structure in Mock_run_OUPUT
+
+
+
+
+
+
+
+##### Work in progress
+
+The workflow can be executed on a cluster using snakemake cluster configuration. Install a [profile](https://github.com/Snakemake-Profiles) for your cluster's job submission system. Edit the defaults in the file `cluster.json` and run the workflow. For example:
+
+```
+snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflow/snakefile --configfile config/config.yaml
 ```
 
 # How it works 
