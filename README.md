@@ -3,6 +3,32 @@
 # NanoASV
  NanoASV is a conda environment snakemake based workflow using state of the art bioinformatic softwares to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C  sequencing device and process data locally. 
 
+ # Options
+
+```
+| Option               | Description                                                                    |
+| -------------------- | ------------------------------------------------------------------------------ |
+| `-h`, `--help`       | Show help message                                                              |
+| `-v`, `--version`    | Show version information                                                       |
+| `-d`, `--dir`        | Path to fastq_pass/                                                            |
+| `-db`, `--database`  | Path to reference fasta file                                                   |
+| `-q`, `--quality`    | Quality threshold for Chopper, default: 8                                      |
+| `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
+| `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
+| `-i`, `--id-vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
+| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept                             |
+| `-p`, `--num-process`| Number of cores for parallelization, default: 1                                |
+| `--subsampling`      | Max number of sequences per barcode, default: 50,000                           |
+| `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
+|                      | from phyloseq object                                                           |
+| `--metadata`         | Specify metadata.csv file directory, default is demultiplexed directory (--dir)|
+| `--notree`           | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
+| `--requirements`     | Flag - To display personal reference fasta requirements                        |
+| `--dry-run`          | Flag - NanoASV Snakemake dry run                                               |
+| `--mock`             | Flag - Run mock dataset with NanoASV                                           |
+```
+
+
 # Installation with Conda
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
@@ -48,72 +74,6 @@ The workflow can be executed on a cluster using snakemake cluster configuration.
 
 ```
 snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflow/snakefile --configfile config/config.yaml
-```
-
-
-
-
-
-
-
-
-
-
-## ADVANCED - Install on MK1C sequencing device
-
-All previous steps can be used to install on MK1C, but be sure to use the aarch64 version. **IT WILL NOT RUN IF IT'S NOT AARCH64 VERSION**
-
-# Usage
-## RECOMMENDED - With Singularity
-If added to the path
-
-```sh
-nanoasv -d path/to/sequences -o out [--options]
-```
-Or 
-```sh
-singularity run nanoasv -d path/to/sequences -o out [--options]
-```
-Or if installed elsewhere 
-```
-/path/to/installation/nanoasv -d path/to/sequences -o out [--options] 
-```
-## ADVANCED - With Docker
-I recommand you not to run it with docker because of root privileges.
-**Don't forget the --docker flag**
-```sh
-docker run -v $(pwd)/Minimal:/data/Minimal -it nanoasv -d /data/Minimal -o out --docker
-```
-You can mount your sequences directory anywhere in the container, but I recommand you to mount in /data/
-
-## Technical recommandations
-If running on a PC, I suggest to not use more than two threads with 32Gb of RAM. Otherwise, you might crash your system. 
-I highly suggest you to run it on a cluster. 
-96 samples (--subsampling 50000) took 4h (without tree) with 150Gb and 8 threads. The tree is highly computer intensive.
-
-## Options
-
-```
-| Option               | Description                                                                    |
-| -------------------- | ------------------------------------------------------------------------------ |
-| `-h`, `--help`       | Show help message                                                              |
-| `-v`, `--version`    | Show version information                                                       |
-| `-d`, `--dir`        | Path to fastq_pass/                                                            |
-| `-db`, `--database`  | Path to reference fasta file                                                   |
-| `-q`, `--quality`    | Quality threshold for Chopper, default: 8                                      |
-| `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                             |
-| `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                             |
-| `-i`, `--id-vsearch` | Identity threshold for vsearch unknown sequences clustering step, default: 0.7 |
-| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept                             |
-| `-p`, `--num-process`| Number of cores for parallelization, default: 1                                |
-| `--subsampling`      | Max number of sequences per barcode, default: 50,000                           |
-| `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences              |
-|                      | from phyloseq object                                                           |
-| `--metadata`         | Specify metadata.csv file directory, default is demultiplexed directory (--dir)|
-| `--notree`           | Flag - To remove phylogeny step and subsequent tree from phyloseq object       |
-| `--docker`           | Flag - To run NanoASV with Docker                                              |
-| `--ronly`            | Flag - To run only the R phyloseq step                                         |
-| `--requirements`     | Flag - To display personal reference fasta requirements                        |
 ```
 
 # How it works 
