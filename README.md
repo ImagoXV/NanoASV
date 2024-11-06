@@ -30,6 +30,7 @@
 
 
 # Installation with Conda
+Installation on Oxford Nanopore MK1C dequencing device will be at the bottom of this file. Installation will not work if you follow regular installation instruction.
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
 ```git clone https://github.com/ImagoXV/NanoASV ~/NanoASV```
@@ -51,7 +52,7 @@ cp config/unalias.sh $DEACTIVATE_DIR/
 chmod +x workflow/run.sh
 ```
 
-Then activate the environment:
+Then activate the environment. Don't forget to activate the environment before running nanoasv. It will not work otherwise.
 
 ```conda activate NanoASV```
 
@@ -75,7 +76,35 @@ nanoasv --mock
 You can inspect NanoASV output structure in ```Mock_run_OUPUT/```
 
 
-
+# ONT MK1C Installation
+You need to use the [aarch64-MK1C](https://github.com/ImagoXV/NanoASV/tree/aarch64-MK1C-conda) branch, **otherwise, it will not work.**
+You need to install miniconda. Note that /data/ will be used for installation for storage capacity matters.
+```
+mkdir -p /data/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /data/miniconda3/miniconda.sh --no-check-certificate
+bash /data/miniconda3/miniconda.sh -b -u -p /data/miniconda3
+rm /data/miniconda3/miniconda.sh
+source /data/miniconda3/bin/activate
+```
+Then proceed to conda installation. 
+Chopper needs to be Aarch64 compiled. Therefore, you need to download this specific archive or a newer one if I cross-compile it.
+```
+source /data/miniconda3/bin/activate
+cd /data/NanoASV
+conda env create -f environment.yml
+wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip -P config/
+unzip config/chopper-aarch64.zip > config/
+rm chopper-aarch64.zip
+Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org")'
+Rscript -e 'BiocManager::install("phyloseq")'
+ACTIVATE_DIR=$(conda env list | grep 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
+cp config/alias.sh $ACTIVATE_DIR/
+cp config/paths.sh $ACTIVATE_DIR/
+echo "export NANOASV_PATH=$(pwd)" >> $ACTIVATE_DIR/paths.sh
+DEACTIVATE_DIR=$(conda env list | grep 'NanoASV' | awk '{print $2}')/etc/conda/deactivate.d
+cp config/unalias.sh $DEACTIVATE_DIR/
+chmod +x workflow/run.sh
+```
 
 
 
