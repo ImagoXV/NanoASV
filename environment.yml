@@ -136,6 +136,7 @@ dependencies:
   - plac=1.3.4=pyhd3eb1b0_0
   - platformdirs=3.10.0=py312hd43f75c_0
   - pluggy=1.0.0=py312hd43f75c_1
+  - porechop=0.2.4=py312hbd5ab74_8
   - psutil=5.9.0=py312h998d150_0
   - pthread-stubs=0.3=hfd63f10_1
   - pulp=2.8.0=py312h996f985_0
