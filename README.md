@@ -119,12 +119,6 @@ snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflo
 
 # How it works 
 
-## Building from source
-
-Building from source is pretty long at the moment.
-The main time bottle neck is bwa SILVA138.1 indexing step (~60min on 32Gb RAM PC)
-It is way faster if you download the archive and build with Singularity. However, the archive is pretty heavy and not available for download at the moment.
-
 ## Data preparation
 Directly input your /path/to/sequence/data/fastq_pass directory 
 4000 sequences fastq.gz files are concatenated by barcode identity to make one barcodeXX.fastq.gz file.
