@@ -165,11 +165,6 @@ This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical es
 Alignements results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq opbject: NanoASV.rdata
 Please refer to the metadata.csv file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using --r_cleaning 0
-### --ronly option
-Sometimes, your metadata.csv file will not meet phyloseq standards. 
-To avoid you recomputing all the previous steps, a --ronly flag can be added. 
-Just precise --dir and --out as in your first treatment. NanoASV will find final datasets and run only the r script. 
-This will save you time.
 
 ## Acknowledgments
 
