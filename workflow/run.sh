@@ -71,7 +71,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -v|--version)
-            echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and "
+            echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and Ulysse Guyet "
             exit
             shift
             ;;
