@@ -22,8 +22,7 @@ DATABASE_NAME = DATABASE.split("/")[-1].split(".fasta")[0]
 rule all:
     input:
         expand("tmp_files/06_sam_to_bam_format/Taxonomy_{BARCODE}.csv", BARCODE=INPUT.barcode),
-        "tmp_files/.rscript.done"
-
+        "tmp_files/.export.done" 
 
 
 # Step 1/9 : Indexing of the database
@@ -56,7 +55,7 @@ rule sequence_quality_filtering:
     output:
         "tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"
     shell:
-        "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} -i {input} | gzip > {output}"
+        "zcat {input} | $NANOASV_PATH/config/chopper -q {QUAL} -l {MINL} --maxlength {MAXL} | gzip > {output}"
 
 
 # Step 4/9 : Trim adapaters with Porechop
