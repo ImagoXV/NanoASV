@@ -100,9 +100,6 @@ conda env create -f environment.yml
 wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip -P config/
 unzip config/chopper-aarch64.zip
 mv chopper config/
-#pip install libstreamvbyte
-#Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org")'
-#Rscript -e 'BiocManager::install("phyloseq")'
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
 cp config/alias.sh $ACTIVATE_DIR/
 cp config/paths.sh $ACTIVATE_DIR/
