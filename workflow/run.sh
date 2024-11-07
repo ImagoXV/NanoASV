@@ -102,7 +102,7 @@ while [[ $# -gt 0 ]]; do
             OUT="$NANOASV_PATH/Mock_run_OUTPUT"
             DATABASE="$NANOASV_PATH/config/MOCK/mock_references/complete-reference.fasta"
             NUM_PROCESSES=2
-            TMP_FILES=0
+            TMP_FILES=1
             shift
             ;;
         *)
@@ -202,7 +202,7 @@ fi
 
 #Run the pipeline
 
-snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile \
+snakemake -"${DRY}"p --cores "${NUM_PROCESSES}" -s "${NANOASV_PATH}"/workflow/snakefile \
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
@@ -218,7 +218,15 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile \
         METADATA=$METADATA \
         DATABASE=$DATABASE \
         NANOASV_PATH=$NANOASV_PATH
+#Run phyloseq
+touch tmp_files/env.var
+echo "#/bin/bash\n" >> tmp_files/env.var
+declare -p | grep -e "METADATA" -e "OUT" -e "R_CLEANING" -e "TREE" -e "DIR" | cut -f3 -d " " > tmp_files/env.var
 
+conda activate R-phyloseq
+source tmp_files/env.var
+Rscript ${NANOASV_PATH}/workflow/scripts/script.r ${DIR} ${OUT} ${R_CLEANING} ${TREE} ${METADATA} #2> /dev/null
+conda deactivate
 #Remove tmp files if flag is not set
 if [[ "${TMP_FILES}" -eq 0 ]]; then 
     rm -r tmp_files
@@ -228,4 +236,4 @@ if [[ "${DRY}" != "n" ]]; then
     tree $OUT
 fi
 
-conda deactivate 
+conda deactivate
