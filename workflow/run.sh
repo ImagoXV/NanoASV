@@ -129,7 +129,7 @@ DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
-DEFAULT_DATABASE=$NANOASV_PATH/ressources
+DEFAULT_DATABASE=$NANOASV_PATH/resources
 DEFAULT_TMP_FILES=1
 #***************************************************************************************************************************
 # Assign default values if variables are empty
