@@ -121,6 +121,11 @@ Rscript -e 'install.packages("dplyr", repos = "https://cran.r-project.org")'
 conda deactivate
 ```
 
+## Test run on MK1C device
+```
+nanoasv --mock
+```
+
 
 ## Cluster execution
 
