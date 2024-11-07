@@ -90,16 +90,19 @@ source /data/miniconda3/bin/activate
 ```
 Then proceed to conda installation. 
 Chopper needs to be Aarch64 compiled. Therefore, you need to download this specific archive or a newer one if someone cross-compile it.
+Warning, don't setup NanoASV environment from conda (base) environment. Otherwisse you'll run into issues. 
+
 ```
 source /data/miniconda3/bin/activate
 cd /data/NanoASV
+conda deactivate
 conda env create -f environment.yml
 wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip -P config/
-unzip config/chopper-aarch64.zip > config/
-rm chopper-aarch64.zip
-pip install libstreamvbyte
-Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org")'
-Rscript -e 'BiocManager::install("phyloseq")'
+unzip config/chopper-aarch64.zip
+mv chopper config/
+#pip install libstreamvbyte
+#Rscript -e 'install.packages("BiocManager", repos="https://cran.r-project.org")'
+#Rscript -e 'BiocManager::install("phyloseq")'
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
 cp config/alias.sh $ACTIVATE_DIR/
 cp config/paths.sh $ACTIVATE_DIR/
@@ -112,10 +115,11 @@ chmod +x workflow/run.sh
 ## R environment installation
 
 ```
-conda env create -f R-phyloseq-environment.yml
+conda activate NanoASV
+conda create --name R-phyloseq -c bioconda -c conda-forge bioconductor-phyloseq
 conda activate R-phyloseq
-Rscript -e "install.packages("dplyr", repos = "https://cran.r-project.org")"
-conda deactivate
+Rscript -e 'install.packages("dplyr", repos = "https://cran.r-project.org")'
+conda deactivate && conda deactivate
 ```
 
 
