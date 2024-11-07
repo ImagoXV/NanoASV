@@ -76,8 +76,6 @@ nanoasv --mock
 You can inspect NanoASV output structure in ```Mock_run_OUPUT/```
 
 
-##### Work in progress
-
 # ONT MK1C Installation
 You need to use the [aarch64-MK1C](https://github.com/ImagoXV/NanoASV/tree/aarch64-MK1C-conda) branch, **otherwise, it will not work.**
 You need to install miniconda. Note that /data/ will be used for installation for storage capacity matters.
@@ -93,7 +91,7 @@ Chopper needs to be Aarch64 compiled. Therefore, you need to download this speci
 Warning, don't setup NanoASV environment from conda (base) environment. Otherwisse you'll run into issues. 
 
 ```
-source /data/miniconda3/bin/activate
+git clone --branch origin/aarch64-MK1C-conda --single-branch https://github.com/ImagoXV/NanoASV.git /data/NanoASV
 cd /data/NanoASV
 conda deactivate
 conda env create -f environment.yml
