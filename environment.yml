@@ -192,6 +192,7 @@ dependencies:
   - tk=8.6.13=h194ca79_0
   - tktable=2.10=h470dffe_1
   - traitlets=5.14.3=py312hd43f75c_0
+  - tree=2.1.3=h68df207_0
   - typer=0.9.0=py312hd43f75c_0
   - typing-extensions=4.11.0=py312hd43f75c_0
   - typing_extensions=4.11.0=py312hd43f75c_0
