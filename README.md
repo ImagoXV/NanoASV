@@ -62,6 +62,7 @@ NanoASV can be used with any reference fasta file. If you want to have a broad i
 Download the database and put it in ressources
 ```
 wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/
+zcat resources/SILVA_138.2_SSURef_tax_silva.fasta.gz |  awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' | gzip -c resources/SILVA_138.2_SSURef_tax_silva.fasta.gz
 ```
 
 ## Test your installation
