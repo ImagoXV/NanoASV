@@ -202,7 +202,7 @@ rule export_results:
         if [ {TREE} -eq 1 ]; then
             cp tmp_files/08_phylogeny/ASV.tree {OUT}/Results/Phylogeny/
         fi
-        if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters." ]; then
+        if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv" ]; then
             cp tmp_files/07_unknown_sequences_clustering/* {OUT}/Results/Unknown_clusters/
         fi
 
