@@ -170,8 +170,6 @@ if [[ -z $OUT ]]; then
     exit 1
 fi
 
-
-
 #Metadata sanity checks **********************************************
 (cd "${METADATA}"
  #Check if metadata.csv has been provided by the user
