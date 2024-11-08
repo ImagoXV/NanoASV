@@ -105,6 +105,11 @@ while [[ $# -gt 0 ]]; do
             TMP_FILES=0
             shift
             ;;
+        --model)
+            MOD="$2"
+            shift
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             cat $NANOASV_PATH/config/help.txt
