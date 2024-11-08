@@ -204,6 +204,18 @@ fi
      { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 )
 
+#***************************************************************************************************************************
+# Check if provided minimap2 model is correct
+MODS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
+
+if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
+    echo "ERROR: --model invalid specification."
+    echo "Minimap2 default model is ${DEFAULT_MOD}."
+    echo "Available models are $(echo "${MODS[@]}")"
+    echo "WARNING, changing minimap2 alignment model will have strong repercussion on data treatment."
+    echo "Use this option carefully. Please read minimap2 documentation."
+    exit 1
+fi
 
 #Run the pipeline
 
