@@ -134,7 +134,7 @@ DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
-DEFAULT_DATABASE=$NANOASV_PATH/resources
+DEFAULT_DATABASE=$NANOASV_PATH/resources/SILVA_138.2_SSURef_tax_silva.fasta.gz
 DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
 #***************************************************************************************************************************
@@ -154,6 +154,7 @@ METADATA="${METADATA:-$DEFAULT_METADATA}"
 MINAB="${MINAB:-$DEFAULT_MINAB}"
 TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 MOD="${MOD:-$DEFAULT_MOD}"
+DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
