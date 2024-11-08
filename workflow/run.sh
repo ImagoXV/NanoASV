@@ -218,6 +218,11 @@ if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
     exit 1
 fi
 
+#***************************************************************************************************************************
+# Ensure reference file is singleleaved fasta
+
+
+
 #Run the pipeline
 
 snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile \
