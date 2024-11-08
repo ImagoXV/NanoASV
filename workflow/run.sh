@@ -155,7 +155,7 @@ MINAB="${MINAB:-$DEFAULT_MINAB}"
 TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 MOD="${MOD:-$DEFAULT_MOD}"
 DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
-
+mkdir -p tmp_files 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
 if [[ -z $DIR ]]; then
