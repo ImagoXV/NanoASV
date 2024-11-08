@@ -136,6 +136,7 @@ DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
 DEFAULT_DATABASE=$NANOASV_PATH/resources
 DEFAULT_TMP_FILES=1
+DEFAULT_MOD="map-ont"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -152,6 +153,7 @@ R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
 MINAB="${MINAB:-$DEFAULT_MINAB}"
 TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
+MOD="${MOD:-$DEFAULT_MOD}"
 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
