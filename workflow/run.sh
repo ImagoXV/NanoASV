@@ -224,7 +224,8 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile \
         OUT=$OUT \
         METADATA=$METADATA \
         DATABASE=$DATABASE \
-        NANOASV_PATH=$NANOASV_PATH
+        NANOASV_PATH=$NANOASV_PATH \
+        MOD=$MOD
 
 #Remove tmp files if flag is not set
 if [[ "${TMP_FILES}" -eq 0 ]]; then 
