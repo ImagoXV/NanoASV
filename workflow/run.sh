@@ -220,8 +220,7 @@ fi
 
 #***************************************************************************************************************************
 # Ensure reference file is singleleaved fasta
-
-
+zcat $DATABASE | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > SINGLELINE_database.fasta
 
 #Run the pipeline
 
