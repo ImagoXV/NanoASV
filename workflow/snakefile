@@ -16,9 +16,12 @@ NANOASV_PATH=config["NANOASV_PATH"]
 MOD=config["MOD"]
 
 INPUT = glob_wildcards(INPUT_DIR+"/{barcode}/{FASTQ_FILE}.fastq.gz")
-DATABASE_NAME = DATABASE.split("/")[-1].split(".fasta")[0]
 
-
+DATABASE_NAME = DATABASE.split("/")[-1]
+if DATABASE_NAME.endswith(".fasta.gz"):
+    DATABASE_NAME = DATABASE_NAME[:-9]  # Remove ".fasta.gz"
+elif DATABASE_NAME.endswith(".fasta"):
+    DATABASE_NAME = DATABASE_NAME[:-6]  # Remove ".fasta"
 
 rule all:
     input:
@@ -214,7 +217,7 @@ rule phyloseq:
         "tmp_files/.rscript.done"
     shell:
         """
-        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 2> /dev/null
+        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} #2> /dev/null
         touch {output}
         """
 
