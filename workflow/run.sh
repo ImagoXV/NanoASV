@@ -134,7 +134,7 @@ DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
-DEFAULT_DATABASE=$NANOASV_PATH/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta
+DEFAULT_DATABASE=$NANOASV_PATH/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta.gz
 DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
 #***************************************************************************************************************************
@@ -220,7 +220,8 @@ fi
 
 #***************************************************************************************************************************
 # Ensure reference file is singleleaved fasta
-if [[ ! $(basename $DATABASE) == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]]; then
+echo "Checking reference format"
+if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]]; then
     LINES=$(zcat -f "${DATABASE}" | wc -l)
     SEQS=$(zgrep -c "^>" "${DATABASE}") 
     if [[ $LINES -ne $(( SEQS * 2 )) ]]; then
