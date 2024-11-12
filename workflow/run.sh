@@ -71,7 +71,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -v|--version)
-            echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and "
+            echo "NanoASV 1.1 - Conda-x-Snakemake - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and Ulysse Guyet "
             exit
             shift
             ;;
@@ -105,6 +105,11 @@ while [[ $# -gt 0 ]]; do
             TMP_FILES=0
             shift
             ;;
+        --model)
+            MOD="$2"
+            shift
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             cat $NANOASV_PATH/config/help.txt
@@ -129,8 +134,9 @@ DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
-DEFAULT_DATABASE=$NANOASV_PATH/ressources
+DEFAULT_DATABASE=$NANOASV_PATH/resources/SILVA_138.2_SSURef_tax_silva.fasta.gz
 DEFAULT_TMP_FILES=1
+DEFAULT_MOD="map-ont"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -147,7 +153,9 @@ R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
 MINAB="${MINAB:-$DEFAULT_MINAB}"
 TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
-
+MOD="${MOD:-$DEFAULT_MOD}"
+DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
+mkdir -p tmp_files 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
 if [[ -z $DIR ]]; then
@@ -162,8 +170,6 @@ if [[ -z $OUT ]]; then
     conda deactivate
     exit 1
 fi
-
-
 
 #Metadata sanity checks **********************************************
 (cd "${METADATA}"
@@ -199,6 +205,28 @@ fi
      { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 )
 
+#***************************************************************************************************************************
+# Check if provided minimap2 model is correct
+MODS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
+
+if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
+    echo "ERROR: --model invalid specification."
+    echo "Minimap2 default model is ${DEFAULT_MOD}."
+    echo "Available models are $(echo "${MODS[@]}")"
+    echo "WARNING, changing minimap2 alignment model will have strong repercussion on data treatment."
+    echo "Use this option carefully. Please read minimap2 documentation."
+    exit 1
+fi
+
+#***************************************************************************************************************************
+# Ensure reference file is singleleaved fasta
+LINES=$(zcat -f "${DATABASE}" | wc -l)
+SEQS=$(zgrep -c "^>" "${DATABASE}") 
+if [[ $LINES -ne $(( SEQS * 2 )) ]]; then
+    echo "Interleaved reference fasta file - Formating."
+    zcat $DATABASE | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > tmp_files/SINGLELINE_reference.fasta
+    DATABASE=tmp_files/SINGLELINE_reference.fasta
+fi
 
 #Run the pipeline
 
@@ -217,7 +245,8 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile \
         OUT=$OUT \
         METADATA=$METADATA \
         DATABASE=$DATABASE \
-        NANOASV_PATH=$NANOASV_PATH
+        NANOASV_PATH=$NANOASV_PATH \
+        MOD=$MOD
 
 #Remove tmp files if flag is not set
 if [[ "${TMP_FILES}" -eq 0 ]]; then 

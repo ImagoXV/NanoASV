@@ -15,3 +15,5 @@
    --metadata            Specify metadata.csv file directory, default is demultiplexed directory (--dir) 
    --notree              To remove phylogeny step and subsequent tree from phyloseq object
    --requirements        To display personal reference fasta requirements
+   --dry-run             Perform a snakemake dry run
+   --mock                Run NanoASV with Mock dataset

@@ -13,11 +13,15 @@ DATABASE=config["DATABASE"]
 OUT=config["OUT"]
 INPUT_DIR=config["INPUT_DIR"]
 NANOASV_PATH=config["NANOASV_PATH"]
+MOD=config["MOD"]
 
 INPUT = glob_wildcards(INPUT_DIR+"/{barcode}/{FASTQ_FILE}.fastq.gz")
-DATABASE_NAME = DATABASE.split("/")[-1].split(".fasta")[0]
 
-
+DATABASE_NAME = DATABASE.split("/")[-1]
+if DATABASE_NAME.endswith(".fasta.gz"):
+    DATABASE_NAME = DATABASE_NAME[:-9]  # Remove ".fasta.gz"
+elif DATABASE_NAME.endswith(".fasta"):
+    DATABASE_NAME = DATABASE_NAME[:-6]  # Remove ".fasta"
 
 rule all:
     input:
@@ -34,7 +38,7 @@ rule database_indexing:
         "tmp_files/00_database_indexing/.indexing.done"
     shell:
         """
-        minimap2 -x map-ont -d tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input}
+        minimap2 -x {MOD} -d tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input}
         zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME}
         touch {output}
         """
@@ -85,7 +89,7 @@ rule minimap2:
     output:
         "tmp_files/05_minimap2/{barcode}.sam"
     shell:
-        "minimap2 -a -x map-ont --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
+        "minimap2 -a -x {MOD} --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
 
 # Step 6/9 : Reads alignements with minimap2 against the database
 rule sam_to_bam_format:
@@ -147,8 +151,8 @@ rule vsearch:
                 --quiet \
                 --minsize {MINAB} \
                 --fastaout tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
-
-        rm tmp_files/07_unknown_sequences_clustering/seqs
+            sed -i 's/;/_/g' tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta #Semicolons trigger format problem with tree file
+            rm tmp_files/07_unknown_sequences_clustering/seqs
             if [ $(wc -l < tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv) -lt 2 ]; then
                 rm tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
             fi
@@ -198,7 +202,7 @@ rule export_results:
         if [ {TREE} -eq 1 ]; then
             cp tmp_files/08_phylogeny/ASV.tree {OUT}/Results/Phylogeny/
         fi
-        if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters." ]; then
+        if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv" ]; then
             cp tmp_files/07_unknown_sequences_clustering/* {OUT}/Results/Unknown_clusters/
         fi
 
@@ -213,7 +217,7 @@ rule phyloseq:
         "tmp_files/.rscript.done"
     shell:
         """
-        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 2> /dev/null
+        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} #2> /dev/null
         touch {output}
         """
 

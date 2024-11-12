@@ -7,6 +7,9 @@ authors:
 - family-names: "Mahé"
   given-names: "Frédéric"
   orcid: "https://orcid.org/0000-0002-2808-0984"
+- family-names: "Guyet"
+  given-names: "Ulysse"
+  orcid: "https://orcid.org/0000-0002-3603-5382"
 title: "NanoASV: A container based workflow for local and reproducible Nanopore full length 16S/18S Metabarcoding amplicon data analysis"
 version: 1.0.0
 date-released: 2024-06-07
