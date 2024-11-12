@@ -35,23 +35,10 @@ Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
 ```git clone https://github.com/ImagoXV/NanoASV ~/NanoASV```
 
-First step is Conda environment creation and required dependencies installation :
-
+Then run the installation script
 ```
-cd ~/NanoASV
-conda env create -f environment.yml
+bash config/install.sh
 ```
-You then need to setup the created Conda environment with the following
-```
-ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
-cp config/alias.sh $ACTIVATE_DIR/
-cp config/paths.sh $ACTIVATE_DIR/
-echo "export NANOASV_PATH=$(pwd)" >> $ACTIVATE_DIR/paths.sh
-DEACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/deactivate.d
-cp config/unalias.sh $DEACTIVATE_DIR/
-chmod +x workflow/run.sh
-```
-
 Then activate the environment. Don't forget to activate the environment before running nanoasv. It will not work otherwise.
 
 ```conda activate NanoASV```
