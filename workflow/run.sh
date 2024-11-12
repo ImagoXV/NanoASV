@@ -236,7 +236,7 @@ if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.g
 fi
 #Run the pipeline
 
-snakemake -"${DRY}"p -s "${RERUN}" "${NANOASV_PATH}"/workflow/snakefile \
+snakemake -"${DRY}"p "${RERUN}" -s "${NANOASV_PATH}"/workflow/snakefile \
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
