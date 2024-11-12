@@ -48,7 +48,7 @@ rule concatenate_fastq_files:
     input:
         INPUT_DIR+"/{barcode}/"
     output:
-        "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
+        temporary("tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz")
     shell:
         "cat {input}/*fastq.gz > {output}"
 
@@ -58,7 +58,7 @@ rule sequence_quality_filtering:
     input:
         "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
     output:
-        "tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"
+        temporary("tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz")
     shell:
         "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} -i {input} | gzip > {output}"
 
@@ -68,7 +68,7 @@ rule adapters_trimming:
     input:
         "tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"
     output:
-        "tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz"
+        temporary("tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz")
     shell:
         "porechop --verbosity 0 -i {input} -o {output}"
 
@@ -87,7 +87,7 @@ rule minimap2:
         fastq_file="tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq",
         indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
     output:
-        "tmp_files/05_minimap2/{barcode}.sam"
+        temporary("tmp_files/05_minimap2/{barcode}.sam")
     shell:
         "minimap2 -a -x {MOD} --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
 
@@ -217,7 +217,7 @@ rule phyloseq:
         "tmp_files/.rscript.done"
     shell:
         """
-        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} #2> /dev/null
+        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 2> /dev/null
         touch {output}
         """
 
