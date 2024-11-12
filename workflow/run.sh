@@ -102,7 +102,7 @@ while [[ $# -gt 0 ]]; do
             OUT="$NANOASV_PATH/Mock_run_OUTPUT"
             DATABASE="$NANOASV_PATH/config/MOCK/mock_references/complete-reference.fasta"
             NUM_PROCESSES=2
-            TMP_FILES=0
+            #TMP_FILES=0
             shift
             ;;
         --model)
