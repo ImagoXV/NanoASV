@@ -141,6 +141,7 @@ DEFAULT_METADATA=${DIR}
 DEFAULT_DATABASE=$NANOASV_PATH/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta.gz
 DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
+DEFAULT_RERUN=" "
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -159,6 +160,7 @@ MINAB="${MINAB:-$DEFAULT_MINAB}"
 TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 MOD="${MOD:-$DEFAULT_MOD}"
 DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
+RERUN="${RERUN:-$DEFAULT_RERUN}"
 mkdir -p tmp_files 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
@@ -236,7 +238,7 @@ if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.g
 fi
 #Run the pipeline
 
-snakemake -"${DRY}"p "${RERUN}" -s "${NANOASV_PATH}"/workflow/snakefile \
+snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN}\
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
