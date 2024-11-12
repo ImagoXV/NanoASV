@@ -17,3 +17,4 @@
    --requirements        To display personal reference fasta requirements
    --dry-run             Perform a snakemake dry run
    --mock                Run NanoASV with Mock dataset
+   --remove-tmp          To remove tmp data after execution. No snakemake resume option if set.
