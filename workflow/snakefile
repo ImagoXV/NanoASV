@@ -48,7 +48,7 @@ rule concatenate_fastq_files:
     input:
         INPUT_DIR+"/{barcode}/"
     output:
-        "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
+        temporary("tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
     shell:
         "cat {input}/*fastq.gz > {output}"
 
