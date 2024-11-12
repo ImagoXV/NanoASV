@@ -10,7 +10,7 @@ Usage: nanoasv -d path/to/dir -o path/to/output [--options]
 | -------------------- | ---------------------------------------------------------------------|
 | `-h`, `--help`       | Show help message                                                    |
 | `-v`, `--version`    | Show version information                                             |
-| `-d`, `--dir`        | Path to demultiplexed barcodes                                                  |
+| `-d`, `--dir`        | Path to demultiplexed barcodes                                       |           |
 | `-db`, `--database`  | Path to reference fasta file                                         |
 | `-q`, `--quality`    | Quality threshold for Chopper, default: 8                            |
 | `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                   |
@@ -26,6 +26,7 @@ Usage: nanoasv -d path/to/dir -o path/to/output [--options]
 | `--requirements`     | Flag - To display personal reference fasta requirements              |
 | `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
 | `--mock`             | Flag - Run mock dataset with NanoASV                                 |
+| `--remove-tmp`       |To remove tmp data after execution. No snakemake resume option if set.|
 ```
 
 
