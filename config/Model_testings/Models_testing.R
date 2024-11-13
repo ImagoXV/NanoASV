@@ -1,7 +1,7 @@
 library(ggplot2)
 library(phyloseq)
 
-setwd("Documents/Thesis/NanoASV/Software_dev/NanoASV/Tests_with_real_dataset/")
+setwd("~/Documents/Thesis/NanoASV/Software_dev/NanoASV/Tests_with_real_dataset/")
 
 load("map-ont.out/Results/Rdata/NanoASV.rdata")
 mapont <- NanoASV
@@ -24,7 +24,14 @@ mapont@phy_tree <- NULL
 asm10@phy_tree <- NULL
 asm5@phy_tree <- NULL
 
+Finest <- merge_phyloseq(mapont, asm10)
 Finest <- merge_phyloseq(mapont, asm10, asm5)
+metadata <- data.frame(Finest@sam_data)
+
+metadata[rownames(metadata)%in%c("barcode33_map-ont", "barcode33_asm10", "barcode33_asm5"), "Refs"] <- "SFR24-B3"
+metadata[rownames(metadata)%in%c("barcode33_map-ont", "barcode33_asm10", "barcode33_asm5"), "B"] <- "B3"
+
+Finest@sam_data <- sample_data(metadata)
 
 Genus  <- tax_glom(Finest, taxrank = "Genus")
 Family  <- tax_glom(Finest, taxrank = "Family")
@@ -53,7 +60,7 @@ for(i in phy.list){
   colnames(df) <- c("richness", "shannon")
   metadata <- i@sam_data
   metadata$level <- paste0(names(phy.list)[j])
-  metadata$Barcode <- c("Barcode_01", "Barcode_02")
+  #metadata$Barcode <- c("Barcode_01", "Barcode_02")
   df <- cbind(metadata, df)
   df$model <- paste0(metadata$model)
   df$Refs <- paste0(df$model, "_", df$level)
@@ -61,18 +68,19 @@ for(i in phy.list){
   alpha_tab <- rbind(alpha_tab, df)
 }
 
-
 library(reshape2)
 
 alpha.melted <- melt(alpha_tab)
 
 alpha.melted$model <- factor(alpha.melted$model, levels = c("map-ont", "asm10", "asm5"))
+alpha.melted$model <- factor(alpha.melted$model, levels = c("map-ont", "asm10"))
 alpha.melted$level <- factor(alpha.melted$level, levels = c("Phylum", "Class", "Order", "Family", "Genus", "Finest"))
 
 
-ggplot(data = alpha.melted[alpha.melted$variable == "richness",], aes(x =  Barcode , y = value), color = alpha_tab$model) +
+ggplot(data = alpha.melted[alpha.melted$variable == "richness",], aes(x = reorder(SFR, value) , y = value, color = alpha_tab$SFR)) +
   facet_grid(rows = vars(level), cols = vars(model), scales = "free_y", switch = "y") +  # Free y-axis for each row
-  geom_bar(stat = "identity") + theme_bw() +
+  geom_boxplot() +
+  geom_point() +
   theme(axis.title.x = element_text(size = 14),
         axis.title.y = element_text(size = 14),
         axis.text.x = element_text(angle=30, colour = "black", vjust=1, hjust = 1, size=14),
@@ -81,17 +89,36 @@ ggplot(data = alpha.melted[alpha.melted$variable == "richness",], aes(x =  Barco
   labs(title = "Numerical richness",
        caption = date())
 
-ggplot(data = alpha.melted[alpha.melted$variable == "shannon",], aes(x =  Barcode , y = value), color = alpha_tab$model) +
+ggplot(data = alpha.melted[alpha.melted$variable == "shannon",], aes(x =  reorder(SFR, value) , y = value, color = alpha_tab$SFR)) +
   facet_grid(rows = vars(level), cols = vars(model), scales = "free_y", switch = "y") +  # Free y-axis for each row
-  geom_bar(stat = "identity") + theme_bw() +
+  geom_boxplot() +
+  geom_point() +
   theme(axis.title.x = element_text(size = 14),
         axis.title.y = element_text(size = 14),
         axis.text.x = element_text(angle=30, colour = "black", vjust=1, hjust = 1, size=14),
         legend.position = "none") + 
   ylab("Shannon index") + xlab("Model") + 
-  labs(title = "SHannon index",
+  labs(title = "Shannon index",
        caption = date())
 
-TAX <- data.frame(asm5@tax_table)
-TAX <- data.frame(asm10@tax_table)
-TAX <- data.frame(mapont@tax_table)
+
+
+#To count raw hits and affiliation with models
+
+smp_sums <- as.data.frame(sample_sums(Finest))
+#smp_sums$Barcode <- factor(rownames(smp_sums), level = rownames(smp_sums))
+colnames(smp_sums)[1] <- "Reads"
+
+metadata <- data.frame(Finest@sam_data)
+
+smp_sums <- merge(smp_sums, metadata, by = 0)
+
+
+ggplot(data = smp_sums, aes(x = Refs, y = Reads)) +
+  geom_bar(stat="identity") + 
+  facet_wrap(~model) +
+  theme(axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        axis.text.x = element_text(angle=30, colour = "black", vjust=1, hjust = 1, size=14),
+        legend.posotion = "none")
+
