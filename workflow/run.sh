@@ -229,6 +229,11 @@ if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
 fi
 
 #***************************************************************************************************************************
+#Ensure database exists
+if [ ! -s  "${DATABASE}"]; then
+    echo "No reference file found at "${DATABASE}". If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location."
+    exit 1
+fi
 # Ensure reference file is singleleaved fasta
 echo "Checking reference format"
 if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]]; then

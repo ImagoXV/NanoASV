@@ -119,6 +119,151 @@ ggplot(data = smp_sums, aes(x = Refs, y = Reads)) +
   facet_wrap(~model) +
   theme(axis.title.x = element_text(size = 14),
         axis.title.y = element_text(size = 14),
-        axis.text.x = element_text(angle=30, colour = "black", vjust=1, hjust = 1, size=14),
-        legend.posotion = "none")
+        axis.text.x = element_text(angle=30, colour = "black", vjust=1, hjust = 1, size=8))
 
+
+# Taxonomical composition ----
+
+couleurs_genus <- c("#FF0000FF","#FF9900FF","#FFCC00FF","#00FF00FF","#6699FFFF",
+                    "#CC33FFFF","#99991EFF","#FF00CCFF", "#999999FF","#CC0000FF",
+                    "#FFCCCCFF","#FFFF00FF","#CCFF00FF","#358000FF","#0000CCFF",
+                    "#99CCFFFF","#00FFFFFF","#CCFFFFFF","#9900CCFF","#CC99FFFF",
+                    "#996600FF","#79CC3DFF","#CCCCCCFF","#79CC3DFF","#CCCC99FF","black")
+
+#Composition ----
+
+pdf("Composition_with_different_models.pdf", he = 8, wi = 16)
+
+Genus.norm <- transform_sample_counts(Genus, function(x) x/sum(x))
+Genus.melted <- psmelt(Genus.norm)
+sub_Genus.melted <- Genus.melted
+sub_Genus.melted <- sub_Genus.melted[sub_Genus.melted$SFR != "Bl",] #Remove blanks
+sub_Genus.melted <- sub_Genus.melted[sub_Genus.melted$SFR != "Mock",] #Remove positive control mock
+sub_Genus.melted[sub_Genus.melted$Abundance<0.0135,32:38] <- "Z_Others"
+
+ggplot(sub_Genus.melted, aes(x = Refs, y = Abundance, fill = Genus)) +
+  theme_bw() +
+  facet_wrap(~ model) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = couleurs_genus) + 
+  ylab("Relative Abundance") +
+  scale_y_continuous(expand = c(0,0)) + #remove the space below the 0 of the y axis in the graph
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.ticks.x = element_blank(),
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),
+        legend.position = "right") +  #remove minor-grid labels
+  labs(title = "Soil samples Genus-level composition",
+       #subtitle = "",
+       caption = date()) 
+
+
+Family.norm <- transform_sample_counts(Family, function(x) x/sum(x))
+Family.melted <- psmelt(Family.norm)
+sub_Family.melted <- Family.melted
+sub_Family.melted <- sub_Family.melted[sub_Family.melted$SFR != "Bl",] #Remove blanks
+sub_Family.melted <- sub_Family.melted[sub_Family.melted$SFR != "Mock",] #Remove positive control mock
+sub_Family.melted[sub_Family.melted$Abundance<0.0195,32:38] <- "Z_Others"
+
+ggplot(sub_Family.melted, aes(x = Refs, y = Abundance, fill = Family)) +
+  theme_bw() +
+  facet_wrap(~ model) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = couleurs_genus) + 
+  ylab("Relative Abundance") +
+  scale_y_continuous(expand = c(0,0)) + #remove the space below the 0 of the y axis in the graph
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.ticks.x = element_blank(),
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),
+        legend.position = "right") +  #remove minor-grid labels
+  labs(title = "Soil samples Family-level composition",
+       #subtitle = "",
+       caption = date()) 
+
+
+
+Order.norm <- transform_sample_counts(Order, function(x) x/sum(x))
+Order.melted <- psmelt(Order.norm)
+sub_Order.melted <- Order.melted
+sub_Order.melted <- sub_Order.melted[sub_Order.melted$SFR != "Bl",] #Remove blanks
+sub_Order.melted <- sub_Order.melted[sub_Order.melted$SFR != "Mock",] #Remove positive control mock
+sub_Order.melted[sub_Order.melted$Abundance<0.025,32:38] <- "Z_Others"
+
+ggplot(sub_Order.melted, aes(x = Refs, y = Abundance, fill = Order)) +
+  theme_bw() +
+  facet_wrap(~ model) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = couleurs_genus) + 
+  ylab("Relative Abundance") +
+  scale_y_continuous(expand = c(0,0)) + #remove the space below the 0 of the y axis in the graph
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.ticks.x = element_blank(),
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),
+        legend.position = "right") +  #remove minor-grid labels
+  labs(title = "Soil samples Order-level composition",
+       #subtitle = "",
+       caption = date()) 
+
+
+
+Class.norm <- transform_sample_counts(Class, function(x) x/sum(x))
+Class.melted <- psmelt(Class.norm)
+sub_Class.melted <- Class.melted
+sub_Class.melted <- sub_Class.melted[sub_Class.melted$SFR != "Bl",] #Remove blanks
+sub_Class.melted <- sub_Class.melted[sub_Class.melted$SFR != "Mock",] #Remove positive control mock
+sub_Class.melted[sub_Class.melted$Abundance<0.01,32:38] <- "Z_Others"
+
+ggplot(sub_Class.melted, aes(x = Refs, y = Abundance, fill = Class)) +
+  theme_bw() +
+  facet_wrap(~ model) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = couleurs_genus) + 
+  ylab("Relative Abundance") +
+  scale_y_continuous(expand = c(0,0)) + #remove the space below the 0 of the y axis in the graph
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.ticks.x = element_blank(),
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),
+        legend.position = "right") +  #remove minor-grid labels
+  labs(title = "Soil samples Class-level composition",
+       #subtitle = "",
+       caption = date()) 
+
+
+
+Phylum.norm <- transform_sample_counts(Phylum, function(x) x/sum(x))
+Phylum.melted <- psmelt(Phylum.norm)
+sub_Phylum.melted <- Phylum.melted
+sub_Phylum.melted <- sub_Phylum.melted[sub_Phylum.melted$SFR != "Bl",] #Remove blanks
+sub_Phylum.melted <- sub_Phylum.melted[sub_Phylum.melted$SFR != "Mock",] #Remove positive control mock
+sub_Phylum.melted[sub_Phylum.melted$Abundance<0.002,32:38] <- "Z_Others"
+
+ggplot(sub_Phylum.melted, aes(x = Refs, y = Abundance, fill = Phylum)) +
+  theme_bw() +
+  facet_wrap(~ model) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = couleurs_genus) + 
+  ylab("Relative Abundance") +
+  scale_y_continuous(expand = c(0,0)) + #remove the space below the 0 of the y axis in the graph
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.ticks.x = element_blank(),
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),
+        legend.position = "right") +  #remove minor-grid labels
+  labs(title = "Soil samples Phylum-level composition",
+       #subtitle = "",
+       caption = date()) 
+
+dev.off()
