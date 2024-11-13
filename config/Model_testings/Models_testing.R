@@ -89,4 +89,6 @@ ggplot(data = alpha.melted[alpha.melted$variable == "shannon",], aes(x =  Barcod
   labs(title = "SHannon index",
        caption = date())
 
-
+TAX <- data.frame(asm5@tax_table)
+TAX <- data.frame(asm10@tax_table)
+TAX <- data.frame(mapont@tax_table)
