@@ -109,7 +109,7 @@ rule sam_to_bam_format:
         tee >(cut -f 1,2,3 > tmp_files/06_sam_to_bam_format/{wildcards.barcode}_Exact_affiliations.tsv) | \
         cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr | \
         sed 's/^[[:space:]]*//' > tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv
-        if [ ! -s {wildcards.barcode}_abundance.tsv ]; then
+        if [ ! -z {wildcards.barcode}_abundance.tsv ]; then
             echo "XXX\t1" >> tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv
             grep -o '[^ ]\+$' tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv > {output.ASV_list}
             echo "XXX;XXX;XXX;XXX;XXX;SANITY"> {output.taxonomy_file}
