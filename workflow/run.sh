@@ -114,6 +114,10 @@ while [[ $# -gt 0 ]]; do
             RERUN="--rerun-incomplete"
             shift
             ;;
+        --unlock)
+            UNLK="--unlock"
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             cat $NANOASV_PATH/config/help.txt
@@ -238,7 +242,7 @@ if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.g
 fi
 #Run the pipeline
 
-snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN}\
+snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
