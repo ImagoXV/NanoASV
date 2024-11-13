@@ -1,14 +1,17 @@
 library(ggplot2)
 library(phyloseq)
-load("../../map-ont-mock.out/Results/Rdata/NanoASV.rdata")
+
+setwd("Documents/Thesis/NanoASV/Software_dev/NanoASV/Tests_with_real_dataset/")
+
+load("map-ont.out/Results/Rdata/NanoASV.rdata")
 mapont <- NanoASV
 mapont@sam_data <- sample_data(data.frame(mapont@sam_data,
                                           model = "map-ont"))
-load("../../asm10-mock.out/Results/Rdata/NanoASV.rdata")
+load("asm10.out/Results/Rdata/NanoASV.rdata")
 asm10 <- NanoASV
 asm10@sam_data <- sample_data(data.frame(asm10@sam_data,
                                           model = "asm10"))
-load("../../asm5-mock.out/Results/Rdata/NanoASV.rdata")
+load("asm5.out/Results/Rdata/NanoASV.rdata")
 asm5 <- NanoASV
 asm5@sam_data <- sample_data(data.frame(asm5@sam_data,
                                          model = "asm5"))
@@ -89,4 +92,6 @@ ggplot(data = alpha.melted[alpha.melted$variable == "shannon",], aes(x =  Barcod
   labs(title = "SHannon index",
        caption = date())
 
-
+TAX <- data.frame(asm5@tax_table)
+TAX <- data.frame(asm10@tax_table)
+TAX <- data.frame(mapont@tax_table)
