@@ -109,8 +109,14 @@ rule sam_to_bam_format:
         tee >(cut -f 1,2,3 > tmp_files/06_sam_to_bam_format/{wildcards.barcode}_Exact_affiliations.tsv) | \
         cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr | \
         sed 's/^[[:space:]]*//' > tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv
-        grep -o '[^ ]\+$' tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv > {output.ASV_list}
-        grep -f {output.ASV_list} tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME} > {output.taxonomy_file}
+        if [ ! -s {wildcards.barcode}_abundance.tsv ]; then
+            echo "XXX\t1" >> {wildcards.barcode}_abundance.tsv
+            grep -o '[^ ]\+$' tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv > {output.ASV_list}
+            echo "XXX;XXX;XXX;XXX;XXX;SANITY"> {output.taxonomy_file}
+        else
+            grep -o '[^ ]\+$' tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv > {output.ASV_list}
+            grep -f {output.ASV_list} tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME} > {output.taxonomy_file}
+        fi
         """
 
 # Step 7/9 : Unknown sequences clustering with vsearch
