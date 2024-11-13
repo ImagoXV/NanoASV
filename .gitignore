@@ -1,4 +1,6 @@
 SAVE_tmp_files/
+.RData
+.Rhistory
 Mock_run_OUPUT/
 resources/
 results/
