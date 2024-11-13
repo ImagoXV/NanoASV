@@ -114,8 +114,8 @@ while [[ $# -gt 0 ]]; do
             RERUN="--rerun-incomplete"
             shift
             ;;
-        --unlock argument)
-            UNLK="--unlock argument"
+        --unlock)
+            UNLK="--unlock"
             shift
             ;;
         *)
