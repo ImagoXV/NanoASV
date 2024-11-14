@@ -106,7 +106,7 @@ nanoasv --dry-run
 nanoasv --mock
 ```
 
-You can inspect NanoASV output structure in `./Mock_run_OUPUT/`.
+You can inspect NanoASV's output structure in `./Mock_run_OUPUT/`.
 
 
 # ONT MK1C Installation
