@@ -123,7 +123,7 @@ conda deactivate
 nanoasv --mock
 ```
 
-
+<!-- 
 ## Cluster execution
 
 The workflow can be executed on a cluster using snakemake cluster configuration. Install a [profile](https://github.com/Snakemake-Profiles) for your cluster's job submission system. Edit the defaults in the file `cluster.json` and run the workflow. For example:
@@ -131,7 +131,7 @@ The workflow can be executed on a cluster using snakemake cluster configuration.
 ```
 snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflow/snakefile --configfile config/config.yaml
 ```
-
+-->
 # How it works 
 
 ## Data preparation
