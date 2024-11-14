@@ -1,7 +1,7 @@
 ![Logo](config/NanoASV_logo.png)
 
 # NanoASV
- NanoASV is a conda environment snakemake based workflow using state of the art bioinformatic softwares to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C sequencing device and process data locally. 
+ NanoASV is a conda environment snakemake based workflow using state of the art bioinformatic softwares to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C sequencing device and process data locally.
 
  # Options
 Usage: nanoasv -d path/to/dir -o path/to/output [--options]
@@ -89,9 +89,9 @@ bash /data/miniconda3/miniconda.sh -b -u -p /data/miniconda3
 rm /data/miniconda3/miniconda.sh
 source /data/miniconda3/bin/activate
 ```
-Then proceed to conda installation. 
+Then proceed to conda installation.
 Chopper needs to be Aarch64 compiled. Therefore, you need to download this specific archive or a newer one if someone cross-compile it.
-Warning, don't setup NanoASV environment from conda (base) environment. Otherwisse you'll run into issues. 
+Warning, don't setup NanoASV environment from conda (base) environment. Otherwisse you'll run into issues.
 
 ```
 git clone --branch origin/aarch64-MK1C-conda --single-branch https://github.com/ImagoXV/NanoASV.git /data/NanoASV
@@ -124,7 +124,7 @@ conda deactivate
 nanoasv --mock
 ```
 
-<!-- 
+<!--
 ## Cluster execution
 
 The workflow can be executed on a cluster using snakemake cluster configuration. Install a [profile](https://github.com/Snakemake-Profiles) for your cluster's job submission system. Edit the defaults in the file `cluster.json` and run the workflow. For example:
@@ -133,10 +133,10 @@ The workflow can be executed on a cluster using snakemake cluster configuration.
 snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflow/snakefile --configfile config/config.yaml
 ```
 -->
-# How it works 
+# How it works
 
 ## Data preparation
-Directly input your /path/to/sequence/data/fastq_pass directory 
+Directly input your /path/to/sequence/data/fastq_pass directory
 4000 sequences fastq.gz files are concatenated by barcode identity to make one barcodeXX.fastq.gz file.
 
 ## Filtering
@@ -150,12 +150,12 @@ Is executed in parallel (default --num-process = 6 ) -->
 There is no efficient chimera detection step at the moment
 
 ## Adapter trimming
-Porechop will trimm known adapters 
+Porechop will trimm known adapters
 Is executed in parallel (default --num-process = 1 )
 
 ## Subsampling
 50 000 sequences per barcode is enough for most common questions.
-Default is set to 50 000 sequences per barcode. 
+Default is set to 50 000 sequences per barcode.
 Can be modified with --subsampling int
 
 ## Alignment
@@ -170,7 +170,7 @@ Clusters with abundance under 5 are discarded to avoid useless heavy computing.
 Outputs into Results/Unknown_clusters
 
 ## Phylogenetic tree generation
-Reference ASV sequence from fasta reference file are extracted accordingly to detected entities. 
+Reference ASV sequence from fasta reference file are extracted accordingly to detected entities.
 Unknown OTUs seed sequence are added. The final file is fed to FastTree to produce a tree file
 Tree file is then implemented into the final phyloseq object.
 This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical estimation of the entity.
@@ -180,7 +180,7 @@ This step can be avoided with the --notree option.
 Alignements results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq opbject: NanoASV.rdata
 Please refer to the metadata.csv file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using --r_cleaning 0
-A CSV file e ncompassing taxonomy and abundance is produced as well and stored into Results/CSV. 
+A CSV file e ncompassing taxonomy and abundance is produced as well and stored into Results/CSV.
 
 ## Acknowledgments
 
@@ -226,7 +226,7 @@ Project: Improved Data Processing and Web-Based Tools.” Nucleic Acids Research
 
 Rodríguez-Pérez, Héctor, Laura Ciuffreda, and Carlos Flores. 2021. “NanoCLUST: A Species-Level Analysis of 16S rRNA Nanopore Sequencing Data.” Edited by Birol Inanc. Bioinformatics 37 (11): 1600–1601. https://doi.org/10.1093/bioinformatics/btaa900.
 
-Rognes, Torbjørn, Tomáš Flouri, Ben Nichols, Christopher Quince, and Frédéric Mahé. 2016. “VSEARCH: A Versatile Open Source Tool for Metagenomics.” PeerJ 4 (October): e2584. https://doi.org/10.7717/peerj.2584. 
+Rognes, Torbjørn, Tomáš Flouri, Ben Nichols, Christopher Quince, and Frédéric Mahé. 2016. “VSEARCH: A Versatile Open Source Tool for Metagenomics.” PeerJ 4 (October): e2584. https://doi.org/10.7717/peerj.2584.
 
 Santos, Andres, Ronny van Aerle, Leticia Barrientos, and Jaime Martinez-Urtaza. 2020. “Computational Methods for 16S Metabarcoding Studies Using Nanopore Sequencing Data.” Computational and Structural Biotechnology Journal 18: 296–305. https://doi.org/10.1016/j.csbj.2020.01.005.
 
