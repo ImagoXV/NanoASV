@@ -146,10 +146,11 @@ conda env create -f environment.yml
     wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip
     unzip chopper-aarch64.zip
 )
-ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
+ROOT_DIR="$(conda env list | grep -w 'NanoASV' | awk '{print $2}')"
+ACTIVATE_DIR="${ROOT_DIR}/etc/conda/activate.d"
 cp ./config/{alias,paths}.sh ${ACTIVATE_DIR}/
 echo "export NANOASV_PATH=$(pwd)" >> ${ACTIVATE_DIR}/paths.sh
-DEACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/deactivate.d
+DEACTIVATE_DIR="${ROOT_DIR}/etc/conda/deactivate.d"
 cp ./config/unalias.sh ${DEACTIVATE_DIR}/
 chmod +x ./workflow/run.sh
 ```
