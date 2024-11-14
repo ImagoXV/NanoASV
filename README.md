@@ -50,13 +50,15 @@ Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git):
 git clone https://github.com/ImagoXV/NanoASV.git ~/NanoASV
 ```
 
-You can whether run the installation script, or copy paste the commands for more modularity
+You can whether run the installation script:
 
 ```sh
 bash config/install.sh
+```
 
-#OR -----------
+or copy paste the commands for more modularity:
 
+```sh
 cd ~/NanoASV
 conda env create -f environment.yml
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
