@@ -209,8 +209,8 @@ Can be modified with `--subsampling int`
 
 `minimap2` will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
 Can be executed in parallel (default `--num-process 1`)
-barcode*_abundance.tsv, Taxonomy_barcode*.csv and barcode*_exact_affiliations.tsv like files are produced.
-Those files can be found in Results directory.
+`barcode*_abundance.tsv`, `Taxonomy_barcode*.csv` and `barcode*_exact_affiliations.tsv` like files are produced.
+Those files can be found in the `./Results/` directory.
 
 ## Unknown sequences clustering
 
