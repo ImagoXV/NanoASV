@@ -6,7 +6,7 @@ NanoASV is a conda environment snakemake based workflow using state of the art b
 
 ## Options
 
-Usage: nanoasv -d path/to/dir -o path/to/output [--options]
+Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 
 ```
 | Option               | Description                                                          |
