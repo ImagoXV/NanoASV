@@ -237,6 +237,17 @@ if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
 fi
 
 #***************************************************************************************************************************
+# Check if provided fasttree model is correct
+F_MODS=("gtr" "gamma" "map-pb" "wag" "lg" "fastest")
+
+if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
+    echo "ERROR: --fastree-model invalid specification."
+    echo "FastTree default model is ${DEFAULT_FASTTREE_MOD}."
+    echo "Available models are $(echo "${F_MODS[@]}")"
+    exit 1
+fi
+
+#***************************************************************************************************************************
 #Ensure database exists
 if [ ! -s  "${DATABASE}"]; then
     echo "No reference file found at "${DATABASE}". If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location."
