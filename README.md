@@ -59,7 +59,7 @@ bash config/install.sh
 or copy paste the commands for more modularity:
 
 ```sh
-cd ~/NanoASV
+cd ~/NanoASV/
 conda env create -f environment.yml
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
 cp config/alias.sh $ACTIVATE_DIR/
