@@ -87,7 +87,7 @@ rule minimap2:
         fastq_file="tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq",
         indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
     output:
-        "tmp_files/05_minimap2/{barcode}.sam"
+        temporary("tmp_files/05_minimap2/{barcode}.sam")
     shell:
         "minimap2 -a -x {MOD} --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
 
