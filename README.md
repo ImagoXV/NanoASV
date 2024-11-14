@@ -141,9 +141,11 @@ git clone \
 cd ./NanoASV/
 conda deactivate
 conda env create -f environment.yml
-wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip -P config/
-unzip ./config/chopper-aarch64.zip
-mv chopper ./config/
+(
+    cd ./config/
+    wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip
+    unzip chopper-aarch64.zip
+)
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
 cp ./config/alias.sh ${ACTIVATE_DIR}/
 cp ./config/paths.sh ${ACTIVATE_DIR}/
