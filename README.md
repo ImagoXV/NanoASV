@@ -123,7 +123,8 @@ rm /data/miniconda3/miniconda.sh
 source /data/miniconda3/bin/activate
 ```
 
-Then proceed to conda installation.
+Then proceed to install `conda`.
+
 Chopper needs to be Aarch64 compiled. Therefore, you need to download this specific archive or a newer one if someone cross-compile it.
 Warning, don't setup NanoASV environment from conda (base) environment. Otherwise you'll run into issues.
 
