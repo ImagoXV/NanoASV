@@ -112,7 +112,10 @@ You can inspect NanoASV's output structure in `./Mock_run_OUPUT/`.
 # ONT MK1C Installation
 
 You need to use the [aarch64-MK1C](https://github.com/ImagoXV/NanoASV/tree/aarch64-MK1C-conda) branch, **otherwise, it will not work.**
-You need to install miniconda. Note that /data/ will be used for installation for storage capacity matters.
+
+You need to install
+[miniconda](https://docs.anaconda.com/miniconda/). Note that `/data/`
+will be used for installation for storage capacity matters.
 
 ```sh
 mkdir -p /data/miniconda3
