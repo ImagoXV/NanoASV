@@ -124,12 +124,15 @@ source /data/miniconda3/bin/activate
 
 Then proceed to install `conda`.
 
-Chopper needs to be Aarch64 compiled. Therefore, you need to download this specific archive or a newer one if someone cross-compiles it.
-Warning, don't setup NanoASV environment from conda (base) environment. Otherwise you'll run into issues.
+Chopper needs to be Aarch64 compiled. Therefore, you need to download
+this specific archive or a newer one if someone cross-compiles it.
+
+Warning, don't setup NanoASV environment from the `conda (base)`
+environment. Otherwise you'll run into issues.
 
 ```sh
 git clone --branch origin/aarch64-MK1C-conda --single-branch https://github.com/ImagoXV/NanoASV.git /data/NanoASV
-cd /data/NanoASV
+cd /data/NanoASV/
 conda deactivate
 conda env create -f environment.yml
 wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip -P config/
