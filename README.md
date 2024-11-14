@@ -67,11 +67,11 @@ Then activate the environment. Don't forget to activate the environment before r
 
 NanoASV can be used with any reference fasta file. If you want to have a broad idea of your community taxonomy, we recommend you to use latest [Silva](https://www.arb-silva.de/)
 
-Download the database and put it in ressources
+Download the database and put it in resources
 
 ```
 wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/
-gzip -dc resources/SILVA_138.2_SSURef_tax_silva.fasta.gz | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && echo "Formating and compressing SILVA reference, this will take a few minutes."
+gzip -dc resources/SILVA_138.2_SSURef_tax_silva.fasta.gz | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && echo "Formatting and compressing SILVA reference, this will take a few minutes."
 gzip resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && rm resources/SILVA_138.2_SSURef_tax_silva.fasta.gz
 ```
 
@@ -107,7 +107,7 @@ source /data/miniconda3/bin/activate
 
 Then proceed to conda installation.
 Chopper needs to be Aarch64 compiled. Therefore, you need to download this specific archive or a newer one if someone cross-compile it.
-Warning, don't setup NanoASV environment from conda (base) environment. Otherwisse you'll run into issues.
+Warning, don't setup NanoASV environment from conda (base) environment. Otherwise you'll run into issues.
 
 ```
 git clone --branch origin/aarch64-MK1C-conda --single-branch https://github.com/ImagoXV/NanoASV.git /data/NanoASV
@@ -172,7 +172,7 @@ There is no efficient chimera detection step at the moment
 
 ## Adapter trimming
 
-Porechop will trimm known adapters
+Porechop will trim known adapters
 Is executed in parallel (default --num-process = 1 )
 
 ## Subsampling
@@ -204,10 +204,10 @@ This step can be avoided with the --notree option.
 
 ## Phylosequization
 
-Alignements results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq opbject: NanoASV.rdata
+Alignments results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq object: NanoASV.rdata
 Please refer to the metadata.csv file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using --r_cleaning 0
-A CSV file e ncompassing taxonomy and abundance is produced as well and stored into Results/CSV.
+A CSV file encompassing taxonomy and abundance is produced as well and stored into Results/CSV.
 
 ## Acknowledgments
 
