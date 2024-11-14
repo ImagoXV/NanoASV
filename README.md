@@ -70,11 +70,14 @@ cp config/unalias.sh $DEACTIVATE_DIR/
 chmod +x workflow/run.sh
 ```
 
-Then activate the environment. Don't forget to activate the environment before running nanoasv. It will not work otherwise.
+Then activate the environment:
 
 ```sh
 conda activate NanoASV
 ```
+
+Don't forget to activate the environment before running `nanoasv`. It
+will not work otherwise.
 
 ## Database setup
 
