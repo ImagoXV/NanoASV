@@ -165,7 +165,13 @@ nanoasv --mock
 The workflow can be executed on a cluster using snakemake cluster configuration. Install a [profile](https://github.com/Snakemake-Profiles) for your cluster's job submission system. Edit the defaults in the file `cluster.json` and run the workflow. For example:
 
 ```sh
-snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflow/snakefile --configfile config/config.yaml
+snakemake \
+    -p \
+    --jobs 100 \
+    --profile slurm \
+    --cluster-config cluster.json \
+    -s workflow/snakefile \
+    --configfile config/config.yaml
 ```
 -->
 
