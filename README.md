@@ -50,7 +50,7 @@ Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git):
 git clone https://github.com/ImagoXV/NanoASV.git ~/NanoASV
 ```
 
-You can whether run the installation script:
+You can either run the installation script:
 
 ```sh
 bash ./config/install.sh
