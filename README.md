@@ -56,7 +56,7 @@ You can whether run the installation script:
 bash config/install.sh
 ```
 
-or copy paste the commands for more modularity:
+or copy-paste the commands for more modularity:
 
 ```sh
 cd ~/NanoASV/
