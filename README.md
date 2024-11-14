@@ -234,7 +234,7 @@ We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and energy with
 ## Citation
 
 Please don't forget to cite NanoASV and dependencies if it helped you treat your Nanopore data
-Thank you !
+Thank you!
 
 Dependencies citations :
 
