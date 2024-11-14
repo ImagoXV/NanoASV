@@ -1,10 +1,13 @@
 ![Logo](config/NanoASV_logo.png)
 
 # NanoASV
- NanoASV is a conda environment snakemake based workflow using state of the art bioinformatic softwares to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C sequencing device and process data locally.
+
+NanoASV is a conda environment snakemake based workflow using state of the art bioinformatic softwares to process full-length SSU rRNA (16S/18S) amplicons acquired with Oxford Nanopore Sequencing technology. Its strength lies in reproducibility, portability and the possibility to run offline. It can be installed on the Nanopore MK1C sequencing device and process data locally.
 
  # Options
+
 Usage: nanoasv -d path/to/dir -o path/to/output [--options]
+
 ```
 | Option               | Description                                                          |
 | -------------------- | ---------------------------------------------------------------------|
@@ -32,12 +35,14 @@ Usage: nanoasv -d path/to/dir -o path/to/output [--options]
 
 
 # Installation with Conda
+
 Installation on Oxford Nanopore MK1C sequencing device will be at the bottom of this file. Installation will not work if you follow regular installation instruction.
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
 ```git clone https://github.com/ImagoXV/NanoASV ~/NanoASV```
 
 You can whether run the installation script, or copy paste the commands for more modularity
+
 ```
 bash config/install.sh
 
@@ -53,14 +58,17 @@ DEACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/cond
 cp config/unalias.sh $DEACTIVATE_DIR/
 chmod +x workflow/run.sh
 ```
+
 Then activate the environment. Don't forget to activate the environment before running nanoasv. It will not work otherwise.
 
 ```conda activate NanoASV```
 
 ## Database setup
+
 NanoASV can be used with any reference fasta file. If you want to have a broad idea of your community taxonomy, we recommend you to use latest [Silva](https://www.arb-silva.de/)
 
 Download the database and put it in ressources
+
 ```
 wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/
 gzip -dc resources/SILVA_138.2_SSURef_tax_silva.fasta.gz | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && echo "Formating and compressing SILVA reference, this will take a few minutes."
@@ -68,20 +76,27 @@ gzip resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && rm resources/SIL
 ```
 
 ## Test your installation
+
 ### With a dry run
+
 ```
 nanoasv --dry-run
 ```
+
 ### With mock dataset
+
 ```
 nanoasv --mock
 ```
+
 You can inspect NanoASV output structure in ```Mock_run_OUPUT/```
 
 
 # ONT MK1C Installation
+
 You need to use the [aarch64-MK1C](https://github.com/ImagoXV/NanoASV/tree/aarch64-MK1C-conda) branch, **otherwise, it will not work.**
 You need to install miniconda. Note that /data/ will be used for installation for storage capacity matters.
+
 ```
 mkdir -p /data/miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /data/miniconda3/miniconda.sh --no-check-certificate
@@ -89,6 +104,7 @@ bash /data/miniconda3/miniconda.sh -b -u -p /data/miniconda3
 rm /data/miniconda3/miniconda.sh
 source /data/miniconda3/bin/activate
 ```
+
 Then proceed to conda installation.
 Chopper needs to be Aarch64 compiled. Therefore, you need to download this specific archive or a newer one if someone cross-compile it.
 Warning, don't setup NanoASV environment from conda (base) environment. Otherwisse you'll run into issues.
@@ -120,6 +136,7 @@ conda deactivate
 ```
 
 ## Test run on MK1C device
+
 ```
 nanoasv --mock
 ```
@@ -133,43 +150,52 @@ The workflow can be executed on a cluster using snakemake cluster configuration.
 snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflow/snakefile --configfile config/config.yaml
 ```
 -->
+
 # How it works
 
 ## Data preparation
+
 Directly input your /path/to/sequence/data/fastq_pass directory
 4000 sequences fastq.gz files are concatenated by barcode identity to make one barcodeXX.fastq.gz file.
 
 ## Filtering
+
 Chopper will filter for inappropriate sequences.
 Is executed in parallel (default --num-process = 1 )
 Default parameters will filter for sequences with quality>8 and 1300bp<length<1700bp
 
 ## Chimera detection
+
 <!-- Chimera detection is performed with vsearch --uchime_denovo.
 Is executed in parallel (default --num-process = 6 ) -->
 There is no efficient chimera detection step at the moment
 
 ## Adapter trimming
+
 Porechop will trimm known adapters
 Is executed in parallel (default --num-process = 1 )
 
 ## Subsampling
+
 50 000 sequences per barcode is enough for most common questions.
 Default is set to 50 000 sequences per barcode.
 Can be modified with --subsampling int
 
 ## Alignment
+
 minimap2 will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
 Can be executed in parallel (default --num-process = 1 )
 barcode*_abundance.tsv, Taxonomy_barcode*.csv and barcode*_exact_affiliations.tsv like files are produced.
 Those files can be found in Results directory.
 
 ## Unknown sequences clustering
+
 Non matching sequences fastq are extracted then clustered with vsearch (default --id 0.7).
 Clusters with abundance under 5 are discarded to avoid useless heavy computing.
 Outputs into Results/Unknown_clusters
 
 ## Phylogenetic tree generation
+
 Reference ASV sequence from fasta reference file are extracted accordingly to detected entities.
 Unknown OTUs seed sequence are added. The final file is fed to FastTree to produce a tree file
 Tree file is then implemented into the final phyloseq object.
@@ -177,6 +203,7 @@ This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical es
 This step can be avoided with the --notree option.
 
 ## Phylosequization
+
 Alignements results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq opbject: NanoASV.rdata
 Please refer to the metadata.csv file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using --r_cleaning 0
@@ -187,6 +214,7 @@ A CSV file e ncompassing taxonomy and abundance is produced as well and stored i
 We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and energy with NanoASV beta testing !
 
 ## Citation
+
 Please don't forget to cite NanoASV and dependencies if it helped you treat your Nanopore data
 Thank you !
 
@@ -229,8 +257,3 @@ Rodríguez-Pérez, Héctor, Laura Ciuffreda, and Carlos Flores. 2021. “NanoCLU
 Rognes, Torbjørn, Tomáš Flouri, Ben Nichols, Christopher Quince, and Frédéric Mahé. 2016. “VSEARCH: A Versatile Open Source Tool for Metagenomics.” PeerJ 4 (October): e2584. https://doi.org/10.7717/peerj.2584.
 
 Santos, Andres, Ronny van Aerle, Leticia Barrientos, and Jaime Martinez-Urtaza. 2020. “Computational Methods for 16S Metabarcoding Studies Using Nanopore Sequencing Data.” Computational and Structural Biotechnology Journal 18: 296–305. https://doi.org/10.1016/j.csbj.2020.01.005.
-
-
-
-
-
