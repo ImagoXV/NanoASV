@@ -14,14 +14,13 @@ METADATA <- args[5]
 
 #Phylosequization -----
 library(phyloseq)
-#library(dplyr) #For mget() function
 library(ape) #To handle trees
 
 metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
 if (TREE ==1){
-  ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
+  ASV.tree <- ape::read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
 }
 
 ##Unknown OTUs ----
