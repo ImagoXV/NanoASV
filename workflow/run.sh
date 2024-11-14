@@ -123,6 +123,11 @@ while [[ $# -gt 0 ]]; do
             shift
             shift
             ;;
+        --sam-qual)
+            SAMQ="$2"
+            shift
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             cat $NANOASV_PATH/config/help.txt
@@ -152,6 +157,7 @@ DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
 DEFAULT_RERUN=" "
 DEFAULT_FASTTREE_MOD="fastest"
+DEFAULT_SAMQ=30
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -172,6 +178,7 @@ MOD="${MOD:-$DEFAULT_MOD}"
 DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
 RERUN="${RERUN:-$DEFAULT_RERUN}"
 FASTTREE_MOD="${FASTTREE_MOD:-$DEFAULT_FASTTREE_MOD}"
+SAMQ="${SAMQ:-$DEFAULT_SAMQ}"
 
 mkdir -p tmp_files 
 #***************************************************************************************************************************
@@ -285,7 +292,8 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
         DATABASE=$DATABASE \
         NANOASV_PATH=$NANOASV_PATH \
         MOD=$MOD \
-        FASTTREE_MOD=$FASTTREE_MOD
+        FASTTREE_MOD=$FASTTREE_MOD \
+        SAMQ=$SAMQ
 
 #***************************************************************************************************************************
 #Remove tmp files if flag is not set
