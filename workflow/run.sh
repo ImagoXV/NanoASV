@@ -118,6 +118,11 @@ while [[ $# -gt 0 ]]; do
             UNLK="--unlock"
             shift
             ;;
+        --fasttree-model)
+            FASTTREE_MOD="$2"
+            shift
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             cat $NANOASV_PATH/config/help.txt
@@ -146,6 +151,7 @@ DEFAULT_DATABASE=$NANOASV_PATH/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva
 DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
 DEFAULT_RERUN=" "
+DEFAULT_FASTTREE_MOD="fastest"
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -165,6 +171,8 @@ TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 MOD="${MOD:-$DEFAULT_MOD}"
 DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
 RERUN="${RERUN:-$DEFAULT_RERUN}"
+FASTTREE_MOD="${FASTTREE_MOD:-$DEFAULT_FASTTREE_MOD}"
+
 mkdir -p tmp_files 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
@@ -263,7 +271,8 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
         METADATA=$METADATA \
         DATABASE=$DATABASE \
         NANOASV_PATH=$NANOASV_PATH \
-        MOD=$MOD
+        MOD=$MOD \
+        FASTTREE_MOD=$FASTTREE_MOD
 
 #Remove tmp files if flag is not set
 if [[ "${TMP_FILES}" -eq 0 ]]; then 
