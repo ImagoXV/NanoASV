@@ -53,7 +53,7 @@ git clone https://github.com/ImagoXV/NanoASV.git ~/NanoASV
 You can whether run the installation script:
 
 ```sh
-bash config/install.sh
+bash ./config/install.sh
 ```
 
 or copy-paste the commands for more modularity:
