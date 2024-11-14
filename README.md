@@ -75,9 +75,21 @@ latest [Silva](https://www.arb-silva.de/).
 Download the database and put it in `./resources/`:
 
 ```sh
-wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/
-gzip -dc resources/SILVA_138.2_SSURef_tax_silva.fasta.gz | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && echo "Formatting and compressing SILVA reference, this will take a few minutes."
-gzip resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && rm resources/SILVA_138.2_SSURef_tax_silva.fasta.gz
+RELEASE=138.2
+URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
+INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
+OUTPUT="SINGLELINE_${INPUT/_NR99/}"
+FOLDER="resources"
+
+mkdir -p "${FOLDER}"
+
+echo "downloading and formating SILVA reference, this will take a few minutes."
+wget --output-document - "${URL}/${INPUT}" | \
+    gunzip --stdout | \
+    awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
+    gzip > "./${FOLDER}/${OUTPUT}"
+
+unset RELEASE URL INPUT OUTPUT
 ```
 
 ## Test your installation
