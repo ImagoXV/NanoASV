@@ -44,9 +44,9 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 (to install NanoASV on Oxford Nanopore MK1C sequencing devices, see
 section [ONT MK1C installation](#ont-mk1c-installation))
 
-Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
+Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git):
 
-```git clone https://github.com/ImagoXV/NanoASV ~/NanoASV```
+```git clone https://github.com/ImagoXV/NanoASV.git ~/NanoASV```
 
 You can whether run the installation script, or copy paste the commands for more modularity
 
