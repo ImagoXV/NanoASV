@@ -47,13 +47,14 @@ section [ONT MK1C Installation](#ont-mk1c-installation))
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git):
 
 ```sh
-git clone https://github.com/ImagoXV/NanoASV.git ~/NanoASV
+cd ${HOME}
+git clone https://github.com/ImagoXV/NanoASV.git
 ```
 
 Run the installation script:
 
 ```sh
-bash ./config/install.sh
+bash ${HOME}/NanoASV/config/install.sh
 ```
 
 Then activate the environment:
