@@ -81,7 +81,9 @@ will not work otherwise.
 
 ## Database setup
 
-NanoASV can be used with any reference fasta file. If you want to have a broad idea of your community taxonomy, we recommend you to use latest [Silva](https://www.arb-silva.de/)
+NanoASV can be used with any reference fasta file. If you want to have
+a broad idea of your community taxonomy, we recommend you to use
+latest [Silva](https://www.arb-silva.de/).
 
 Download the database and put it in `./resources/`:
 
