@@ -46,11 +46,13 @@ section [ONT MK1C installation](#ont-mk1c-installation))
 
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git):
 
-```git clone https://github.com/ImagoXV/NanoASV.git ~/NanoASV```
+```sh
+git clone https://github.com/ImagoXV/NanoASV.git ~/NanoASV
+```
 
 You can whether run the installation script, or copy paste the commands for more modularity
 
-```
+```sh
 bash config/install.sh
 
 #OR -----------
@@ -68,7 +70,9 @@ chmod +x workflow/run.sh
 
 Then activate the environment. Don't forget to activate the environment before running nanoasv. It will not work otherwise.
 
-```conda activate NanoASV```
+```sh
+conda activate NanoASV
+```
 
 ## Database setup
 
@@ -76,7 +80,7 @@ NanoASV can be used with any reference fasta file. If you want to have a broad i
 
 Download the database and put it in resources
 
-```
+```sh
 wget https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_tax_silva.fasta.gz -P resources/
 gzip -dc resources/SILVA_138.2_SSURef_tax_silva.fasta.gz | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && echo "Formatting and compressing SILVA reference, this will take a few minutes."
 gzip resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && rm resources/SILVA_138.2_SSURef_tax_silva.fasta.gz
@@ -86,13 +90,13 @@ gzip resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta && rm resources/SIL
 
 ### With a dry run
 
-```
+```sh
 nanoasv --dry-run
 ```
 
 ### With mock dataset
 
-```
+```sh
 nanoasv --mock
 ```
 
@@ -104,7 +108,7 @@ You can inspect NanoASV output structure in ```Mock_run_OUPUT/```
 You need to use the [aarch64-MK1C](https://github.com/ImagoXV/NanoASV/tree/aarch64-MK1C-conda) branch, **otherwise, it will not work.**
 You need to install miniconda. Note that /data/ will be used for installation for storage capacity matters.
 
-```
+```sh
 mkdir -p /data/miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /data/miniconda3/miniconda.sh --no-check-certificate
 bash /data/miniconda3/miniconda.sh -b -u -p /data/miniconda3
@@ -116,7 +120,7 @@ Then proceed to conda installation.
 Chopper needs to be Aarch64 compiled. Therefore, you need to download this specific archive or a newer one if someone cross-compile it.
 Warning, don't setup NanoASV environment from conda (base) environment. Otherwise you'll run into issues.
 
-```
+```sh
 git clone --branch origin/aarch64-MK1C-conda --single-branch https://github.com/ImagoXV/NanoASV.git /data/NanoASV
 cd /data/NanoASV
 conda deactivate
@@ -135,7 +139,7 @@ chmod +x workflow/run.sh
 
 ## R environment installation
 
-```
+```sh
 conda create --name R-phyloseq -c bioconda -c conda-forge bioconductor-phyloseq
 conda activate R-phyloseq
 Rscript -e 'install.packages("dplyr", repos = "https://cran.r-project.org")'
@@ -144,7 +148,7 @@ conda deactivate
 
 ## Test run on MK1C device
 
-```
+```sh
 nanoasv --mock
 ```
 
@@ -153,7 +157,7 @@ nanoasv --mock
 
 The workflow can be executed on a cluster using snakemake cluster configuration. Install a [profile](https://github.com/Snakemake-Profiles) for your cluster's job submission system. Edit the defaults in the file `cluster.json` and run the workflow. For example:
 
-```
+```sh
 snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflow/snakefile --configfile config/config.yaml
 ```
 -->
