@@ -14,6 +14,7 @@ OUT=config["OUT"]
 INPUT_DIR=config["INPUT_DIR"]
 NANOASV_PATH=config["NANOASV_PATH"]
 MOD=config["MOD"]
+FASTTREE_MOD=config["FASTTREE_MOD"]
 
 INPUT = glob_wildcards(INPUT_DIR+"/{barcode}/{FASTQ_FILE}.fastq.gz")
 
@@ -184,6 +185,7 @@ rule phylogeny:
             [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]] && cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
             mafft --thread {threads} tmp_files/08_phylogeny/ALL_ASV_OTU.fasta > tmp_files/08_phylogeny/ALL_ASV.aln 2> /dev/null 
             ## FastTree
+            echo
             FastTree -nt -{FASTTREE_MOD} tmp_files/08_phylogeny/ALL_ASV.aln > tmp_files/08_phylogeny/ASV.tree 2> /dev/null #Verbose debugging
         else
             echo "Step 8/9 : Skipped - no phylogeny"
