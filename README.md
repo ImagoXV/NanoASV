@@ -31,7 +31,7 @@ Usage: nanoasv -d path/to/dir -o path/to/output [--options]
 
 
 # Installation with Conda
-Installation on Oxford Nanopore MK1C dequencing device will be at the bottom of this file. Installation will not work if you follow regular installation instruction.
+Installation on Oxford Nanopore MK1C sequencing device will be at the bottom of this file. Installation will not work if you follow regular installation instruction.
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git)
 
 ```git clone https://github.com/ImagoXV/NanoASV ~/NanoASV```
@@ -140,17 +140,17 @@ Directly input your /path/to/sequence/data/fastq_pass directory
 
 ## Filtering
 Chopper will filter for inappropriate sequences.
-Is executed in parrallel (default --num-process = 1 )
+Is executed in parallel (default --num-process = 1 )
 Default parameters will filter for sequences with quality>8 and 1300bp<length<1700bp
 
 ## Chimera detection
 <!-- Chimera detection is performed with vsearch --uchime_denovo.
-Is executed in parrallel (default --num-process = 6 ) -->
+Is executed in parallel (default --num-process = 6 ) -->
 There is no efficient chimera detection step at the moment
 
 ## Adapter trimming
 Porechop will trimm known adapters 
-Is executed in parrallel (default --num-process = 1 )
+Is executed in parallel (default --num-process = 1 )
 
 ## Subsampling
 50 000 sequences per barcode is enough for most common questions.
@@ -159,7 +159,7 @@ Can be modified with --subsampling int
 
 ## Alignment
 minimap2 will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
-Can be executed in parrallel (default --num-process = 1 )
+Can be executed in parallel (default --num-process = 1 )
 barcode*_abundance.tsv, Taxonomy_barcode*.csv and barcode*_exact_affiliations.tsv like files are produced.
 Those files can be found in Results directory.
 
