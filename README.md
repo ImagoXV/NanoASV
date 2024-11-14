@@ -173,13 +173,13 @@ snakemake -p --jobs 100 --profile slurm --cluster-config cluster.json -s workflo
 
 ## Data preparation
 
-Directly input your /path/to/sequence/data/fastq_pass directory
-4000 sequences fastq.gz files are concatenated by barcode identity to make one barcodeXX.fastq.gz file.
+Directly input your `/path/to/sequence/data/fastq_pass` directory
+4000 sequences `fastq.gz` files are concatenated by barcode identity to make one `barcodeXX.fastq.gz` file.
 
 ## Filtering
 
 Chopper will filter for inappropriate sequences.
-Is executed in parallel (default --num-process = 1 )
+Is executed in parallel (default `--num-process 1`)
 Default parameters will filter for sequences with quality>8 and 1300bp<length<1700bp
 
 ## Chimera detection
@@ -191,26 +191,26 @@ There is no efficient chimera detection step at the moment
 ## Adapter trimming
 
 Porechop will trim known adapters
-Is executed in parallel (default --num-process = 1 )
+Is executed in parallel (default `--num-process 1`)
 
 ## Subsampling
 
 50 000 sequences per barcode is enough for most common questions.
 Default is set to 50 000 sequences per barcode.
-Can be modified with --subsampling int
+Can be modified with `--subsampling int`
 
 ## Alignment
 
-minimap2 will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
-Can be executed in parallel (default --num-process = 1 )
+`minimap2` will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
+Can be executed in parallel (default `--num-process 1`)
 barcode*_abundance.tsv, Taxonomy_barcode*.csv and barcode*_exact_affiliations.tsv like files are produced.
 Those files can be found in Results directory.
 
 ## Unknown sequences clustering
 
-Non matching sequences fastq are extracted then clustered with vsearch (default --id 0.7).
+Non matching sequences fastq are extracted then clustered with vsearch (default `--id 0.7`).
 Clusters with abundance under 5 are discarded to avoid useless heavy computing.
-Outputs into Results/Unknown_clusters
+Outputs into `./Results/Unknown_clusters`
 
 ## Phylogenetic tree generation
 
@@ -218,14 +218,14 @@ Reference ASV sequence from fasta reference file are extracted accordingly to de
 Unknown OTUs seed sequence are added. The final file is fed to FastTree to produce a tree file
 Tree file is then implemented into the final phyloseq object.
 This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical estimation of the entity.
-This step can be avoided with the --notree option.
+This step can be avoided with the `--notree` option.
 
 ## Phylosequization
 
-Alignments results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq object: NanoASV.rdata
-Please refer to the metadata.csv file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
-You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using --r_cleaning 0
-A CSV file encompassing taxonomy and abundance is produced as well and stored into Results/CSV.
+Alignments results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq object: `NanoASV.rdata`
+Please refer to the `metadata.csv` file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
+You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using `--r_cleaning 0`
+A CSV file encompassing taxonomy and abundance is produced as well and stored into `./Results/CSV`.
 
 ## Acknowledgments
 
