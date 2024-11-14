@@ -186,13 +186,13 @@ Directly input your `/path/to/sequence/data/fastq_pass` directory
 
 Chopper will filter for inappropriate sequences.
 Is executed in parallel (default `--num-process 1`)
-Default parameters will filter for sequences with quality>8 and 1300bp<length<1700bp
+Default parameters will filter for sequences with quality > 8 and 1300bp < length < 1700bp
 
 ## Chimera detection
 
 <!-- Chimera detection is performed with vsearch --uchime_denovo.
 Is executed in parallel (default --num-process = 6 ) -->
-There is no efficient chimera detection step at the moment
+There is no efficient chimera detection step at the moment.
 
 ## Adapter trimming
 
