@@ -14,14 +14,13 @@ METADATA <- args[5]
 
 #Phylosequization -----
 library(phyloseq)
-library(dplyr) #For mget() function
 library(ape) #To handle trees
 
 metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
 barcodes <- rownames(metadata)
 
 if (TREE ==1){
-  ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
+  ASV.tree <- ape::read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
 }
 
 ##Unknown OTUs ----
@@ -29,11 +28,7 @@ if (TREE ==1){
 if (file.exists(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"))) {
 U_OTU <- read.csv(paste0(OUTPWD,"/Results/Unknown_clusters/unknown_clusters.tsv"), sep = "\t", header = T, row.names = 1)
 
-#U_OTU <- U_OTU[rowSums(U_OTU) > 5,] #Remove clusters with total abundance inferior to five
-
 unknown_taxonomy <- rep("Unknown", times = 7) #Adapt taxonomy dataframe so it fits later on with bad entries for cleaning
-
-###inpu %>% read_csv() %>% filter(rowSums()>5) -> U_OTU
 
 ###Unknown taxonomy ----
 #Taking care of unknown taxonomy table
@@ -152,9 +147,9 @@ physeq_list <- list()
 
 for (i in 1:length(temp_ASV)) {
   # Create the phyloseq object
-  physeq_object <- phyloseq(otu_table(temp_ASV[[i]], taxa_are_rows = TRUE), 
-                            tax_table(as.matrix(temp_TAX[[i]])), 
-                            sample_data(metadata))
+  physeq_object <- phyloseq::phyloseq(phyloseq::otu_table(temp_ASV[[i]], taxa_are_rows = TRUE), 
+                            phyloseq::tax_table(as.matrix(temp_TAX[[i]])), 
+                            phyloseq::sample_data(metadata))
   
   # Get the name from the barcodes vector
   barcode_name <- barcodes[i]
@@ -164,28 +159,28 @@ for (i in 1:length(temp_ASV)) {
 
 i<-1 #Reset the incrementation
 #Initialize the phyloseq object
-NanoASV <- merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])
+NanoASV <- phyloseq::merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])
 
 # If more than 2 samples, then, adding them all together
 if (length(physeq_list) > 2) {
   for (i in 3:length(physeq_list)) {
-    NanoASV <- merge_phyloseq(NanoASV, physeq_list[[i]])
+    NanoASV <- phyloseq::merge_phyloseq(NanoASV, physeq_list[[i]])
   }
 }
 
 ##Phylogeny ----
 if(TREE == 1){
-phy_tree(NanoASV) <- phy_tree(ASV.tree)
+phyloseq::phy_tree(NanoASV) <- phyloseq::phy_tree(ASV.tree)
 }
 ##Dataset cleaning ----
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
 if(R_CLEANING == 1){
-  NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
-  NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
-  NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
+  NanoASV <- phyloseq::subset_taxa(NanoASV, Kingdom != "Eukaryota")
+  NanoASV <- phyloseq::subset_taxa(NanoASV, Family != "Mitochondria")
+  NanoASV <- phyloseq::subset_taxa(NanoASV, Order != "Chloroplast")
   ##Taxonomy cleaning ----
   #After those functions, there is no more taxa with mixed up names so we can remove supp fields of taxa table
-  tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
+  tax_table(NanoASV) <- phyloseq::tax_table(NanoASV)[,1:7]
 }
 
 #Phyloseq export ----

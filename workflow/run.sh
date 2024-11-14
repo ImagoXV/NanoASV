@@ -189,7 +189,7 @@ if [[ -z $OUT ]]; then
     exit 1
 fi
 
-#Metadata sanity checks **********************************************
+#Metadata sanity checks ****************************************************************************************************
 (cd "${METADATA}"
  #Check if metadata.csv has been provided by the user
  [[ -s metadata.csv ]] || \
@@ -264,6 +264,8 @@ if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.g
         DATABASE=tmp_files/SINGLELINE_reference.fasta
     fi
 fi
+
+#***************************************************************************************************************************
 #Run the pipeline
 
 snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
@@ -285,6 +287,7 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
         MOD=$MOD \
         FASTTREE_MOD=$FASTTREE_MOD
 
+#***************************************************************************************************************************
 #Remove tmp files if flag is not set
 if [[ "${TMP_FILES}" -eq 0 ]]; then 
     rm -r tmp_files

@@ -7,7 +7,6 @@ MINAB=config["MINAB"]
 SUBSAMPLING=config["SUBSAMPLING"]
 NUM_PROCESSES=config["NUM_PROCESSES"]
 TREE=config["TREE"]
-# R_STEP_ONLY=config["R_STEP_ONLY"]
 METADATA=config["METADATA"]
 DATABASE=config["DATABASE"]
 OUT=config["OUT"]
@@ -20,9 +19,9 @@ INPUT = glob_wildcards(INPUT_DIR+"/{barcode}/{FASTQ_FILE}.fastq.gz")
 
 DATABASE_NAME = DATABASE.split("/")[-1]
 if DATABASE_NAME.endswith(".fasta.gz"):
-    DATABASE_NAME = DATABASE_NAME[:-9]  # Remove ".fasta.gz"
+    DATABASE_NAME = DATABASE_NAME[:-9]  
 elif DATABASE_NAME.endswith(".fasta"):
-    DATABASE_NAME = DATABASE_NAME[:-6]  # Remove ".fasta"
+    DATABASE_NAME = DATABASE_NAME[:-6]  
 
 rule all:
     input:
