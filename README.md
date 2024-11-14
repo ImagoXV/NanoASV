@@ -42,7 +42,7 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 # Installation with Conda
 
 (to install NanoASV on Oxford Nanopore MK1C sequencing devices, see
-section [ONT MK1C installation](#ont-mk1c-installation))
+section [ONT MK1C Installation](#ont-mk1c-installation))
 
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git):
 
