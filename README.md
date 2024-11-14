@@ -211,7 +211,7 @@ A CSV file encompassing taxonomy and abundance is produced as well and stored in
 
 ## Acknowledgments
 
-We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and energy with NanoASV beta testing !
+We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and energy with NanoASV beta testing!
 
 ## Citation
 
