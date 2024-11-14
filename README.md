@@ -178,7 +178,7 @@ snakemake \
 ```
 -->
 
-# How it works
+# How NanoASV works
 
 ## Data preparation
 
