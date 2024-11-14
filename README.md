@@ -134,20 +134,23 @@ Warning, don't setup NanoASV environment from the `conda (base)`
 environment. Otherwise you'll run into issues.
 
 ```sh
-git clone --branch origin/aarch64-MK1C-conda --single-branch https://github.com/ImagoXV/NanoASV.git /data/NanoASV
-cd /data/NanoASV/
+cd /data/
+git clone \
+    --branch origin/aarch64-MK1C-conda \
+    --single-branch https://github.com/ImagoXV/NanoASV.git
+cd ./NanoASV/
 conda deactivate
 conda env create -f environment.yml
 wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip -P config/
-unzip config/chopper-aarch64.zip
-mv chopper config/
+unzip ./config/chopper-aarch64.zip
+mv chopper ./config/
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
-cp config/alias.sh $ACTIVATE_DIR/
-cp config/paths.sh $ACTIVATE_DIR/
-echo "export NANOASV_PATH=$(pwd)" >> $ACTIVATE_DIR/paths.sh
+cp ./config/alias.sh ${ACTIVATE_DIR}/
+cp ./config/paths.sh ${ACTIVATE_DIR}/
+echo "export NANOASV_PATH=$(pwd)" >> ${ACTIVATE_DIR}/paths.sh
 DEACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/deactivate.d
-cp config/unalias.sh $DEACTIVATE_DIR/
-chmod +x workflow/run.sh
+cp ./config/unalias.sh ${DEACTIVATE_DIR}/
+chmod +x ./workflow/run.sh
 ```
 
 ## R environment installation
