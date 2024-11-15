@@ -71,7 +71,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -v|--version)
-            echo "NanoASV 1.1 - Conda-x-Snakemake - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and Ulysse Guyet "
+            echo 'NanoASV 1.1 - Conda-x-Snakemake - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and Ulysse Guyet '
             exit
             shift
             ;;
@@ -123,8 +123,13 @@ while [[ $# -gt 0 ]]; do
             shift
             shift
             ;;
+        --sam-qual)
+            SAMQ="$2"
+            shift
+            shift
+            ;;
         *)
-            echo "Unknown option: $1"
+            echo 'Unknown option: $1'
             cat $NANOASV_PATH/config/help.txt
             exit 1
             shift
@@ -152,6 +157,7 @@ DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
 DEFAULT_RERUN=" "
 DEFAULT_FASTTREE_MOD="fastest"
+DEFAULT_SAMQ=15
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
@@ -172,6 +178,7 @@ MOD="${MOD:-$DEFAULT_MOD}"
 DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
 RERUN="${RERUN:-$DEFAULT_RERUN}"
 FASTTREE_MOD="${FASTTREE_MOD:-$DEFAULT_FASTTREE_MOD}"
+SAMQ="${SAMQ:-$DEFAULT_SAMQ}"
 
 mkdir -p tmp_files 
 #***************************************************************************************************************************
@@ -197,15 +204,15 @@ fi
 
  #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
  awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
-     { echo "ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?" ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
+     { echo 'ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?' ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 
  #Check if metadata.csv rownames structure is correct
  awk -F "," 'NR == 1 { exit $1 == "" ? 0 : 1}' metadata.csv || \
-     { echo "ERROR: First field of first line should be empty. Please check metadata.csv file structure." ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
+     { echo 'ERROR: First field of first line should be empty. Please check metadata.csv file structure.' ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 
  #Check if metadata.csv contains enough lines
  awk 'END{ exit NR > 1 ? 0 : 1}' metadata.csv || \
-     { echo "ERROR: metadata.csv: Missing header and/or data information. Too few lines." ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
+     { echo 'ERROR: metadata.csv: Missing header and/or data information. Too few lines.' ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 
 
  # Check if metadata barcodes are found within DIR
@@ -213,14 +220,14 @@ fi
      tail -n +2 | \
      while read sample_name ; do
          [[ -d ${sample_name} ]] || \
-             { echo "ERROR, ${sample_name} not found. Please check metadata.csv and barcodes directories" ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
+             { echo 'ERROR, ${sample_name} not found. Please check metadata.csv and barcodes directories' ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
      done
 
  #Check if number of fields is consistent is consistent accross all number of lines
  awk -F "," '{print NF}' metadata.csv | \
      sort -u | \
      awk 'END {exit NR == 1 ? 0 : 1}' || \
-     { echo ERROR: Check metadata.csv: not all the lines have the same number of columns ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
+     { echo 'ERROR: Check metadata.csv: not all the lines have the same number of columns' ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
 )
 
 #***************************************************************************************************************************
@@ -228,11 +235,11 @@ fi
 MODS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
 
 if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
-    echo "ERROR: --model invalid specification."
-    echo "Minimap2 default model is ${DEFAULT_MOD}."
-    echo "Available models are $(echo "${MODS[@]}")"
-    echo "WARNING, changing minimap2 alignment model will have strong repercussion on data treatment."
-    echo "Use this option carefully. Please read minimap2 documentation."
+    echo 'ERROR: --model invalid specification.'
+    echo 'Minimap2 default model is ${DEFAULT_MOD}.'
+    echo 'Available models are $(echo '${MODS[@]}')'
+    echo 'WARNING, changing minimap2 alignment model will have strong repercussion on data treatment.'
+    echo 'Use this option carefully. Please read minimap2 documentation.'
     exit 1
 fi
 
@@ -241,25 +248,25 @@ fi
 F_MODS=("gtr" "gamma" "map-pb" "wag" "lg" "fastest")
 
 if [[ ! " ${F_MODS[@]} " =~ " ${F_MODS} " ]]; then
-    echo "ERROR: --fastree-model invalid specification."
-    echo "FastTree default model is ${DEFAULT_FASTTREE_MOD}."
-    echo "Available models are $(echo "${F_MODS[@]}")"
+    echo 'ERROR: --fastree-model invalid specification.'
+    echo 'FastTree default model is "${DEFAULT_FASTTREE_MOD}".'
+    echo 'Available models are $(echo "${F_MODS[@]}")'
     exit 1
 fi
 
 #***************************************************************************************************************************
 #Ensure database exists
-if [ ! -s  "${DATABASE}"]; then
-    echo "No reference file found at "${DATABASE}". If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location."
+if [ ! -s  "${DATABASE}" ]; then
+    echo "No reference file found at ${DATABASE}. If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location."
     exit 1
 fi
 # Ensure reference file is singleleaved fasta
-echo "Checking reference format"
+echo 'Checking reference format'
 if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]]; then
     LINES=$(zcat -f "${DATABASE}" | wc -l)
     SEQS=$(zgrep -c "^>" "${DATABASE}") 
     if [[ $LINES -ne $(( SEQS * 2 )) ]]; then
-        echo "Interleaved reference fasta file - Formating."
+        echo 'Interleaved reference fasta file - Formating.'
         zcat $DATABASE | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > tmp_files/SINGLELINE_reference.fasta
         DATABASE=tmp_files/SINGLELINE_reference.fasta
     fi
@@ -285,7 +292,8 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
         DATABASE=$DATABASE \
         NANOASV_PATH=$NANOASV_PATH \
         MOD=$MOD \
-        FASTTREE_MOD=$FASTTREE_MOD
+        FASTTREE_MOD=$FASTTREE_MOD \
+        SAMQ=$SAMQ
 
 #***************************************************************************************************************************
 #Remove tmp files if flag is not set

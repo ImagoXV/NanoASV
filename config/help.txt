@@ -14,6 +14,7 @@
    --no-r-cleaning       To keep Eukaryota, Chloroplast, and Mitochondria sequences from phyloseq object
    --metadata            Specify metadata.csv file directory, default is demultiplexed directory (--dir) 
    --notree              To remove phylogeny step and subsequent tree from phyloseq object
+   --sam-quality          To tune samtools filtering quality threshold, default : 30
    --requirements        To display personal reference fasta requirements
    --dry-run             Perform a snakemake dry run
    --mock                Run NanoASV with Mock dataset
