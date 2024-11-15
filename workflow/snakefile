@@ -228,4 +228,3 @@ rule phyloseq:
         Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 2> /dev/null
         touch {output}
         """
-
