@@ -3,15 +3,15 @@ library(phyloseq)
 
 setwd("~/Documents/Thesis/NanoASV/Software_dev/NanoASV/config/Tests_with_real_dataset/q30/")
 
-load("map-ont-q30.out/Results/Rdata/NanoASV.rdata")
+load("map-ont-q15.out/Results/Rdata/NanoASV.rdata")
 mapont <- NanoASV
 mapont@sam_data <- sample_data(data.frame(mapont@sam_data,
                                           model = "map-ont"))
-load("asm10-q30.out/Results/Rdata/NanoASV.rdata")
+load("asm10-q15.out/Results/Rdata/NanoASV.rdata")
 asm10 <- NanoASV
 asm10@sam_data <- sample_data(data.frame(asm10@sam_data,
                                           model = "asm10"))
-load("asm5-q30.out/Results/Rdata/NanoASV.rdata")
+load("asm10-q30./Results/Rdata/NanoASV.rdata")
 asm5 <- NanoASV
 asm5@sam_data <- sample_data(data.frame(asm5@sam_data,
                                          model = "asm5"))
@@ -91,7 +91,7 @@ ggplot(data = alpha.melted[alpha.melted$variable == "richness",], aes(x = reorde
        caption = date())
 dev.off()
 
-pdf("q30_shannon_index.pdf", he =18, wi = 18)
+pdf("q30_shannon_index", he =18, wi = 18)
 ggplot(data = alpha.melted[alpha.melted$variable == "shannon",], aes(x =  reorder(SFR, value) , y = value, color = alpha_tab$SFR)) +
   facet_grid(rows = vars(level), cols = vars(model), scales = "free_y", switch = "y") +  # Free y-axis for each row
   geom_boxplot() +
