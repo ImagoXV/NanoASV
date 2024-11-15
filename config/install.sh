@@ -1,6 +1,6 @@
 #/bin/bash
 cd ~/NanoASV
-conda env create -f environment.yml
+conda env create --file environment.yml
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
 cp config/alias.sh $ACTIVATE_DIR/
 cp config/paths.sh $ACTIVATE_DIR/
