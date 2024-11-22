@@ -1,7 +1,7 @@
 library(ggplot2)
 library(phyloseq)
 
-setwd("~/Documents/Thesis/NanoASV/Software_dev/NanoASV/config/Tests_with_real_dataset/q30/")
+setwd("~/Documents/Thesis/NanoASV/Software_dev/NanoASV/config/Tests_with_real_dataset/q15/")
 
 load("map-ont-q15.out/Results/Rdata/NanoASV.rdata")
 mapont <- NanoASV
@@ -25,6 +25,7 @@ asm10@phy_tree <- NULL
 asm5@phy_tree <- NULL
 
 Finest <- merge_phyloseq(mapont, asm10, asm5)
+Finest <- merge_phyloseq(asm10, asm5)
 metadata <- data.frame(Finest@sam_data)
 
 metadata[rownames(metadata)%in%c("barcode33_map-ont", "barcode33_asm10", "barcode33_asm5"), "Refs"] <- "SFR24-B3"
@@ -37,9 +38,9 @@ Finest@sam_data <- sample_data(metadata)
 # Order  <- tax_glom(Finest, taxrank = "Order")
 # Class  <- tax_glom(Finest, taxrank = "Class")
 # Phylum  <- tax_glom(Finest, taxrank = "Phylum")
-# save(Genus, Family, Order, Class, Phylum, file = "q30_Tax_glom_taxo_levels.rdata")
+# save(Genus, Family, Order, Class, Phylum, file = "q15_Tax_glom_taxo_levels.rdata")
 
-load("q30_Tax_glom_taxo_levels.rdata")
+load("q15_Tax_glom_taxo_levels.rdata")
 
 phy.list <- list(Finest = Finest,
                  Genus = Genus,
@@ -75,9 +76,10 @@ library(reshape2)
 alpha.melted <- melt(alpha_tab)
 
 alpha.melted$model <- factor(alpha.melted$model, levels = c("map-ont", "asm10", "asm5"))
+alpha.melted$model <- factor(alpha.melted$model, levels = c("asm10", "asm5"))
 alpha.melted$level <- factor(alpha.melted$level, levels = c("Phylum", "Class", "Order", "Family", "Genus", "Finest"))
 
-pdf("q30_Numerical_richness.pdf", he =18, wi = 18)
+pdf("q15_Numerical_richness.pdf", he =18, wi = 18)
 ggplot(data = alpha.melted[alpha.melted$variable == "richness",], aes(x = reorder(SFR, value) , y = value, color = alpha_tab$SFR)) +
   facet_grid(rows = vars(level), cols = vars(model), scales = "free_y", switch = "y") +  # Free y-axis for each row
   geom_boxplot() +
@@ -87,7 +89,7 @@ ggplot(data = alpha.melted[alpha.melted$variable == "richness",], aes(x = reorde
         axis.text.x = element_text(angle=30, colour = "black", vjust=1, hjust = 1, size=14),
         legend.position = "none") + 
   ylab("Numerical richness") + xlab("Model") + 
-  labs(title = "Numerical richness\n q30 filter",
+  labs(title = "Numerical richness\n q15 filter",
        caption = date())
 dev.off()
 
@@ -116,7 +118,7 @@ metadata <- data.frame(Finest@sam_data)
 
 smp_sums <- merge(smp_sums, metadata, by = 0)
 
-pdf("q30_Sample_sums_barplot.pdf", he = 6, wi = 12)
+pdf("q15_Sample_sums_barplot.pdf", he = 6, wi = 12)
 ggplot(data = smp_sums, aes(x = Refs, y = Reads)) +
   geom_bar(stat="identity") + 
   facet_wrap(~model) +
@@ -135,14 +137,14 @@ couleurs_genus <- c("#FF0000FF","#FF9900FF","#FFCC00FF","#00FF00FF","#6699FFFF",
 
 #Composition ----
 
-pdf("q30_Composition_with_different_models.pdf", he = 8, wi = 16)
+pdf("q15_Composition_with_different_models.pdf", he = 8, wi = 16)
 
 Genus.norm <- transform_sample_counts(Genus, function(x) x/sum(x))
 Genus.melted <- psmelt(Genus.norm)
 sub_Genus.melted <- Genus.melted
 sub_Genus.melted <- sub_Genus.melted[sub_Genus.melted$SFR != "Bl",] #Remove blanks
 sub_Genus.melted <- sub_Genus.melted[sub_Genus.melted$SFR != "Mock",] #Remove positive control mock
-sub_Genus.melted[sub_Genus.melted$Abundance<0.0135,32:38] <- "Z_Others"
+sub_Genus.melted[sub_Genus.melted$Abundance<0.0061,32:38] <- "Z_Others"
 
 ggplot(sub_Genus.melted, aes(x = Refs, y = Abundance, fill = Genus)) +
   theme_bw() +

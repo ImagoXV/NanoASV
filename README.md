@@ -263,6 +263,10 @@ De Coster, Wouter, and Rosa Rademakers. 2023. “NanoPack2: Population-Scale Eva
 Long-Read Sequencing Data.” Edited by Can Alkan. Bioinformatics 39 (5): btad311.
 https://doi.org/10.1093/bioinformatics/btad311.
 
+Li, Heng. 2018. “Minimap2: Pairwise Alignment for Nucleotide Sequences.”
+Edited by Inanc Birol. Bioinformatics 34 (18): 3094–3100. 
+ttps://doi.org/10.1093/bioinformatics/bty191.
+
 Katoh, K., and D. M. Standley. 2013. “MAFFT Multiple Sequence Alignment Software Version 7:
 Improvements in Performance and Usability.” Molecular Biology and Evolution 30 (4):
 772–80. https://doi.org/10.1093/molbev/mst010.
@@ -270,9 +274,6 @@ Improvements in Performance and Usability.” Molecular Biology and Evolution 30
 McMurdie, Paul J., and Susan Holmes. 2013. “Phyloseq: An R Package for Reproducible
 Interactive Analysis and Graphics of Microbiome Census Data.” Edited by Michael Watson.
 PLoS ONE 8 (4): e61217. https://doi.org/10.1371/journal.pone.0061217.
-
-Md, Vasimuddin, Sanchit Misra, Heng Li, and Srinivas Aluru. 2019. “Efficient Architecture-Aware
-Acceleration of BWA-MEM for Multicore Systems.” arXiv. http://arxiv.org/abs/1907.12931.
 
 Nygaard, Anders B., Hege S. Tunsjø, Roger Meisal, and Colin Charnock. 2020. “A Preliminary
 Study on the Potential of Nanopore MinION and Illumina MiSeq 16S rRNA Gene
@@ -287,8 +288,4 @@ Quast, Christian, Elmar Pruesse, Pelin Yilmaz, Jan Gerken, Timmy Schweer, Pablo 
 Peplies, and Frank Oliver Glöckner. 2012. “The SILVA Ribosomal RNA Gene Database
 Project: Improved Data Processing and Web-Based Tools.” Nucleic Acids Research 41 (D1): D590–96. https://doi.org/10.1093/nar/gks1219.
 
-Rodríguez-Pérez, Héctor, Laura Ciuffreda, and Carlos Flores. 2021. “NanoCLUST: A Species-Level Analysis of 16S rRNA Nanopore Sequencing Data.” Edited by Birol Inanc. Bioinformatics 37 (11): 1600–1601. https://doi.org/10.1093/bioinformatics/btaa900.
-
 Rognes, Torbjørn, Tomáš Flouri, Ben Nichols, Christopher Quince, and Frédéric Mahé. 2016. “VSEARCH: A Versatile Open Source Tool for Metagenomics.” PeerJ 4 (October): e2584. https://doi.org/10.7717/peerj.2584.
-
-Santos, Andres, Ronny van Aerle, Leticia Barrientos, and Jaime Martinez-Urtaza. 2020. “Computational Methods for 16S Metabarcoding Studies Using Nanopore Sequencing Data.” Computational and Structural Biotechnology Journal 18: 296–305. https://doi.org/10.1016/j.csbj.2020.01.005.
