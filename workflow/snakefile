@@ -149,15 +149,16 @@ rule vsearch:
             --fasta_width 0 \
             --quiet \
             --consout - | \
-            sed -E '/^>/ s/^>centroid=/>/ ; s/;seqs=[1-9]+//' | \
+            sed -E '/^>/ s/;seqs=[0-9]+//' | \
+            sed -E '/^>/ s/^>centroid=/>/' | \
             vsearch \
                 --fastx_filter - \
                 --sizein \
-                --sizeout \
                 --quiet \
                 --minsize {MINAB} \
                 --fastaout tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
             sed -i 's/;/_/g' tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta #Semicolons trigger format problem with tree file
+            sed -E -i '/^>/ s/_size=[0-9]+//' tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta #Remove size information 
             rm tmp_files/07_unknown_sequences_clustering/seqs
             if [ $(wc -l < tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv) -lt 2 ]; then
                 rm tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
