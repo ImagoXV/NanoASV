@@ -145,7 +145,6 @@ rule vsearch:
                                     for (i=2; i<=NF; i++) {{s += $i}}
                                     if (s >= MINAB) {{print $0}}
                             }}' > tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv) \
-            --clusterout_id \
             --clusterout_sort \
             --fasta_width 0 \
             --quiet \
