@@ -1,17 +1,17 @@
 library(ggplot2)
 library(phyloseq)
 
-setwd("~/Documents/Thesis/NanoASV/Software_dev/NanoASV/config/Tests_with_real_dataset/q15/")
+setwd("~/Documents/Thesis/NanoASV/Software_dev/NanoASV/config/Tests_with_real_dataset/q10/")
 
-load("map-ont-q15.out/Results/Rdata/NanoASV.rdata")
+load("map-ont-q10.out/Results/Rdata/NanoASV.rdata")
 mapont <- NanoASV
 mapont@sam_data <- sample_data(data.frame(mapont@sam_data,
                                           model = "map-ont"))
-load("asm10-q15.out/Results/Rdata/NanoASV.rdata")
+load("asm10-q10.out/Results/Rdata/NanoASV.rdata")
 asm10 <- NanoASV
 asm10@sam_data <- sample_data(data.frame(asm10@sam_data,
                                           model = "asm10"))
-load("asm5-q15.out/Results/Rdata/NanoASV.rdata")
+load("asm5-q10.out/Results/Rdata/NanoASV.rdata")
 asm5 <- NanoASV
 asm5@sam_data <- sample_data(data.frame(asm5@sam_data,
                                          model = "asm5"))
@@ -37,9 +37,9 @@ Finest@sam_data <- sample_data(metadata)
 # Order  <- tax_glom(Finest, taxrank = "Order")
 # Class  <- tax_glom(Finest, taxrank = "Class")
 # Phylum  <- tax_glom(Finest, taxrank = "Phylum")
-# save(Genus, Family, Order, Class, Phylum, file = "q15_Tax_glom_taxo_levels.rdata")
+# save(Genus, Family, Order, Class, Phylum, file = "q10_Tax_glom_taxo_levels.rdata")
 
-load("q15_Tax_glom_taxo_levels.rdata")
+load("q10_Tax_glom_taxo_levels.rdata")
 
 phy.list <- list(Finest = Finest,
                  Genus = Genus,
@@ -77,7 +77,7 @@ alpha.melted <- melt(alpha_tab)
 alpha.melted$model <- factor(alpha.melted$model, levels = c("map-ont", "asm10", "asm5"))
 alpha.melted$level <- factor(alpha.melted$level, levels = c("Phylum", "Class", "Order", "Family", "Genus", "Finest"))
 
-pdf("q15_Numerical_richness.pdf", he =18, wi = 18)
+pdf("q10_Numerical_richness.pdf", he =18, wi = 18)
 ggplot(data = alpha.melted[alpha.melted$variable == "richness",], aes(x = reorder(SFR, value) , y = value, color = alpha_tab$SFR)) +
   facet_grid(rows = vars(level), cols = vars(model), scales = "free_y", switch = "y") +  # Free y-axis for each row
   geom_boxplot() +
@@ -87,11 +87,11 @@ ggplot(data = alpha.melted[alpha.melted$variable == "richness",], aes(x = reorde
         axis.text.x = element_text(angle=30, colour = "black", vjust=1, hjust = 1, size=14),
         legend.position = "none") + 
   ylab("Numerical richness") + xlab("Model") + 
-  labs(title = "Numerical richness\n q15 filter",
+  labs(title = "Numerical richness\n q10 filter",
        caption = date())
 dev.off()
 
-pdf("q15_shannon_index", he =18, wi = 18)
+pdf("q10_shannon_index", he =18, wi = 18)
 ggplot(data = alpha.melted[alpha.melted$variable == "shannon",], aes(x =  reorder(SFR, value) , y = value, color = alpha_tab$SFR)) +
   facet_grid(rows = vars(level), cols = vars(model), scales = "free_y", switch = "y") +  # Free y-axis for each row
   geom_boxplot() +
@@ -101,7 +101,7 @@ ggplot(data = alpha.melted[alpha.melted$variable == "shannon",], aes(x =  reorde
         axis.text.x = element_text(angle=30, colour = "black", vjust=1, hjust = 1, size=14),
         legend.position = "none") + 
   ylab("Shannon index") + xlab("Model") + 
-  labs(title = "Shannon index\n q15 filter",
+  labs(title = "Shannon index\n q10 filter",
        caption = date())
 dev.off()
 
@@ -116,7 +116,7 @@ metadata <- data.frame(Finest@sam_data)
 
 smp_sums <- merge(smp_sums, metadata, by = 0)
 
-pdf("q15_Sample_sums_barplot.pdf", he = 6, wi = 12)
+pdf("q10_Sample_sums_barplot.pdf", he = 6, wi = 12)
 ggplot(data = smp_sums, aes(x = Refs, y = Reads)) +
   geom_bar(stat="identity") + 
   facet_wrap(~model) +
@@ -135,14 +135,14 @@ couleurs_genus <- c("#FF0000FF","#FF9900FF","#FFCC00FF","#00FF00FF","#6699FFFF",
 
 #Composition ----
 
-pdf("q15_Composition_with_different_models.pdf", he = 8, wi = 16)
+pdf("q10_Composition_with_different_models.pdf", he = 8, wi = 16)
 
 Genus.norm <- transform_sample_counts(Genus, function(x) x/sum(x))
 Genus.melted <- psmelt(Genus.norm)
 sub_Genus.melted <- Genus.melted
 sub_Genus.melted <- sub_Genus.melted[sub_Genus.melted$SFR != "Bl",] #Remove blanks
 sub_Genus.melted <- sub_Genus.melted[sub_Genus.melted$SFR != "Mock",] #Remove positive control mock
-sub_Genus.melted[sub_Genus.melted$Abundance<0.014,32:38] <- "Z_Others"
+sub_Genus.melted[sub_Genus.melted$Abundance<0.016529,32:38] <- "Z_Others"
 
 ggplot(sub_Genus.melted, aes(x = Refs, y = Abundance, fill = Genus)) +
   theme_bw() +
@@ -168,7 +168,7 @@ Family.melted <- psmelt(Family.norm)
 sub_Family.melted <- Family.melted
 sub_Family.melted <- sub_Family.melted[sub_Family.melted$SFR != "Bl",] #Remove blanks
 sub_Family.melted <- sub_Family.melted[sub_Family.melted$SFR != "Mock",] #Remove positive control mock
-sub_Family.melted[sub_Family.melted$Abundance<0.0175,32:38] <- "Z_Others"
+sub_Family.melted[sub_Family.melted$Abundance<0.03,32:38] <- "Z_Others"
 
 ggplot(sub_Family.melted, aes(x = Refs, y = Abundance, fill = Family)) +
   theme_bw() +
@@ -195,7 +195,7 @@ Order.melted <- psmelt(Order.norm)
 sub_Order.melted <- Order.melted
 sub_Order.melted <- sub_Order.melted[sub_Order.melted$SFR != "Bl",] #Remove blanks
 sub_Order.melted <- sub_Order.melted[sub_Order.melted$SFR != "Mock",] #Remove positive control mock
-sub_Order.melted[sub_Order.melted$Abundance<0.02,32:38] <- "Z_Others"
+sub_Order.melted[sub_Order.melted$Abundance<0.025,32:38] <- "Z_Others"
 
 ggplot(sub_Order.melted, aes(x = Refs, y = Abundance, fill = Order)) +
   theme_bw() +
