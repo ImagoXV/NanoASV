@@ -262,6 +262,11 @@ if [ ! -s  "${DATABASE}" ]; then
 fi
 # Ensure reference file is singleleaved fasta
 echo 'Checking reference format'
+#Check if sequences contain uniq ID before taxonomy
+grep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE" || echo "Invalid reference file header. NanoASV will add one for you. Keep in mind that it will not be consistent from one run  to another. For better practice, we advise you to add one yourself.\n" & cat $NANOASV_PATH/config/requirements.txt & exit 1
+
+
+
 if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]]; then
     LINES=$(zcat -f "${DATABASE}" | wc -l)
     SEQS=$(zgrep -c "^>" "${DATABASE}") 
