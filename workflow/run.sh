@@ -157,7 +157,7 @@ DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
 DEFAULT_RERUN=" "
 DEFAULT_FASTTREE_MOD="fastest"
-DEFAULT_SAMQ=1
+DEFAULT_SAMQ=0
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
