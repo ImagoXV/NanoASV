@@ -276,7 +276,7 @@ if ! grep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
         echo "$line" >> tmp_files/CORRECT_HEADER_reference.fasta
     fi
     done < ${DATABASE}
-    $DATABASE=tmp_files/CORRECT_HEADER_reference.fasta
+    DATABASE=tmp_files/CORRECT_HEADER_reference.fasta
 fi
 # Ensure reference file is singleleaved fasta
 if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]]; then
