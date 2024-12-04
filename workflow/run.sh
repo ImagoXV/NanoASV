@@ -266,7 +266,11 @@ echo 'Checking reference format'
 #Check if sequences contain uniq ID before taxonomy
 if ! grep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
     cat "$NANOASV_PATH/config/requirements.txt"
-        echo -e "Invalid reference file fasta header.\nNanoASV will add one for you. Keep in mind that those uniq ID will not be consistent from one run to another.\nIf you like your reference dataset this way, save it from tmp_files before deleting:'tmp_files/CORRECT_HEADER_reference.fasta'\nFor better practice, we advise you to add one yourself.\nFormatting..."
+        echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
+        Keep in mind that those uniq ID will not be consistent from one run to another.\n\
+        If you like your reference dataset this way, save it from tmp_files before deleting:'tmp_files/CORRECT_HEADER_reference.fasta'\n\
+        For better practice, we advise you to add one yourself.\n\
+        Formatting will take a while ..."
 
     while IFS= read -r line; do
     if [[ $line == ">"* ]]; then
