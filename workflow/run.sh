@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 #This script is a wrapper to launch NanoASV snakemake version with ease
 source "$(conda info --base)/etc/profile.d/conda.sh"
