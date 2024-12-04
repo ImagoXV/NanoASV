@@ -1,2 +1,2 @@
-. linguist-detectable=false
-
+* linguist-vendored
+*.sh
