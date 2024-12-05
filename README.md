@@ -136,7 +136,7 @@ environment. Otherwise you'll run into issues.
 ```sh
 cd /data/
 git clone \
-    --branch origin/aarch64-MK1C-conda \
+    --branch aarch64-MK1C-conda \
     --single-branch https://github.com/ImagoXV/NanoASV.git
 cd ./NanoASV/
 conda deactivate
