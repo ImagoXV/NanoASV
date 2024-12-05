@@ -152,9 +152,12 @@ DEFAULT_TREE=1
 DEFAULT_DOCKER=0
 DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
-DEFAULT_DATABASE=$NANOASV_PATH/ressources
+DEFAULT_DATABASE=$NANOASV_PATH/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta.gz
 DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
+DEFAULT_RERUN=" "
+DEFAULT_FASTTREE_MOD="fastest"
+DEFAULT_SAMQ=0
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 #DIR="/data"
