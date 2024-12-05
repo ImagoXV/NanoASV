@@ -14,7 +14,6 @@ METADATA <- args[5]
 
 #Phylosequization -----
 library(phyloseq)
-library(dplyr) #For mget() function
 library(ape) #To handle trees
 
 metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = TRUE, check.names = FALSE)
