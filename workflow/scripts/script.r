@@ -170,7 +170,7 @@ if (length(physeq_list) > 2) {
 
 ##Phylogeny ----
 if(TREE == 1){
-phy_tree(NanoASV) <- phy_tree(ASV.tree)
+phyloseq::phy_tree(NanoASV) <- phyloseq::phy_tree(ASV.tree)
 }
 ##Dataset cleaning ----
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
