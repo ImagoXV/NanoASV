@@ -157,6 +157,32 @@ cp ./config/unalias.sh ${DEACTIVATE_DIR}/
 chmod +x ./workflow/run.sh
 ```
 
+## Database setup
+
+NanoASV can be used with any reference fasta file. If you want to have
+a broad idea of your community taxonomy, we recommend you to use
+latest [Silva](https://www.arb-silva.de/).
+
+Download the database and put it in `./resources/`:
+
+```sh
+RELEASE=138.2
+URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
+INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
+OUTPUT="SINGLELINE_${INPUT/_NR99/}"
+FOLDER="resources"
+
+mkdir -p "${FOLDER}"
+
+echo "downloading and formating SILVA reference, this will take a few minutes."
+wget --output-document - "${URL}/${INPUT}" | \
+    gunzip --stdout | \
+    awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
+    gzip > "./${FOLDER}/${OUTPUT}"
+
+unset RELEASE URL INPUT OUTPUT
+```
+
 ## R environment installation
 
 ```sh
