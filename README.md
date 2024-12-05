@@ -160,7 +160,7 @@ chmod +x ./workflow/run.sh
 ## R environment installation
 
 ```sh
-conda create --name R-phyloseq -c bioconda -c conda-forge bioconductor-phyloseq
+conda create -y --name R-phyloseq -c bioconda -c conda-forge bioconductor-phyloseq
 conda activate R-phyloseq
 Rscript -e 'install.packages("dplyr", repos = "https://cran.r-project.org")'
 conda deactivate
@@ -169,6 +169,7 @@ conda deactivate
 ## Test run on MK1C device
 
 ```sh
+conda activate NanoASV
 nanoasv --mock
 ```
 
