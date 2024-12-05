@@ -159,7 +159,7 @@ for (i in 1:length(temp_ASV)) {
 
 i<-1 #Reset the incrementation
 #Initialize the phyloseq object
-NanoASV <- merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])
+NanoASV <- phyloseq::merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])
 
 # If more than 2 samples, then, adding them all together
 if (length(physeq_list) > 2) {
