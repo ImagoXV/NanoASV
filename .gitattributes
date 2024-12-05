@@ -1,1 +1,4 @@
 
+*.sh linguist-language=Shell
+*.r linguist-language=R
+snakefile linguist-language=Snakemake
