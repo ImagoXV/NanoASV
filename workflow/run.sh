@@ -235,11 +235,22 @@ fi
 MODS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
 
 if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
-    echo "ERROR: --model invalid specification."
-    echo "Minimap2 default model is ${DEFAULT_MOD}."
-    echo "Available models are $(echo "${MODS[@]}")"
-    echo "WARNING, changing minimap2 alignment model will have strong repercussion on data treatment."
-    echo "Use this option carefully. Please read minimap2 documentation."
+    echo 'ERROR: --model invalid specification.'
+    echo 'Minimap2 default model is ${DEFAULT_MOD}.'
+    echo 'Available models are $(echo '${MODS[@]}')'
+    echo 'WARNING, changing minimap2 alignment model will have strong repercussion on data treatment.'
+    echo 'Use this option carefully. Please read minimap2 documentation.'
+    exit 1
+fi
+
+#***************************************************************************************************************************
+# Check if provided fasttree model is correct
+F_MODS=("gtr" "gamma" "map-pb" "wag" "lg" "fastest")
+
+if [[ ! " ${F_MODS[@]} " =~ " ${F_MODS} " ]]; then
+    echo 'ERROR: --fastree-model invalid specification.'
+    echo 'FastTree default model is "${DEFAULT_FASTTREE_MOD}".'
+    echo 'Available models are $(echo "${F_MODS[@]}")'
     exit 1
 fi
 
