@@ -180,7 +180,7 @@ if(R_CLEANING == 1){
   NanoASV <- phyloseq::subset_taxa(NanoASV, Order != "Chloroplast")
   ##Taxonomy cleaning ----
   #After those functions, there is no more taxa with mixed up names so we can remove supp fields of taxa table
-  tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
+  tax_table(NanoASV) <- phyloseq::tax_table(NanoASV)[,1:7]
 }
 
 #Phyloseq export ----
