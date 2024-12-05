@@ -210,10 +210,10 @@ rule export_results:
         if [ {TREE} -eq 1 ]; then
             cp tmp_files/08_phylogeny/ASV.tree {OUT}/Results/Phylogeny/
         fi
-        if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters." ]; then
+        if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv" ]; then
             cp tmp_files/07_unknown_sequences_clustering/* {OUT}/Results/Unknown_clusters/
         fi
-
+        
         touch {output}
         """
 
@@ -228,4 +228,3 @@ rule phyloseq:
         Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 2> /dev/null
         touch {output}
         """
-
