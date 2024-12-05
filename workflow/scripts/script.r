@@ -20,7 +20,7 @@ metadata <- read.csv(paste0(METADATA,"/metadata.csv"), row.names = 1, header = T
 barcodes <- rownames(metadata)
 
 if (TREE ==1){
-  ASV.tree <- read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
+  ASV.tree <- ape::read.tree(paste0(OUTPWD, "/Results/Phylogeny/ASV.tree"))
 }
 
 ##Unknown OTUs ----
