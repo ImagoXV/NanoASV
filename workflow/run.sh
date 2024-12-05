@@ -254,7 +254,46 @@ if [[ ! " ${F_MODS[@]} " =~ " ${F_MODS} " ]]; then
     exit 1
 fi
 
+#***************************************************************************************************************************
+#Ensure database exists
+if [ ! -s  "${DATABASE}" ]; then
+    echo "No reference file found at ${DATABASE}. If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location."
+    exit 1
+fi
+#***************************************************************************************************************************
+#Checking reference dataset fits to requirements
+echo 'Checking reference format'
+#Check if sequences contain uniq ID before taxonomy
+if ! grep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
+    cat "$NANOASV_PATH/config/requirements.txt"
+        echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
+        Keep in mind that those uniq ID will not be consistent from one run to another.\n\
+        If you like your reference dataset this way, save it from tmp_files before deleting:'tmp_files/CORRECT_HEADER_reference.fasta'\n\
+        For better practice, we advise you to add one yourself.\n\
+        Formatting will take a while ..."
 
+    while IFS= read -r line; do
+    if [[ $line == ">"* ]]; then
+        uuid=$(uuidgen)
+        echo ">${uuid} ${line:1}" >> tmp_files/CORRECT_HEADER_reference.fasta
+    else #Manage singleleaved and interleaved fasta file
+        echo "$line" >> tmp_files/CORRECT_HEADER_reference.fasta
+    fi
+    done < ${DATABASE}
+    DATABASE=tmp_files/CORRECT_HEADER_reference.fasta
+fi
+# Ensure reference file is singleleaved fasta
+if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]]; then
+    LINES=$(zcat -f "${DATABASE}" | wc -l)
+    SEQS=$(zgrep -c "^>" "${DATABASE}") 
+    if [[ $LINES -ne $(( SEQS * 2 )) ]]; then
+        echo 'Interleaved reference fasta file - Formating.'
+        zcat $DATABASE | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > tmp_files/SINGLELINE_reference.fasta
+        DATABASE=tmp_files/SINGLELINE_reference.fasta
+    fi
+fi
+
+#***************************************************************************************************************************
 #Run the pipeline
 
 snakemake -"${DRY}"p --cores "${NUM_PROCESSES}" -s "${NANOASV_PATH}"/workflow/snakefile \
