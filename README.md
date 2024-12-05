@@ -1,6 +1,8 @@
 ![Logo](config/NanoASV_logo.png)
 
-# NanoASV
+# NanoASV Aarch64 - Minion MK1C version
+
+This branch 
 
 NanoASV is a conda environment snakemake based workflow using state of
 the art bioinformatic softwares to process full-length SSU rRNA
@@ -136,7 +138,7 @@ environment. Otherwise you'll run into issues.
 ```sh
 cd /data/
 git clone \
-    --branch origin/aarch64-MK1C-conda \
+    --branch aarch64-MK1C-conda \
     --single-branch https://github.com/ImagoXV/NanoASV.git
 cd ./NanoASV/
 conda deactivate
