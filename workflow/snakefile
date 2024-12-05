@@ -62,7 +62,7 @@ rule sequence_quality_filtering:
     output:
         temporary("tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz")
     shell:
-        "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} -i {input} | gzip > {output}"
+        "$NANOASV_PATH/config/chopper -q {QUAL} -l {MINL} --maxlength {MAXL} -i {input} | gzip > {output}"
 
 
 # Step 4/9 : Trim adapaters with Porechop
