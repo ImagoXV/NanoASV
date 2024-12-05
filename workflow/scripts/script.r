@@ -175,9 +175,9 @@ phyloseq::phy_tree(NanoASV) <- phyloseq::phy_tree(ASV.tree)
 ##Dataset cleaning ----
 #Delete bad entries such as Eukaryota, Cyanobacteria and Archea if any
 if(R_CLEANING == 1){
-  NanoASV <- subset_taxa(NanoASV, Kingdom != "Eukaryota")
-  NanoASV <- subset_taxa(NanoASV, Family != "Mitochondria")
-  NanoASV <- subset_taxa(NanoASV, Order != "Chloroplast")
+  NanoASV <- phyloseq::subset_taxa(NanoASV, Kingdom != "Eukaryota")
+  NanoASV <- phyloseq::subset_taxa(NanoASV, Family != "Mitochondria")
+  NanoASV <- phyloseq::subset_taxa(NanoASV, Order != "Chloroplast")
   ##Taxonomy cleaning ----
   #After those functions, there is no more taxa with mixed up names so we can remove supp fields of taxa table
   tax_table(NanoASV) <- tax_table(NanoASV)[,1:7]
