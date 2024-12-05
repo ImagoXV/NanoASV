@@ -41,81 +41,12 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 ```
 
 
-# Installation with Conda
-
-(to install NanoASV on Oxford Nanopore MK1C sequencing devices, see
-section [ONT MK1C Installation](#ont-mk1c-installation))
-
-Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git):
-
-```sh
-cd ${HOME}
-git clone https://github.com/ImagoXV/NanoASV.git
-```
-
-Run the installation script:
-
-```sh
-bash ${HOME}/NanoASV/config/install.sh
-```
-
-Then activate the environment:
-
-```sh
-conda activate NanoASV
-```
-
-Don't forget to activate the environment before running `nanoasv`. It
-will not work otherwise.
-
-## Database setup
-
-NanoASV can be used with any reference fasta file. If you want to have
-a broad idea of your community taxonomy, we recommend you to use
-latest [Silva](https://www.arb-silva.de/).
-
-Download the database and put it in `./resources/`:
-
-```sh
-RELEASE=138.2
-URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
-INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
-OUTPUT="SINGLELINE_${INPUT/_NR99/}"
-FOLDER="resources"
-
-mkdir -p "${FOLDER}"
-
-echo "downloading and formating SILVA reference, this will take a few minutes."
-wget --output-document - "${URL}/${INPUT}" | \
-    gunzip --stdout | \
-    awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
-    gzip > "./${FOLDER}/${OUTPUT}"
-
-unset RELEASE URL INPUT OUTPUT
-```
-
-## Test your installation
-
-### With a dry run
-
-```sh
-nanoasv --dry-run
-```
-
-### With mock dataset
-
-```sh
-nanoasv --mock
-```
-
-You can inspect NanoASV's output structure in `./Mock_run_OUPUT/`.
-
 
 # ONT MK1C Installation
 
 You need to use the [aarch64-MK1C](https://github.com/ImagoXV/NanoASV/tree/aarch64-MK1C-conda) branch, **otherwise, it will not work.**
 
-You need to install
+You first need to install
 [miniconda](https://docs.anaconda.com/miniconda/). Note that `/data/`
 will be used for installation for storage capacity matters.
 
