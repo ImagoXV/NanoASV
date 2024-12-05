@@ -2,3 +2,5 @@
 *.sh linguist-language=Shell
 *.r linguist-language=R
 snakefile linguist-language=Snakemake
+*.html linguist-vendored=true
+*.html linguist-detectable=false
