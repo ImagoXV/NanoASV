@@ -316,6 +316,7 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
         FASTTREE_MOD=$FASTTREE_MOD \
         SAMQ=$SAMQ
 
+#***************************************************************************************************************************
 #Run phyloseq
 touch tmp_files/env.var
 echo "#/bin/bash\n" >> tmp_files/env.var
