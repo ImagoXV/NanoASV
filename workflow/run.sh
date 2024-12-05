@@ -175,7 +175,12 @@ METADATA="${METADATA:-$DEFAULT_METADATA}"
 MINAB="${MINAB:-$DEFAULT_MINAB}"
 TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 MOD="${MOD:-$DEFAULT_MOD}"
+DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
+RERUN="${RERUN:-$DEFAULT_RERUN}"
+FASTTREE_MOD="${FASTTREE_MOD:-$DEFAULT_FASTTREE_MOD}"
+SAMQ="${SAMQ:-$DEFAULT_SAMQ}"
 
+mkdir -p tmp_files 
 #***************************************************************************************************************************
 # Check if DIR is empty and no default value is provided
 if [[ -z $DIR ]]; then
