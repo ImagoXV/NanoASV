@@ -110,6 +110,24 @@ while [[ $# -gt 0 ]]; do
             shift
             shift
             ;;
+                    --rerun-incomplete)
+            RERUN="--rerun-incomplete"
+            shift
+            ;;
+        --unlock)
+            UNLK="--unlock"
+            shift
+            ;;
+        --fasttree-model)
+            FASTTREE_MOD="$2"
+            shift
+            shift
+            ;;
+        --sam-qual)
+            SAMQ="$2"
+            shift
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             cat $NANOASV_PATH/config/help.txt
