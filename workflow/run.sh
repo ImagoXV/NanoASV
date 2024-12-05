@@ -129,7 +129,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            echo 'Unknown option: $1'
+            echo 'Unknown option:' $1
             cat $NANOASV_PATH/config/help.txt
             exit 1
             shift
