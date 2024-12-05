@@ -296,7 +296,7 @@ fi
 #***************************************************************************************************************************
 #Run the pipeline
 
-snakemake -"${DRY}"p --cores "${NUM_PROCESSES}" -s "${NANOASV_PATH}"/workflow/snakefile \
+snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
@@ -312,7 +312,9 @@ snakemake -"${DRY}"p --cores "${NUM_PROCESSES}" -s "${NANOASV_PATH}"/workflow/sn
         METADATA=$METADATA \
         DATABASE=$DATABASE \
         NANOASV_PATH=$NANOASV_PATH \
-        MOD=$MOD
+        MOD=$MOD \
+        FASTTREE_MOD=$FASTTREE_MOD \
+        SAMQ=$SAMQ
 
 #Run phyloseq
 touch tmp_files/env.var
