@@ -7,16 +7,22 @@ MINAB=config["MINAB"]
 SUBSAMPLING=config["SUBSAMPLING"]
 NUM_PROCESSES=config["NUM_PROCESSES"]
 TREE=config["TREE"]
-# R_STEP_ONLY=config["R_STEP_ONLY"]
 METADATA=config["METADATA"]
 DATABASE=config["DATABASE"]
 OUT=config["OUT"]
 INPUT_DIR=config["INPUT_DIR"]
 NANOASV_PATH=config["NANOASV_PATH"]
 MOD=config["MOD"]
+FASTTREE_MOD=config["FASTTREE_MOD"]
+SAMQ=config["SAMQ"]
 
 INPUT = glob_wildcards(INPUT_DIR+"/{barcode}/{FASTQ_FILE}.fastq.gz")
-DATABASE_NAME = DATABASE.split("/")[-1].split(".fasta")[0]
+
+DATABASE_NAME = DATABASE.split("/")[-1]
+if DATABASE_NAME.endswith(".fasta.gz"):
+    DATABASE_NAME = DATABASE_NAME[:-9]  
+elif DATABASE_NAME.endswith(".fasta"):
+    DATABASE_NAME = DATABASE_NAME[:-6]  
 
 
 
