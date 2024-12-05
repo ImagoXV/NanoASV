@@ -147,9 +147,9 @@ physeq_list <- list()
 
 for (i in 1:length(temp_ASV)) {
   # Create the phyloseq object
-  physeq_object <- phyloseq(otu_table(temp_ASV[[i]], taxa_are_rows = TRUE), 
-                            tax_table(as.matrix(temp_TAX[[i]])), 
-                            sample_data(metadata))
+  physeq_object <- phyloseq::phyloseq(phyloseq::otu_table(temp_ASV[[i]], taxa_are_rows = TRUE), 
+                            phyloseq::tax_table(as.matrix(temp_TAX[[i]])), 
+                            phyloseq::sample_data(metadata))
   
   # Get the name from the barcodes vector
   barcode_name <- barcodes[i]
