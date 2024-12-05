@@ -164,7 +164,7 @@ NanoASV <- phyloseq::merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])
 # If more than 2 samples, then, adding them all together
 if (length(physeq_list) > 2) {
   for (i in 3:length(physeq_list)) {
-    NanoASV <- merge_phyloseq(NanoASV, physeq_list[[i]])
+    NanoASV <- phyloseq::merge_phyloseq(NanoASV, physeq_list[[i]])
   }
 }
 
