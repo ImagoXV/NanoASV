@@ -70,8 +70,8 @@ while [[ $# -gt 0 ]]; do
             TMP_FILES=0
             shift
             ;;
-        -v|--version)
-            echo "NanoASV 1.0 - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and "
+       -v|--version)
+            echo 'NanoASV 1.1 - Conda-x-Snakemake - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and Ulysse Guyet '
             exit
             shift
             ;;
