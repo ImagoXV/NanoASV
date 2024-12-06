@@ -39,7 +39,7 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | `--requirements`     | Flag - To display personal reference fasta requirements              |
 | `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
 | `--mock`             | Flag - Run mock dataset with NanoASV                                 |
-| `--remove-tmp`       |To remove tmp data after execution. No snakemake resume option if set.|
+| `--remove-tmp`       | Remove tmp data after execution. No snakemake resume option if set.  |
 ```
 
 
