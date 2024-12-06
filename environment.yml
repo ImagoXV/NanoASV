@@ -136,7 +136,7 @@ dependencies:
   - numexpr=2.10.1=py312hd351863_0
   - numpy=1.26.4=py312hdb1dca2_0
   - numpy-base=1.26.4=py312h6f96b8b_0
-  - openssl=3.3.2=h86ecc28_0
+  - openssl=3.4.0=h86ecc28_0
   - packaging=24.1=py312hd43f75c_0
   - pandas=2.2.2=py312h0f5fa8b_0
   - pango=1.50.7=h6d71842_0
