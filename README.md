@@ -1,8 +1,10 @@
-![Logo](config/NanoASV_logo.png)
+![Logo](config/NanoASV_logo_aarch64.png)
 
 # NanoASV Aarch64 - Minion MK1C version
 
-This branch 
+This branch allows you to install NanoASV on your MK1C sequencing device. This can help you pre-treat data in complex situations. In-field sequencing and adaptive strategy. 
+
+Please open an issue for questions and bugs.
 
 NanoASV is a conda environment snakemake based workflow using state of
 the art bioinformatic softwares to process full-length SSU rRNA
