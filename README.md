@@ -250,8 +250,8 @@ Can be modified with `--subsampling int`
 ## Alignment
 
 `minimap2` will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
-Can be executed in parallel (default `--num-process 1`)
-`barcode*_abundance.tsv`, `Taxonomy_barcode*.csv` and `barcode*_exact_affiliations.tsv` like files are produced.
+Can be executed in parallel (default `--num-process 1`). Default minimap2 alignement model is map-ont. This can be changed with --model option. Avalaible options are `map-ont map-hifi map-pb asm5 asm10 asm20 splice splice:hq ava-pb ava-ont`. Changin minimap2 model will have heavy consequences on your treatment. We recommend you to check Benchmark section.
+Individual barcode abundance: `barcode*_abundance.tsv`, Taxonomy: `Taxonomy_barcode*.csv` and `barcode*_exact_affiliations.tsv` files are produced by NanoASV. Those files are then used to create the final phyloseq object. 
 Those files can be found in the `./Results/` directory.
 
 ## Unknown sequences clustering
@@ -263,7 +263,7 @@ Outputs into `./Results/Unknown_clusters`
 ## Phylogenetic tree generation
 
 Reference ASV sequence from fasta reference file are extracted accordingly to detected entities.
-Unknown OTUs seed sequence are added. The final file is fed to FastTree to produce a tree file
+Unknown OTUs seed sequence are added. The final file is fed to FastTree (default `--fastest`) to produce a tree file.
 Tree file is then implemented into the final phyloseq object.
 This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical estimation of the entity.
 This step can be avoided with the `--notree` option.
@@ -274,6 +274,40 @@ Alignments results, taxonomy, clustered unknown entities and 16S based phylogeny
 Please refer to the `metadata.csv` file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using `--r_cleaning 0`
 A CSV file encompassing taxonomy and abundance is produced as well and stored into `./Results/CSV`.
+
+# Benchmark
+
+## Nygaard dataset
+
+We ran (Nygaard et al. 2020) dataset with three different software solution : SituSeq (Zorz et al. 2023), Nygaard manual pipeline (Nygaard et al. 2020) and NanoASV. It should be noted that NanoASV is the only one that outputs a phyloseq (McMurdie and Holmes 2013) object. The two others require manual file manipulation to achieve the same results. NanoASV can natively output a 16S phylogeny thanks to MAFFT (Katoh and Standley 2013) and FastTree (Price, Dehal, and Arkin 2009). The same reference dataset was used in each pipeline : DADA2 maintained training set silva_nr99_v138.1_train_set.fa. We made this choice as it was the easiest reference to use with SituSeq. Random UUID were assigned to each reference sequence to make it work with NanoASV. 
+
+### Alpha Diversity
+
+![Alpha](config/Figs/Benchmark_alpĥa.png)
+
+We see above in [alpha diversity figure](#Alpha) that NanoASV and Nygaard pipeline outputs show similar trends in matter of numerical richness and Shannon index. Despite lower values, the same trends are observed with SituSeq. This is shown in the following [correlation matrix](#Corr).
+
+![Corr](config/Figs/Alpha_div_corr_matrix.png)
+
+### Taxonomic profile
+
+![Taxo](config/Figs/Pipelines_Genus_composition.jpg)
+
+We see with above [taxonomical profile](#Taxo) that Genus level taxonomical profile looks very similar between NanoASV and Nygaard pipeline. SituSeq had difficulies recovering a precise taxonomical profile with unassigned sequences representing 59 to 97% of a sample total taxonomical assignments. While NanoASV and Nygaard pipelines both assigned 100% of sequences against the silva_nr99_v138.1_train_set.fa reference dataset. A Mantel test (vegan::mantel() with 999 permutations) was performed to compare different pipelines Bray-Curtis dissimilarity matrices. NanoASV and Nygaard pipeline showed high similarity (Mantel statistic r: 0.8735 – Significance: 0.001). NanoASV and SituSeq showed about half this value (Mantel statistic r: 0.5459 – Significance: 0.005). Nygaard and SituSeq showed the lowest similarity (Mantel statistic r: 0.3464 – Significance: 0.021)
+
+### Pipeline Specs comparisons
+
+![Specs](config/Figs/Nice_table_screen.png)
+
+
+Specs on personal computer were obtained with `usr/bin/time -v`  : Max Resident Set Size. On slurm cluster, maximum resident size was obtained through slurm command sacct. Multi-threaded jobs can be hard to track for memory consumption. Peak memory values are probably underestimated. 
+[Specs table](#Specs) shows that NanoASV is faster and more memory efficient than Nygaard pipeline and SituSeq.
+
+## Benchmark conclusion
+
+SituSeq showed to be very different in term of output when compared to Nygaard pipeline and NanoASV. SituSeq did not recover an extensive taxonomical profile , but global trends still similar. 
+NanoASV shows very similar trends as Nygaard pipeline, in matter of alpha diversity and taxonomical profile. NanoASV appeared around 6 times faster and more memory efficient than Nygaard manual pipeline.
+
 
 ## Acknowledgments
 
