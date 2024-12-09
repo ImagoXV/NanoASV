@@ -18,7 +18,8 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | -------------------- | ---------------------------------------------------------------------|
 | `-h`, `--help`       | Show help message                                                    |
 | `-v`, `--version`    | Show version information                                             |
-| `-d`, `--dir`        | Path to demultiplexed barcodes                                       |           |
+| `-d`, `--dir`        | Path to demultiplexed barcodes                                       |           
+| `-o`, `--out`        | Path for output directory                                            |
 | `-db`, `--database`  | Path to reference fasta file                                         |
 | `-q`, `--quality`    | Quality threshold for Chopper, default: 8                            |
 | `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                   |
@@ -214,6 +215,9 @@ snakemake \
 -->
 
 # How NanoASV works
+
+![Workflow](config/workflow.png)
+
 
 ## Data preparation
 
