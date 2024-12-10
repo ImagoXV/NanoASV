@@ -250,7 +250,7 @@ Can be modified with `--subsampling int`
 ## Alignment
 
 `minimap2` will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
-Can be executed in parallel (default `--num-process 1`). Default minimap2 alignement model is map-ont. This can be changed with --model option. Avalaible options are `map-ont map-hifi map-pb asm5 asm10 asm20 splice splice:hq ava-pb ava-ont`. Changin minimap2 model will have heavy consequences on your treatment. We recommend you to check Benchmark section.
+Can be executed in parallel (default `--num-process 1`). Default minimap2 alignement model is map-ont. This can be changed with --model option. Avalaible options are `map-ont map-hifi map-pb asm5 asm10 asm20 splice splice:hq ava-pb ava-ont`. Changing minimap2 model will have heavy consequences on your treatment. We recommend you to check NanoASV Supplementary materials.
 Individual barcode abundance: `barcode*_abundance.tsv`, Taxonomy: `Taxonomy_barcode*.csv` and `barcode*_exact_affiliations.tsv` files are produced by NanoASV. Those files are then used to create the final phyloseq object. 
 Those files can be found in the `./Results/` directory.
 
@@ -308,6 +308,13 @@ Specs on personal computer were obtained with `usr/bin/time -v`  : Max Resident 
 SituSeq showed to be very different in term of output when compared to Nygaard pipeline and NanoASV. SituSeq did not recover an extensive taxonomical profile , but global trends still similar. 
 NanoASV shows very similar trends as Nygaard pipeline, in matter of alpha diversity and taxonomical profile. NanoASV appeared around 6 times faster and more memory efficient than Nygaard manual pipeline.
 
+## Benchmarking Bibliography
+
+- Katoh, K., and D. M. Standley. 2013. “MAFFT Multiple Sequence Alignment Software Version 7: Improvements in Performance and Usability.” Molecular Biology and Evolution 30 (4): 772–80. https://doi.org/10.1093/molbev/mst010.
+- McMurdie, Paul J., and Susan Holmes. 2013. “Phyloseq: An R Package for Reproducible Interactive Analysis and Graphics of Microbiome Census Data.” Edited by Michael Watson. PLoS ONE 8 (4): e61217. https://doi.org/10.1371/journal.pone.0061217.
+**- Nygaard, Anders B., Hege S. Tunsjø, Roger Meisal, and Colin Charnock. 2020. “A Preliminary Study on the Potential of Nanopore MinION and Illumina MiSeq 16S rRNA Gene Sequencing to Characterize Building-Dust Microbiomes.” Scientific Reports 10 (1): 3209. https://doi.org/10.1038/s41598-020-59771-0.**
+- Price, M. N., P. S. Dehal, and A. P. Arkin. 2009. “FastTree: Computing Large Minimum Evolution Trees with Profiles Instead of a Distance Matrix.” Molecular Biology and Evolution 26 (7): 1641–50. https://doi.org/10.1093/molbev/msp077.
+- Zorz, Jackie, Carmen Li, Anirban Chakraborty, Daniel A Gittins, Taylor Surcon, Natasha Morrison, Robbie Bennett, Adam MacDonald, and Casey R J Hubert. 2023. “SituSeq : An Offline Protocol for Rapid and Remote Nanopore 16S rRNA Amplicon Sequence Analysis.” ISME Communications 3 (1): 33. https://doi.org/10.1038/s43705-023-00239-3.
 
 ## Acknowledgments
 
