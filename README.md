@@ -80,7 +80,7 @@ RELEASE=138.2
 URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
 INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
 OUTPUT="SINGLELINE_${INPUT/_NR99/}"
-FOLDER="resources"
+FOLDER="${HOME}/NanoASV/resources"
 
 mkdir -p "${FOLDER}"
 
@@ -293,7 +293,9 @@ We see above in [alpha diversity figure](#Alpha) that NanoASV and Nygaard pipeli
 
 ![Taxo](config/Figs/Pipelines_Genus_composition.jpg)
 
-We see with above [taxonomical profile](#Taxo) that Genus level taxonomical profile looks very similar between NanoASV and Nygaard pipeline. SituSeq had difficulies recovering a precise taxonomical profile with unassigned sequences representing 59 to 97% of a sample total taxonomical assignments. While NanoASV and Nygaard pipelines both assigned 100% of sequences against the silva_nr99_v138.1_train_set.fa reference dataset. A Mantel test (vegan::mantel() with 999 permutations) was performed to compare different pipelines Bray-Curtis dissimilarity matrices. NanoASV and Nygaard pipeline showed high similarity (Mantel statistic r: 0.8735 – Significance: 0.001). NanoASV and SituSeq showed about half this value (Mantel statistic r: 0.5459 – Significance: 0.005). Nygaard and SituSeq showed the lowest similarity (Mantel statistic r: 0.3464 – Significance: 0.021)
+We see with above [taxonomical profile](#Taxo) that Genus level taxonomical profile looks very similar between NanoASV and Nygaard pipeline. SituSeq had difficulies recovering a precise taxonomical profile with unassigned sequences representing 59 to 97% of a sample total taxonomical assignments (Any taxonomical level considered). While NanoASV and Nygaard pipelines both assigned 100% of sequences against the silva_nr99_v138.1_train_set.fa reference dataset. A Mantel test (vegan::mantel() with 999 permutations) was performed to compare different pipelines Bray-Curtis dissimilarity matrices. NanoASV and Nygaard pipeline showed high similarity (Mantel statistic r: 0.8735 – Significance: 0.001). NanoASV and SituSeq showed about half this value (Mantel statistic r: 0.5459 – Significance: 0.005). Nygaard and SituSeq showed the lowest similarity (Mantel statistic r: 0.3464 – Significance: 0.021).
+
+
 
 ### Pipeline Specs comparisons
 
