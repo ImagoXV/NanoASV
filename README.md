@@ -88,7 +88,7 @@ echo "downloading and formating SILVA reference, this will take a few minutes."
 wget --output-document - "${URL}/${INPUT}" | \
     gunzip --stdout | \
     awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
-    gzip > "./${FOLDER}/${OUTPUT}"
+    gzip > "${FOLDER}/${OUTPUT}"
 
 unset RELEASE URL INPUT OUTPUT
 ```
