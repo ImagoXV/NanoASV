@@ -80,7 +80,7 @@ RELEASE=138.2
 URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
 INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
 OUTPUT="SINGLELINE_${INPUT/_NR99/}"
-FOLDER="resources"
+FOLDER="${HOME}/NanoASV/resources"
 
 mkdir -p "${FOLDER}"
 
