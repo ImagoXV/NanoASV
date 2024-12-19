@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 cd ~/NanoASV
 conda env create --file environment.yml
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
