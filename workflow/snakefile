@@ -51,7 +51,13 @@ rule concatenate_fastq_files:
     output:
         temporary("tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz")
     shell:
-        "cat {input}/*fastq.gz > {output}"
+        """
+        if ls {input}/*.fastq 1> /dev/null 2>&1; then
+            (gzip -c {input}/*.fastq 2>/dev/null; cat {input}/*.fastq.gz 2>/dev/null) > {output}
+        else
+            cat {input}/*.fastq.gz > {output}
+        fi
+        """
 
 
 # Step 3/9 : Filtering sequences based on quality with Chopper
