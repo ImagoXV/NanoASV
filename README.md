@@ -307,12 +307,12 @@ Most useful files for ecological analyses in NanoASV's output are `Results/Rdata
 `Unknown_clusters/` contains one fasta file containing the clusters consensus sequences. Those are the sequences used in the 16S phylogeny. `unknown_clusters.tsv` is the abundance table produced by vsearch and used in the phyloseq object generation. 
 
 Exact affiliations files are encompassing individual reads assignments, associated samflag and mapping quality (MapQ). 
-`Header = ReadID SamFlag AssignementID   MapQ value`
+`Header = Read ID - Sam Flag - Assignement ID -  MapQ value`
 This file is useful if you suspect strange assignement with your dataset. It allows you to have an idea of the confidence behing assignement. Both in term of alignement sam flag and MapQ. **Please note that MapQ is not an average nucleotide identity (ANI)**. 
 
-`Results/Phylogeny/ASV.tree`8 is the FastTree newick format generated full length 16S tree.
+`Results/Phylogeny/ASV.tree` is the FastTree newick format generated full length 16S tree.
 
-`Results/ASV/` and `Results/Tax/` are intermediate, individual barcode abundance table. Those files are not meant to be used directly bu are phyloseq basis to produce the `Rdata` formated object. Those files are useful only if you have to rebuild the phyloseq object by yourself. In any case, they do not hide data that would be absent from nor phyloseq object nor the CSV file.
+`Results/ASV/` and `Results/Tax/` are intermediate, individual barcode abundances and taxonomy tables. Those files are not meant to be used directly bu are phyloseq basis to produce the `Rdata` formated object. Those files are useful only if you have to rebuild the phyloseq object by yourself. In any case, they do not hide data that would be absent from nor phyloseq object nor the CSV file.
 
 # Benchmark
 
