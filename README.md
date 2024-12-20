@@ -310,7 +310,7 @@ Exact affiliations files are encompassing individual reads assignments, associat
 `Header = ReadID SamFlag AssignementID   MapQ value`
 This file is useful if you suspect strange assignement with your dataset. It allows you to have an idea of the confidence behing assignement. Both in term of alignement sam flag and MapQ. **Please note that MapQ is not an average nucleotide identity (ANI)**. 
 
-`Results/Phylogeny/ASV.tree`8 is the FastTree newick format generated full length 16S tree.
+`Results/Phylogeny/ASV.tree` is the FastTree newick format generated full length 16S tree.
 
 `Results/ASV/` and `Results/Tax/` are intermediate, individual barcode abundance table. Those files are not meant to be used directly bu are phyloseq basis to produce the `Rdata` formated object. Those files are useful only if you have to rebuild the phyloseq object by yourself. In any case, they do not hide data that would be absent from nor phyloseq object nor the CSV file.
 
