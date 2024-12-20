@@ -275,6 +275,45 @@ Please refer to the `metadata.csv` file in Minimal dataset to be sure to input t
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using `--r_cleaning 0`
 A CSV file encompassing taxonomy and abundance is produced as well and stored into `./Results/CSV`.
 
+## Output structure
+
+```
+OUTPUT/
+└── Results
+    ├── ASV
+    │   ├── barcode01_abundance.tsv
+    │   └── barcode02_abundance.tsv
+    ├── CSV
+    │   └── Taxonomy-Abundance_table.csv
+    ├── Exact_affiliations
+    │   ├── barcode01_Exact_affiliations.tsv
+    │   └── barcode02_Exact_affiliations.tsv
+    ├── Phylogeny
+    │   └── ASV.tree
+    ├── Rdata
+    │   └── NanoASV.rdata
+    ├── Tax
+    │   ├── Taxonomy_barcode01.csv
+    │   └── Taxonomy_barcode02.csv
+    └── Unknown_clusters
+        ├── Consensus_seq_OTU.fasta
+        └── unknown_clusters.tsv
+```
+
+Most useful files for ecological analyses in NanoASV's output are `Results/Rdata/NanoASV.rdata` and `Results/CSV/Taxonomy-Abundance_table.csv`. 
+- The `Rdata` formated phyloseq object encompassing Abundance and taxonomy tables, Full length 16S based phylogeny and sample metadata. It is fully compatible with phyloseq R package. 
+- The `Taxonomy-Abundance_table.csv` file is the needed data to make analysis with spreadsheet software (Calc, Excel, etc.). 
+
+`Unknown_clusters/` contains one fasta file containing the clusters consensus sequences. Those are the sequences used in the 16S phylogeny. `unknown_clusters.tsv` is the abundance table produced by vsearch and used in the phyloseq object generation. 
+
+Exact affiliations files are encompassing individual reads assignments, associated samflag and mapping quality (MapQ). 
+`Header = ReadID SamFlag AssignementID   MapQ value`
+This file is useful if you suspect strange assignement with your dataset. It allows you to have an idea of the confidence behing assignement. Both in term of alignement sam flag and MapQ. **Please note that MapQ is not an average nucleotide identity (ANI)**. 
+
+`Results/Phylogeny/ASV.tree`8 is the FastTree newick format generated full length 16S tree.
+
+`Results/ASV/` and `Results/Tax/` are intermediate, individual barcode abundance table. Those files are not meant to be used directly bu are phyloseq basis to produce the `Rdata` formated object. Those files are useful only if you have to rebuild the phyloseq object by yourself. In any case, they do not hide data that would be absent from nor phyloseq object nor the CSV file.
+
 # Benchmark
 
 ## Nygaard dataset
