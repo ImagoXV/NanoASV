@@ -359,7 +359,7 @@ NanoASV shows very similar trends as Nygaard pipeline, in matter of alpha divers
 
 ## Acknowledgments
 
-We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and energy with NanoASV beta testing!
+We are grateful to the genotoul bioinformatics platform Toulouse Occitanie (Bioinfo Genotoul, https://doi.org/10.15454/1.5572369328961167E12) for providing help, computing and storage resources. We deeply thank Enrique Ortega for its valuable contribution in the very first steps of the project. We deeply thank Antoine Cousson, Fiona Elmaleh and Meren for their role in software beta testing.
 
 ## Citation
 
@@ -402,3 +402,8 @@ Peplies, and Frank Oliver Glöckner. 2012. “The SILVA Ribosomal RNA Gene Datab
 Project: Improved Data Processing and Web-Based Tools.” Nucleic Acids Research 41 (D1): D590–96. https://doi.org/10.1093/nar/gks1219.
 
 Rognes, Torbjørn, Tomáš Flouri, Ben Nichols, Christopher Quince, and Frédéric Mahé. 2016. “VSEARCH: A Versatile Open Source Tool for Metagenomics.” PeerJ 4 (October): e2584. https://doi.org/10.7717/peerj.2584.
+
+## Funding
+
+The PhD grant that allowed this production is a Contrat Doctoral Spécifique Normalien (CDSN) granted by the École Normale Supérieure de Paris and the French Ministère de l’Enseignement Supérieur et de la Recherche. The present work was also funded by the French National Institute of Research for Development (IRD). This project was financially supported by ANR under the framework of the U2 Worm project (ANR-20-CE01-0015-01), and under the Investissements d’Avenir programme with the reference ANR-10-LABX-001-01 Labex Agro and coordinated by Agropolis Fondation, under the framework of the Innov’Earth Project (convention 2101-003) and the MetaCast project (convention 2202-214).
+
