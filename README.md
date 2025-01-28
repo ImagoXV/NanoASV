@@ -218,15 +218,12 @@ snakemake \
 
 ![Workflow](config/workflow.png)
 
+**NB: NanOASV is able to handle a single barcode experiment. It still needs a metadata file with two lines (header and data). Results will be produced as a one sample phyloseq object and a classical CSV for quick lookup.**
 
 ## Data preparation
 
 Directly input your `/path/to/sequence/data/fastq_pass` directory
 4000 sequences `fastq.gz` files are concatenated by barcode identity to make one `barcodeXX.fastq.gz` file.
-
-### Single barcode experiment
-
-Note that NanOASV is able to handle a single barcode experiment. It still needs a metadata file with two lines (header and data). Results will be produced as a one sample phyloseq object and a classical CSV for quick lookup.
 
 ## Filtering
 
