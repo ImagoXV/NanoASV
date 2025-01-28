@@ -52,3 +52,4 @@ Both the following are valid examples :
     UUAACCUUCGGGAGGGCGCUUACCACUUUGUGAUUCAUGACUGGGGUGAAGUCGUAACAAGGUAACCGUAGGGGAACCUG
     CGGUUGGAUCACCUCCUU
 
+An error arose with your input data. Please read carefully the above message before trying again.
