@@ -221,7 +221,7 @@ fi
      tail -n +2 | \
      while read sample_name ; do
          [[ -d ${sample_name} ]] || \
-             { echo 'ERROR, ${sample_name} not found. Please check metadata.csv and barcodes directories' ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
+             { echo 'ERROR,' ${sample_name} 'sequences not found. Please check metadata.csv and barcodes directories' ; cat $NANOASV_PATH/config/requirements.txt ; exit 1 ; }
      done
 
  #Check if number of fields is consistent is consistent accross all number of lines
