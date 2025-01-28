@@ -157,16 +157,23 @@ for (i in 1:length(temp_ASV)) {
   physeq_list[[barcode_name]] <- physeq_object
 }
 
-i<-1 #Reset the incrementation
-#Initialize the phyloseq object
-NanoASV <- phyloseq::merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])
-
-# If more than 2 samples, then, adding them all together
-if (length(physeq_list) > 2) {
-  for (i in 3:length(physeq_list)) {
-    NanoASV <- phyloseq::merge_phyloseq(NanoASV, physeq_list[[i]])
+if (length(physeq_list) > 1) {
+  
+  i<-1 #Reset the incrementation
+  #Initialize the phyloseq object
+  NanoASV <- phyloseq::merge_phyloseq(physeq_list[[i]], physeq_list[[i + 1]])
+  
+  # If more than 2 samples, then, adding them all together
+  if (length(physeq_list) > 2) {
+    for (i in 3:length(physeq_list)) {
+      NanoASV <- phyloseq::merge_phyloseq(NanoASV, physeq_list[[i]])
+    }
   }
+} else {
+  #If only one sample, it's first object of the list.
+  NanoASV <- physeq_list[[1]]
 }
+
 
 ##Phylogeny ----
 if(TREE == 1){
