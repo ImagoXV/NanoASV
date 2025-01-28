@@ -4,6 +4,7 @@
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda init 2> /dev/null 1> /dev/null
 conda activate NanoASV
+set -e
 # Read the arguments passed to the script
 while [[ $# -gt 0 ]]; do
     key="$1"
