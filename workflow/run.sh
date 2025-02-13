@@ -197,11 +197,35 @@ if [[ -z $OUT ]]; then
     exit 1
 fi
 
+#Check if DIR has canonical structure
+
+if [[ -d "$DIR"/barcode* ]]; then
+    echo "Found barcode directories in $DIR"
+elif [[ -n $(ls "$DIR"/*.fastq.gz "$DIR"/*.fastq 2>/dev/null) ]]; then
+    echo "Found fastq files in $DIR. Formatting tmp file structure. Please prefer a barcodeXX directory structure"
+    
+    TMP_BARCODES="tmp_files/barcodes/"
+    mkdir -p "$TMP_BARCODES/barcode01"
+
+    for file in "$DIR"/*.fastq.gz "$DIR"/*.fastq; do
+        [[ -e "$file" ]] || continue  # Skip nonexistent files
+        ln -sf "$(realpath "$file")" "$TMP_BARCODES/barcode01"
+    done
+
+    [[ -s "$METADATA/metadata.csv" ]] || head -n2 "$NANOASV_PATH/config/MOCK/metadata.csv" > tmp_files/barcodes/metadata.csv
+    
+    DIR="$TMP_BARCODES"
+    METADATA="$DIR"
+else
+    echo "No barcode directories or fastq files found in $DIR. ABORTING"
+    exit 1
+fi
+
 #Metadata sanity checks ****************************************************************************************************
 (cd "${METADATA}"
  #Check if metadata.csv has been provided by the user
  [[ -s metadata.csv ]] || \
-     { cowpy -d "Error : Please provide a metadata.csv" >&2 ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
+     { cowpy -e dead "Error : Please provide a metadata.csv" >&2 ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
 
  #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
  awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
