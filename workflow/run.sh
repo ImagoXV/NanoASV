@@ -197,7 +197,7 @@ if [[ -z $OUT ]]; then
     exit 1
 fi
 
-#Check if DIR has canonical structure
+#Check if DIR has canonical structure. If not, fix it in tmp_files/
 
 if [[ -d "$DIR"/barcode* ]]; then
     echo "Found barcode directories in $DIR"
@@ -208,11 +208,12 @@ elif [[ -n $(ls "$DIR"/*.fastq.gz "$DIR"/*.fastq 2>/dev/null) ]]; then
     mkdir -p "$TMP_BARCODES/barcode01"
 
     for file in "$DIR"/*.fastq.gz "$DIR"/*.fastq; do
-        [[ -e "$file" ]] || continue  # Skip nonexistent files
+        [[ -e "$file" ]] || continue
         ln -sf "$(realpath "$file")" "$TMP_BARCODES/barcode01"
     done
 
     [[ -s "$METADATA/metadata.csv" ]] || head -n2 "$NANOASV_PATH/config/MOCK/metadata.csv" > tmp_files/barcodes/metadata.csv
+    [[ -s "$METADATA/metadata.csv" ]] && cp $METADATA/metadata.csv tmp_files/barcodes/metadata.csv
     
     DIR="$TMP_BARCODES"
     METADATA="$DIR"
