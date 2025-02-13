@@ -201,7 +201,7 @@ fi
 (cd "${METADATA}"
  #Check if metadata.csv has been provided by the user
  [[ -s metadata.csv ]] || \
-     { /usr/games/cowsay -d "Error : Please provide a metadata.csv" >&2 ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
+     { cowpy -d "Error : Please provide a metadata.csv" >&2 ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
 
  #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
  awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
