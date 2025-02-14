@@ -201,25 +201,30 @@ fi
 
 if [[ -d "$DIR"/barcode* ]]; then
     echo "Found barcode directories in $DIR"
-elif [[ -n $(ls "$DIR"/*.fastq.gz "$DIR"/*.fastq 2>/dev/null) ]]; then
+elif [[ -e "$DIR"/*.fastq.gz || -e "$DIR"/*.fastq ]]; then
     echo "Found fastq files in $DIR. Formatting tmp file structure. Please prefer a barcodeXX directory structure"
     
     TMP_BARCODES="tmp_files/barcodes/"
     mkdir -p "$TMP_BARCODES/barcode01"
 
+    # Link fastq files to tmp barcode directory
     for file in "$DIR"/*.fastq.gz "$DIR"/*.fastq; do
-        [[ -e "$file" ]] || continue
-        ln -sf "$(realpath "$file")" "$TMP_BARCODES/barcode01"
+        if [[ -e "$file" ]]; then
+            ln -sf "$(realpath "$file")" "$TMP_BARCODES/barcode01"
+        fi
     done
 
-    [[ -s "$METADATA/metadata.csv" ]] || head -n2 "$NANOASV_PATH/config/MOCK/metadata.csv" > tmp_files/barcodes/metadata.csv
-    [[ -s "$METADATA/metadata.csv" ]] && cp $METADATA/metadata.csv tmp_files/barcodes/metadata.csv
-    
+    # Handle metadata file
+    if [[ ! -s "$METADATA/metadata.csv" ]]; then
+        head -n2 "$NANOASV_PATH/config/MOCK/metadata.csv" > tmp_files/barcodes/metadata.csv
+    else
+        cp "$METADATA/metadata.csv" tmp_files/barcodes/metadata.csv
+    fi
+
     DIR="$TMP_BARCODES"
     METADATA="$DIR"
 else
-    echo "No barcode directories or fastq files found in $DIR. ABORTING"
-    exit 1
+    echo "No barcode directories or fastq files found in $DIR. Proceeding without barcode files."
 fi
 
 #Metadata sanity checks ****************************************************************************************************
