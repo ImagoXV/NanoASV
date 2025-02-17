@@ -197,11 +197,46 @@ if [[ -z $OUT ]]; then
     exit 1
 fi
 
+#Check if DIR has canonical structure. If not, fix it in tmp_files/
+
+if find "$DIR" -mindepth 1 -maxdepth 1 -type d -name "barcode*" | grep -q .; then
+    echo "Found barcode directories in $DIR"
+elif find "$DIR" -maxdepth 1 -type f \( -name "*.fastq.gz" -o -name "*.fastq" \) | grep -q .; then
+    echo "WARNING - Found fastq files in $DIR - Formatting tmp file structure. Please prefer a barcodeXX directory structure"
+    
+    TMP_BARCODES="tmp_files/barcodes"
+    mkdir -p "$TMP_BARCODES/barcode01"
+
+    # Link fastq files to tmp barcode directory
+    for file in "$DIR"/*.fastq.gz "$DIR"/*.fastq; do
+        if [[ -e "$file" ]]; then
+            ln -sf "$(realpath "$file")" "$TMP_BARCODES/barcode01"
+        fi
+    done
+
+    # Handle metadata file
+    if [[ ! -s "$METADATA/metadata.csv" ]]; then
+        echo "WARNING - No metadata file provided. NanoASV will generate a dummy one. Please prefer using your own metadata file"
+        head -n2 "$NANOASV_PATH/config/MOCK/metadata.csv" > tmp_files/barcodes/metadata.csv
+    else
+        cp "$METADATA/metadata.csv" tmp_files/barcodes/metadata.csv
+    fi
+
+    DIR="$TMP_BARCODES"
+    METADATA="$DIR"
+else
+    echo "ERROR - No barcode directories or fastq files found in $DIR - Please fix your input data path."
+    echo "ABORTING"
+    exit 1
+fi
+
+#exit 1 #Break debug
+
 #Metadata sanity checks ****************************************************************************************************
 (cd "${METADATA}"
  #Check if metadata.csv has been provided by the user
  [[ -s metadata.csv ]] || \
-     { /usr/games/cowsay -d "Error : Please provide a metadata.csv" >&2 ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
+     { cowpy -e dead "Error : Please provide a metadata.csv" >&2 ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
 
  #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
  awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
