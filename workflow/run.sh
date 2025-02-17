@@ -199,6 +199,35 @@ if [[ -z $OUT ]]; then
     exit 1
 fi
 
+#Check if flat fastq files are present
+
+if find $DIR -mindepth 2 -name "*.fastq" | grep -q .; then
+echo "NanoASV found flat fastq files. Compressing temporary files for compatibility"
+TMP_SEQ_DIR="tmp_files/tmp_seq_dir"
+mkdir -p $TMP_SEQ_DIR
+for barcode_dir in "$DIR"/barcode*/; do
+    [ -d "$barcode_dir" ] || continue  
+    tmp_barcode_dir="$TMP_SEQ_DIR/$(basename "$barcode_dir")"
+    mkdir -p "$tmp_barcode_dir"
+    echo $tmp_barcode_dir
+    # Process files in barcode directory
+    for file in "$barcode_dir"/*; do
+        if [[ -f "$file" ]]; then
+            if [[ "$file" == *.fastq.gz ]]; then
+                # Symlink .fastq.gz files
+                ln -s "$(realpath "$file")" "$tmp_barcode_dir/"
+            elif [[ "$file" == *.fastq ]]; then
+                # Compress .fastq files into mock dir
+                gzip -c "$file" > "$tmp_barcode_dir/$(basename "$file").gz"
+            fi
+        fi
+    done
+done
+cp $METADATA/metadata.csv $TMP_SEQ_DIR/metadata.csv
+DIR=$TMP_SEQ_DIR
+METADATA=$DIR
+fi
+
 #Check if DIR has canonical structure. If not, fix it in tmp_files/
 
 if find "$DIR" -mindepth 1 -maxdepth 1 -type d -name "barcode*" | grep -q .; then
