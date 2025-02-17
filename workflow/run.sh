@@ -393,4 +393,6 @@ if [[ "${DRY}" != "n" ]]; then
     tree $OUT
 fi
 
+rm -rf tmp_files/tmp_seq_dir
+
 conda deactivate 
