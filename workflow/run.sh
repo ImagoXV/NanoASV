@@ -199,12 +199,12 @@ fi
 
 #Check if DIR has canonical structure. If not, fix it in tmp_files/
 
-if [[ -d "$DIR"/barcode* ]]; then
+if find "$DIR" -mindepth 1 -maxdepth 1 -type d -name "barcode*" | grep -q .; then
     echo "Found barcode directories in $DIR"
-elif [[ -e "$DIR"/*.fastq.gz || -e "$DIR"/*.fastq ]]; then
-    echo "Found fastq files in $DIR. Formatting tmp file structure. Please prefer a barcodeXX directory structure"
+elif find "$DIR" -maxdepth 1 -type f \( -name "*.fastq.gz" -o -name "*.fastq" \) | grep -q .; then
+    echo "WARNING - Found fastq files in $DIR - Formatting tmp file structure. Please prefer a barcodeXX directory structure"
     
-    TMP_BARCODES="tmp_files/barcodes/"
+    TMP_BARCODES="tmp_files/barcodes"
     mkdir -p "$TMP_BARCODES/barcode01"
 
     # Link fastq files to tmp barcode directory
@@ -216,6 +216,7 @@ elif [[ -e "$DIR"/*.fastq.gz || -e "$DIR"/*.fastq ]]; then
 
     # Handle metadata file
     if [[ ! -s "$METADATA/metadata.csv" ]]; then
+        echo "WARNING - No metadata file provided. NanoASV will generate a dummy one. Please prefer using your own metadata file"
         head -n2 "$NANOASV_PATH/config/MOCK/metadata.csv" > tmp_files/barcodes/metadata.csv
     else
         cp "$METADATA/metadata.csv" tmp_files/barcodes/metadata.csv
@@ -224,8 +225,12 @@ elif [[ -e "$DIR"/*.fastq.gz || -e "$DIR"/*.fastq ]]; then
     DIR="$TMP_BARCODES"
     METADATA="$DIR"
 else
-    echo "No barcode directories or fastq files found in $DIR. Proceeding without barcode files."
+    echo "ERROR - No barcode directories or fastq files found in $DIR - Please fix your input data path."
+    echo "ABORTING"
+    exit 1
 fi
+
+#exit 1 #Break debug
 
 #Metadata sanity checks ****************************************************************************************************
 (cd "${METADATA}"
