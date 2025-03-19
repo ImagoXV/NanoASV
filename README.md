@@ -2,6 +2,9 @@
 
 # NanoASV
 
+NanoASV has been published in Bioinformatics : https://doi.org/10.1093/bioinformatics/btaf089
+Please refer to this publication if you cite NanoASV
+
 NanoASV is a conda environment snakemake based workflow using state of
 the art bioinformatic softwares to process full-length SSU rRNA
 (16S/18S) amplicons acquired with Oxford Nanopore Sequencing
