@@ -1,4 +1,4 @@
-name: NanoASV
+name: NanoASV-v1.2.3
 channels:
   - conda-forge
   - bioconda
