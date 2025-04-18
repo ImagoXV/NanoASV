@@ -1,8 +1,9 @@
 #!/bin/bash
 INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $INSTALL_DIR/../
+VERSION="$(head -n1 environment.yml | cut -f2 -d " ")"
 mkdir conda
-conda env create --file environment.yml -p conda
+conda env create --file environment.yml -p $VERSION
 ACTIVATE_DIR=$(conda env list | grep -w 'NanoASV' | awk '{print $2}')/etc/conda/activate.d
 cp config/alias.sh $ACTIVATE_DIR/
 cp config/paths.sh $ACTIVATE_DIR/
