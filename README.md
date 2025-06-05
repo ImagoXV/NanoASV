@@ -36,7 +36,7 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 |                      | from phyloseq object                                                 |
 | `--metadata`         | Specify metadata.csv file directory, default is --dir                |
 | `--notree`           | Flag - To remove phylogeny step and tree from phyloseq object        |
-| `--sam-qual`         | To tune samtools filtering quality threshold, default: 30            |
+| `--sam-qual`         | To tune samtools filtering quality threshold, default: 0            |
 | `--requirements`     | Flag - To display personal reference fasta requirements              |
 | `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
 | `--mock`             | Flag - Run mock dataset with NanoASV                                 |
