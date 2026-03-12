@@ -1,9 +1,9 @@
 #NanoASV phylosequisation
 #Arthur Cousson - 2023
 #Contact : arthur.cousson@ird.fr
-#Workaround conflicting host vs local libraries
 
-.libPaths(c("/usr/local/lib/R/site-library","/usr/lib/R/site-library","/usr/lib/R/library"))
+#Workaround conflicting host vs local libraries
+.libPaths(c(file.path(Sys.getenv("CONDA_PREFIX"), "lib/R/library")))
 
 args <- commandArgs(trailingOnly = TRUE)
 DIR <- args[1]
