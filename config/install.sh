@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${INSTALL_DIR}/../"
 VERSION="$(head -n1 environment.yml | cut -f2 -d " ")"
