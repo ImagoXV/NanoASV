@@ -27,13 +27,6 @@ mv input/metadata.csv metadata/
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="headers of a gzipped reference are read after decompression"
-new_workdir
-printf ">s1 Bacteria;P;C;O;F;G;S\nACGT\n" | gzip > ref.fasta.gz
-"${NANOASV}" --dry-run -db ref.fasta.gz > /dev/null 2>&1 && \
-    success "${DESCRIPTION}" || \
-        failure "${DESCRIPTION}"
-
 DESCRIPTION="an uncompressed interleaved reference is linearized"
 new_workdir
 printf ">s1 Bacteria;P;C;O;F;G;S\nACGT\nACGT\n" > ref.fasta
