@@ -40,6 +40,12 @@ jobs:
         source "${CONDA}/etc/profile.d/conda.sh"
         bash config/install.sh
 
+    - name: Run the CLI tests
+      run: |
+        source "${CONDA}/etc/profile.d/conda.sh"
+        conda activate "./$(head -n1 environment.yml | cut -f2 -d ' ')"
+        bash tests/run_all_tests.sh
+
     - name: Run the mock dataset
       run: |
         source "${CONDA}/etc/profile.d/conda.sh"
