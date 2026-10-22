@@ -331,7 +331,7 @@ fi
 #Checking reference dataset fits to requirements
 echo 'Checking reference format'
 #Check if sequences contain uniq ID before taxonomy
-if ! grep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
+if ! zgrep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
     cat "$NANOASV_PATH/config/requirements.txt"
         echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
         Keep in mind that those uniq ID will not be consistent from one run to another.\n\
