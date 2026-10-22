@@ -46,9 +46,24 @@ jobs:
         conda activate "./$(head -n1 environment.yml | cut -f2 -d ' ')"
         "${NANOASV_PATH}/workflow/run.sh" --mock
 
+    - name: Compare with the golden files
+      run: |
+        source "${CONDA}/etc/profile.d/conda.sh"
+        conda activate "./$(head -n1 environment.yml | cut -f2 -d ' ')"
+        bash tests/normalize_results.sh \
+            Mock_run_OUTPUT/Results normalized_results
+        diff -r tests/golden/mock normalized_results
+
     - name: Upload results
       if: always()
       uses: actions/upload-artifact@v7
       with:
         name: mock-results
         path: Mock_run_OUTPUT/Results/
+
+    - name: Upload normalized results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: mock-normalized-results
+        path: normalized_results/
