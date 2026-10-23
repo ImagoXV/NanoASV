@@ -1,0 +1,47 @@
+name: Lint
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# report only: findings are listed in the logs, steps never fail the job
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    - name: shellcheck
+      continue-on-error: true
+      run: git ls-files -z '*.sh' | xargs -0 shellcheck -x
+
+    - name: codespell
+      continue-on-error: true
+      run: |
+        pipx run --spec codespell==2.4.3 codespell \
+            --skip="./tests/golden,./config/MOCK,*.png,*.jpg"
+
+    # same snakemake version as in environment.yml
+    - name: snakemake --lint
+      continue-on-error: true
+      run: |
+        pipx run --spec snakemake==8.24.1 snakemake \
+            --lint -s workflow/snakefile \
+            --config QUAL=8 MINL=1300 MAXL=1700 ID=0.7 NUM_PROCESSES=1 \
+                     R_CLEANING=1 MINAB=5 SUBSAMPLING=200000 TREE=1 \
+                     INPUT_DIR=config/MOCK OUT=out METADATA=config/MOCK \
+                     DATABASE=reference.fasta NANOASV_PATH=. \
+                     MOD=map-ont FASTTREE_MOD=fastest SAMQ=0
