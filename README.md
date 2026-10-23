@@ -80,7 +80,7 @@ latest [Silva](https://www.arb-silva.de/).
 Download the database and put it in `./resources/`:
 
 ```sh
-RELEASE=138.2
+RELEASE=144
 URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
 INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
 OUTPUT="SINGLELINE_${INPUT/_NR99/}"
