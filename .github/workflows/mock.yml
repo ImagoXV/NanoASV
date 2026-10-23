@@ -1,0 +1,54 @@
+name: Mock run
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    # run-init: otherwise the action appends `set -eo pipefail` to
+    # conda.sh, which run.sh sources: CI would not run as users do
+    - name: Set up conda
+      uses: conda-incubator/setup-miniconda@v4
+      with:
+        miniforge-version: latest
+        activate-environment: ""
+        run-init: "false"
+
+    - name: Install NanoASV
+      run: |
+        source "${CONDA}/etc/profile.d/conda.sh"
+        bash config/install.sh
+
+    - name: Run the mock dataset
+      run: |
+        source "${CONDA}/etc/profile.d/conda.sh"
+        conda activate "./$(head -n1 environment.yml | cut -f2 -d ' ')"
+        "${NANOASV_PATH}/workflow/run.sh" --mock
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: mock-results
+        path: Mock_run_OUTPUT/Results/
