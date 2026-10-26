@@ -205,9 +205,8 @@ for OPTION in -db --database ; do
                     "${OPTION}" "${TMP_ROOT}/my_reference.fasta"
 done
 
-# barcode directories are also created in the metadata directory: the
-# metadata check looks for them there (known bug, see pending_fixes.sh)
-make_input_dir "${TMP_ROOT}/metadata"
+mkdir "${TMP_ROOT}/metadata"
+cp "${NANOASV_PATH}/config/MOCK/metadata.csv" "${TMP_ROOT}/metadata/"
 dry_run_matches "--metadata is passed to the R script" \
                 "script\.r .* ${TMP_ROOT}/metadata$" \
                 --metadata "${TMP_ROOT}/metadata"
