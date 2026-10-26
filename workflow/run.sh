@@ -286,9 +286,9 @@ INPUT_PATH="$(realpath "${DIR}")"
  # Check if metadata barcodes are found within DIR
  cut -f1 -d "," metadata.csv | \
      tail -n +2 | \
-     while read sample_name ; do
+     while read -r sample_name ; do
          [[ -d "${INPUT_PATH}/${sample_name}" ]] || \
-             { echo 'ERROR,' ${sample_name} 'sequences not found. Please check metadata.csv and barcodes directories' ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
+             { echo "ERROR, ${sample_name} sequences not found. Please check metadata.csv and barcodes directories" ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
      done
 
  # the R step fails on a sample missing from metadata.csv
