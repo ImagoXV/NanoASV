@@ -384,7 +384,7 @@ fi
 #Run the pipeline
 
 snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
-    --cores all \
+    --cores "${NUM_PROCESSES}" \
     --config \
         QUAL=$QUAL \
         MINL=$MINL \
