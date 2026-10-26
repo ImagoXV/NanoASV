@@ -29,7 +29,7 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                   |
 | `-L`, `--maxlength`  | Maximum amplicon length for Chopper, default: 1700                   |
 | `-i`, `--id-vsearch` | Identity threshold for vsearch clustering step, default: 0.7         |
-| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept                   |
+| `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept, default: 5       |
 | `-p`, `--num-process`| Number of cores for parallelization, default: 1                      |
 | `--subsampling`      | Max number of sequences per barcode, default: 50,000                 |
 | `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences    |
@@ -37,6 +37,8 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | `--metadata`         | Specify metadata.csv file directory, default is --dir                |
 | `--notree`           | Flag - To remove phylogeny step and tree from phyloseq object        |
 | `--sam-qual`         | To tune samtools filtering quality threshold, default: 0             |
+| `--model`            | minimap2 alignment model (see Alignment below), default: map-ont     |
+| `--fasttree-model`   | FastTree model: gtr, gamma, wag, lg or fastest, default: fastest     |
 | `--requirements`     | Flag - To display personal reference fasta requirements              |
 | `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
 | `--mock`             | Flag - Run mock dataset with NanoASV                                 |
