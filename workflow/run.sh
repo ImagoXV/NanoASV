@@ -362,7 +362,7 @@ if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.g
     SEQS=$(zgrep -c "^>" "${DATABASE}") 
     if [[ $LINES -ne $(( SEQS * 2 )) ]]; then
         echo 'Interleaved reference fasta file - Formating.'
-        zcat $DATABASE | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > tmp_files/SINGLELINE_reference.fasta
+        zcat -f "${DATABASE}" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > tmp_files/SINGLELINE_reference.fasta
         DATABASE=tmp_files/SINGLELINE_reference.fasta
     fi
 fi
