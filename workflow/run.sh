@@ -2,7 +2,6 @@
 
 #This script is a wrapper to launch NanoASV snakemake version with ease
 source "$(conda info --base)/etc/profile.d/conda.sh"
-conda init 2> /dev/null 1> /dev/null
 conda activate NanoASV
 trap 'echo "ERROR: Something went wrong - Carefully read the above message to understand how to fix it. If you think this is a bug, please reach us out on github"' ERR
 set -e
