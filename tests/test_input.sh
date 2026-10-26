@@ -177,6 +177,64 @@ new_workdir
     failure "${DESCRIPTION}" || \
         success "${DESCRIPTION}"
 
+DESCRIPTION="an unknown minimap2 model: the default model is shown"
+new_workdir
+"${NANOASV}" --dry-run --model unknown 2> /dev/null | \
+    grep -q "^Minimap2 default model is map-ont\.$" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="an unknown minimap2 model: the available models are listed"
+new_workdir
+"${NANOASV}" --dry-run --model unknown 2> /dev/null | \
+    grep -q "^Available models are map-ont map-hifi map-pb asm5 " && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+
+## --------------------------------------------------------- FastTree model
+
+DESCRIPTION="an unknown FastTree model is reported"
+new_workdir
+"${NANOASV}" --dry-run --fasttree-model unknown 2> /dev/null | \
+    grep -q "^ERROR: --fasttree-model invalid specification" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="an unknown FastTree model exits with status 1"
+new_workdir
+"${NANOASV}" --dry-run --fasttree-model unknown > /dev/null 2>&1 && \
+    failure "${DESCRIPTION}" || \
+        success "${DESCRIPTION}"
+
+DESCRIPTION="an unknown FastTree model: the default model is shown"
+new_workdir
+"${NANOASV}" --dry-run --fasttree-model unknown 2> /dev/null | \
+    grep -q '^FastTree default model is "fastest"\.$' && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="an unknown FastTree model: the available models are listed"
+new_workdir
+"${NANOASV}" --dry-run --fasttree-model unknown 2> /dev/null | \
+    grep -q "^Available models are gtr gamma wag lg fastest$" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="the minimap2 preset map-pb is not a FastTree model"
+new_workdir
+"${NANOASV}" --dry-run --fasttree-model map-pb > /dev/null 2>&1 && \
+    failure "${DESCRIPTION}" || \
+        success "${DESCRIPTION}"
+
+for MODEL in gtr gamma wag lg fastest ; do
+    DESCRIPTION="FastTree model ${MODEL} is accepted"
+    new_workdir
+    "${NANOASV}" --dry-run --fasttree-model "${MODEL}" > /dev/null 2>&1 && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+done
+
 
 ## ------------------------------------------------------------- reference
 

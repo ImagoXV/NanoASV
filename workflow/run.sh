@@ -301,10 +301,11 @@ fi
 # Check if provided minimap2 model is correct
 MODS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
 
-if [[ ! " ${MODS[@]} " =~ " ${MOD} " ]]; then
+# shellcheck disable=SC2076  # literal match of a whole word
+if [[ ! " ${MODS[*]} " =~ " ${MOD} " ]]; then
     echo 'ERROR: --model invalid specification.'
-    echo 'Minimap2 default model is ${DEFAULT_MOD}.'
-    echo 'Available models are $(echo '${MODS[@]}')'
+    echo "Minimap2 default model is ${DEFAULT_MOD}."
+    echo "Available models are ${MODS[*]}"
     echo 'WARNING, changing minimap2 alignment model will have strong repercussion on data treatment.'
     echo 'Use this option carefully. Please read minimap2 documentation.'
     exit 1
@@ -312,12 +313,13 @@ fi
 
 #***************************************************************************************************************************
 # Check if provided fasttree model is correct
-F_MODS=("gtr" "gamma" "map-pb" "wag" "lg" "fastest")
+F_MODS=("gtr" "gamma" "wag" "lg" "fastest")
 
-if [[ ! " ${F_MODS[@]} " =~ " ${F_MODS} " ]]; then
-    echo 'ERROR: --fastree-model invalid specification.'
-    echo 'FastTree default model is "${DEFAULT_FASTTREE_MOD}".'
-    echo 'Available models are $(echo "${F_MODS[@]}")'
+# shellcheck disable=SC2076  # literal match of a whole word
+if [[ ! " ${F_MODS[*]} " =~ " ${FASTTREE_MOD} " ]]; then
+    echo 'ERROR: --fasttree-model invalid specification.'
+    echo "FastTree default model is \"${DEFAULT_FASTTREE_MOD}\"."
+    echo "Available models are ${F_MODS[*]}"
     exit 1
 fi
 
