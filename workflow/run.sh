@@ -312,7 +312,7 @@ fi
 
 #***************************************************************************************************************************
 # Check if provided fasttree model is correct
-F_MODS=("gtr" "gamma" "map-pb" "wag" "lg" "fastest")
+F_MODS=("gtr" "gamma" "wag" "lg" "fastest")
 
 if [[ ! " ${F_MODS[@]} " =~ " ${FASTTREE_MOD} " ]]; then
     echo 'ERROR: --fastree-model invalid specification.'
