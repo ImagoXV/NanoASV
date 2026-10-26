@@ -64,10 +64,11 @@ Run the installation script:
 bash ${HOME}/NanoASV/config/install.sh
 ```
 
-Then activate the environment:
+Then activate the environment (created in the repository, its name
+includes NanoASV's version):
 
 ```sh
-conda activate NanoASV
+conda activate "${HOME}/NanoASV/NanoASV-v1.2.3"
 ```
 
 Don't forget to activate the environment before running `nanoasv`. It
@@ -82,7 +83,7 @@ latest [Silva](https://www.arb-silva.de/).
 Download the database and put it in `./resources/`:
 
 ```sh
-RELEASE=144
+RELEASE=138.2
 URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
 INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
 OUTPUT="SINGLELINE_${INPUT/_NR99/}"
@@ -113,7 +114,7 @@ nanoasv --dry-run
 nanoasv --mock
 ```
 
-You can inspect NanoASV's output structure in `./Mock_run_OUPUT/`.
+You can inspect NanoASV's output structure in `${HOME}/NanoASV/Mock_run_OUTPUT/`.
 
 
 # ONT MK1C Installation
