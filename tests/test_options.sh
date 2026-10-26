@@ -37,6 +37,13 @@ for OPTION in -v --version ; do
             failure "${DESCRIPTION}"
 done
 
+DESCRIPTION="nanoasv does not modify shell startup files"
+new_workdir
+"${NANOASV}" --version > /dev/null 2>&1
+[[ ! -e "${HOME}/.bashrc" ]] && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="--requirements prints config/requirements.txt"
 new_workdir
 "${NANOASV}" --requirements 2> /dev/null | \

@@ -19,11 +19,4 @@ new_workdir
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="nanoasv does not modify shell startup files (conda init)"
-new_workdir
-"${NANOASV}" --version > /dev/null 2>&1
-[[ ! -e "${HOME}/.bashrc" ]] && \
-    success "${DESCRIPTION}" || \
-        failure "${DESCRIPTION}"
-
 exit 0
