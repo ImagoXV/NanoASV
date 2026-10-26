@@ -7,7 +7,7 @@ NanoASV has been published in Bioinformatics : https://doi.org/10.1093/bioinform
 Please refer to this publication if you cite NanoASV
 
 NanoASV is a conda environment snakemake based workflow using state of
-the art bioinformatic softwares to process full-length SSU rRNA
+the art bioinformatic software to process full-length SSU rRNA
 (16S/18S) amplicons acquired with Oxford Nanopore Sequencing
 technology. Its strength lies in reproducibility, portability and the
 possibility to run offline. It can be installed on the Nanopore MK1C
@@ -91,7 +91,7 @@ FOLDER="${HOME}/NanoASV/resources"
 
 mkdir -p "${FOLDER}"
 
-echo "downloading and formating SILVA reference, this will take a few minutes."
+echo "downloading and formatting SILVA reference, this will take a few minutes."
 wget --output-document - "${URL}/${INPUT}" | \
     gunzip --stdout | \
     awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
@@ -180,7 +180,7 @@ FOLDER="resources"
 
 mkdir -p "${FOLDER}"
 
-echo "downloading and formating SILVA reference, this will take a few minutes."
+echo "downloading and formatting SILVA reference, this will take a few minutes."
 wget --output-document - "${URL}/${INPUT}" | \
     gunzip --stdout | \
     awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
@@ -261,8 +261,8 @@ Can be modified with `--subsampling int`
 ## Alignment
 
 `minimap2` will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
-Can be executed in parallel (default `--num-process 1`). Default minimap2 alignement model is map-ont. This can be changed with --model option. Avalaible options are `map-ont map-hifi map-pb asm5 asm10 asm20 splice splice:hq ava-pb ava-ont`. Changing minimap2 model will have heavy consequences on your treatment. We recommend you to check NanoASV Supplementary materials.
-Individual barcode abundance: `barcode*_abundance.tsv`, Taxonomy: `Taxonomy_barcode*.csv` and `barcode*_exact_affiliations.tsv` files are produced by NanoASV. Those files are then used to create the final phyloseq object. 
+Can be executed in parallel (default `--num-process 1`). Default minimap2 alignment model is map-ont. This can be changed with --model option. Available options are `map-ont map-hifi map-pb asm5 asm10 asm20 splice splice:hq ava-pb ava-ont`. Changing minimap2 model will have heavy consequences on your treatment. We recommend you to check NanoASV Supplementary materials.
+Individual barcode abundance: `barcode*_abundance.tsv`, Taxonomy: `Taxonomy_barcode*.csv` and `barcode*_Exact_affiliations.tsv` files are produced by NanoASV. Those files are then used to create the final phyloseq object. 
 Those files can be found in the `./Results/` directory.
 
 ## Unknown sequences clustering
@@ -283,7 +283,7 @@ This step can be avoided with the `--notree` option.
 
 Alignments results, taxonomy, clustered unknown entities and 16S based phylogeny tree are used to produce a phyloseq object: `NanoASV.rdata`
 Please refer to the `metadata.csv` file in Minimal dataset to be sure to input the correct file format for phyloseq to produce a correct phyloseq object.
-You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using `--r_cleaning 0`
+You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using `--no-r-cleaning`
 A CSV file encompassing taxonomy and abundance is produced as well and stored into `./Results/CSV`.
 
 ## Output structure
@@ -312,18 +312,18 @@ OUTPUT/
 ```
 
 Most useful files for ecological analyses in NanoASV's output are `Results/Rdata/NanoASV.rdata` and `Results/CSV/Taxonomy-Abundance_table.csv`. 
-- The `Rdata` formated phyloseq object encompassing Abundance and taxonomy tables, Full length 16S based phylogeny and sample metadata. It is fully compatible with phyloseq R package. 
+- The `Rdata` formatted phyloseq object encompassing Abundance and taxonomy tables, Full length 16S based phylogeny and sample metadata. It is fully compatible with phyloseq R package. 
 - The `Taxonomy-Abundance_table.csv` file is the needed data to make analysis with spreadsheet software (Calc, Excel, etc.). 
 
 `Unknown_clusters/` contains one fasta file containing the clusters consensus sequences. Those are the sequences used in the 16S phylogeny. `unknown_clusters.tsv` is the abundance table produced by vsearch and used in the phyloseq object generation. 
 
 Exact affiliations files are encompassing individual reads assignments, associated samflag and mapping quality (MapQ). 
-`Header = Read ID - Sam Flag - Assignement ID -  MapQ value`
-This file is useful if you suspect strange assignement with your dataset. It allows you to have an idea of the confidence behing assignement. Both in term of alignement sam flag and MapQ. **Please note that MapQ is not an average nucleotide identity (ANI)**. 
+`Header = Read ID - Sam Flag - Assignment ID -  MapQ value`
+This file is useful if you suspect strange assignment with your dataset. It allows you to have an idea of the confidence behind assignment. Both in term of alignment sam flag and MapQ. **Please note that MapQ is not an average nucleotide identity (ANI)**. 
 
 `Results/Phylogeny/ASV.tree` is the FastTree newick format generated full length 16S tree.
 
-`Results/ASV/` and `Results/Tax/` are intermediate, individual barcode abundances and taxonomy tables. Those files are not meant to be used directly bu are phyloseq basis to produce the `Rdata` formated object. Those files are useful only if you have to rebuild the phyloseq object by yourself. In any case, they do not hide data that would be absent from nor phyloseq object nor the CSV file.
+`Results/ASV/` and `Results/Tax/` are intermediate, individual barcode abundances and taxonomy tables. Those files are not meant to be used directly but are phyloseq basis to produce the `Rdata` formatted object. Those files are useful only if you have to rebuild the phyloseq object by yourself. In any case, they do not hide data that would be absent from nor phyloseq object nor the CSV file.
 
 # Benchmark
 
@@ -343,7 +343,7 @@ We see above in [alpha diversity figure](#Alpha) that NanoASV and Nygaard pipeli
 
 ![Taxo](config/Figs/Pipelines_Genus_composition.jpg)
 
-We see with above [taxonomical profile](#Taxo) that Genus level taxonomical profile looks very similar between NanoASV and Nygaard pipeline. SituSeq had difficulies recovering a precise taxonomical profile with unassigned sequences representing 59 to 97% of a sample total taxonomical assignments (Any taxonomical level considered). While NanoASV and Nygaard pipelines both assigned 100% of sequences against the silva_nr99_v138.1_train_set.fa reference dataset. A Mantel test (vegan::mantel() with 999 permutations) was performed to compare different pipelines Bray-Curtis dissimilarity matrices. NanoASV and Nygaard pipeline showed high similarity (Mantel statistic r: 0.8735 – Significance: 0.001). NanoASV and SituSeq showed about half this value (Mantel statistic r: 0.5459 – Significance: 0.005). Nygaard and SituSeq showed the lowest similarity (Mantel statistic r: 0.3464 – Significance: 0.021).
+We see with above [taxonomical profile](#Taxo) that Genus level taxonomical profile looks very similar between NanoASV and Nygaard pipeline. SituSeq had difficulties recovering a precise taxonomical profile with unassigned sequences representing 59 to 97% of a sample total taxonomical assignments (Any taxonomical level considered). While NanoASV and Nygaard pipelines both assigned 100% of sequences against the silva_nr99_v138.1_train_set.fa reference dataset. A Mantel test (vegan::mantel() with 999 permutations) was performed to compare different pipelines Bray-Curtis dissimilarity matrices. NanoASV and Nygaard pipeline showed high similarity (Mantel statistic r: 0.8735 – Significance: 0.001). NanoASV and SituSeq showed about half this value (Mantel statistic r: 0.5459 – Significance: 0.005). Nygaard and SituSeq showed the lowest similarity (Mantel statistic r: 0.3464 – Significance: 0.021).
 
 
 
@@ -389,7 +389,7 @@ https://doi.org/10.1093/bioinformatics/btad311.
 
 Li, Heng. 2018. “Minimap2: Pairwise Alignment for Nucleotide Sequences.”
 Edited by Inanc Birol. Bioinformatics 34 (18): 3094–3100. 
-ttps://doi.org/10.1093/bioinformatics/bty191.
+https://doi.org/10.1093/bioinformatics/bty191.
 
 Katoh, K., and D. M. Standley. 2013. “MAFFT Multiple Sequence Alignment Software Version 7:
 Improvements in Performance and Usability.” Molecular Biology and Evolution 30 (4):
