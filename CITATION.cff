@@ -10,7 +10,37 @@ authors:
 - family-names: "Guyet"
   given-names: "Ulysse"
   orcid: "https://orcid.org/0000-0002-3603-5382"
-title: "NanoASV: A container based workflow for local and reproducible Nanopore full length 16S/18S Metabarcoding amplicon data analysis"
-version: 1.0.0
-date-released: 2024-06-07
+- family-names: "Razafimahafaly"
+  given-names: "Damase"
+- family-names: "Bernard"
+  given-names: "Laetitia"
+  orcid: "https://orcid.org/0000-0002-7057-6182"
+title: "NanoASV: a snakemake workflow for reproducible field-based Nanopore full-length 16S metabarcoding amplicon data analysis"
+version: 1.2.2
+date-released: 2025-02-17
 url: "https://github.com/ImagoXV/NanoASV"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Cousson"
+    given-names: "Arthur"
+    orcid: "https://orcid.org/0000-0002-7807-2560"
+  - family-names: "Mahé"
+    given-names: "Frédéric"
+    orcid: "https://orcid.org/0000-0002-2808-0984"
+  - family-names: "Guyet"
+    given-names: "Ulysse"
+    orcid: "https://orcid.org/0000-0002-3603-5382"
+  - family-names: "Razafimahafaly"
+    given-names: "Damase"
+  - family-names: "Bernard"
+    given-names: "Laetitia"
+    orcid: "https://orcid.org/0000-0002-7057-6182"
+  doi: "10.1093/bioinformatics/btaf089"
+  journal: "Bioinformatics"
+  date-published: 2025-03-20
+  start: btaf089
+  title: "NanoASV: a snakemake workflow for reproducible field-based Nanopore full-length 16S metabarcoding amplicon data analysis"
+  volume: 41
+  issue: 3
+  year: 2025

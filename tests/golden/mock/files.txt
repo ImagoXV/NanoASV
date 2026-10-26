@@ -1,0 +1,9 @@
+./ASV/barcode01_abundance.tsv
+./ASV/barcode02_abundance.tsv
+./CSV/Taxonomy-Abundance_table.csv
+./Exact_affiliations/barcode01_Exact_affiliations.tsv
+./Exact_affiliations/barcode02_Exact_affiliations.tsv
+./Phylogeny/ASV.tree
+./Rdata/NanoASV.rdata
+./Tax/Taxonomy_barcode01.csv
+./Tax/Taxonomy_barcode02.csv

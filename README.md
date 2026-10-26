@@ -2,6 +2,10 @@
 
 # NanoASV
 
+NanoASV has been published in Bioinformatics : https://doi.org/10.1093/bioinformatics/btaf089
+
+Please refer to this publication if you cite NanoASV
+
 NanoASV is a conda environment snakemake based workflow using state of
 the art bioinformatic softwares to process full-length SSU rRNA
 (16S/18S) amplicons acquired with Oxford Nanopore Sequencing
@@ -18,7 +22,8 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | -------------------- | ---------------------------------------------------------------------|
 | `-h`, `--help`       | Show help message                                                    |
 | `-v`, `--version`    | Show version information                                             |
-| `-d`, `--dir`        | Path to demultiplexed barcodes                                       |           |
+| `-d`, `--dir`        | Path to demultiplexed barcodes                                       |           
+| `-o`, `--out`        | Path for output directory                                            |
 | `-db`, `--database`  | Path to reference fasta file                                         |
 | `-q`, `--quality`    | Quality threshold for Chopper, default: 8                            |
 | `-l`, `--minlength`  | Minimum amplicon length for Chopper, default: 1300                   |
@@ -31,11 +36,11 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 |                      | from phyloseq object                                                 |
 | `--metadata`         | Specify metadata.csv file directory, default is --dir                |
 | `--notree`           | Flag - To remove phylogeny step and tree from phyloseq object        |
-| `--sam-qual`         | To tune samtools filtering quality threshold, default: 30            |
+| `--sam-qual`         | To tune samtools filtering quality threshold, default: 0             |
 | `--requirements`     | Flag - To display personal reference fasta requirements              |
 | `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
 | `--mock`             | Flag - Run mock dataset with NanoASV                                 |
-| `--remove-tmp`       |To remove tmp data after execution. No snakemake resume option if set.|
+| `--remove-tmp`       | Remove tmp data after execution. No snakemake resume option if set.  |
 ```
 
 
@@ -75,11 +80,11 @@ latest [Silva](https://www.arb-silva.de/).
 Download the database and put it in `./resources/`:
 
 ```sh
-RELEASE=138.2
+RELEASE=144
 URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
 INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
 OUTPUT="SINGLELINE_${INPUT/_NR99/}"
-FOLDER="resources"
+FOLDER="${HOME}/NanoASV/resources"
 
 mkdir -p "${FOLDER}"
 
@@ -87,7 +92,7 @@ echo "downloading and formating SILVA reference, this will take a few minutes."
 wget --output-document - "${URL}/${INPUT}" | \
     gunzip --stdout | \
     awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
-    gzip > "./${FOLDER}/${OUTPUT}"
+    gzip > "${FOLDER}/${OUTPUT}"
 
 unset RELEASE URL INPUT OUTPUT
 ```
@@ -113,7 +118,7 @@ You can inspect NanoASV's output structure in `./Mock_run_OUPUT/`.
 
 You need to use the [aarch64-MK1C](https://github.com/ImagoXV/NanoASV/tree/aarch64-MK1C-conda) branch, **otherwise, it will not work.**
 
-You need to install
+You first need to install
 [miniconda](https://docs.anaconda.com/miniconda/). Note that `/data/`
 will be used for installation for storage capacity matters.
 
@@ -136,7 +141,7 @@ environment. Otherwise you'll run into issues.
 ```sh
 cd /data/
 git clone \
-    --branch origin/aarch64-MK1C-conda \
+    --branch aarch64-MK1C-conda \
     --single-branch https://github.com/ImagoXV/NanoASV.git
 cd ./NanoASV/
 conda deactivate
@@ -155,10 +160,36 @@ cp ./config/unalias.sh ${DEACTIVATE_DIR}/
 chmod +x ./workflow/run.sh
 ```
 
+## Database setup
+
+NanoASV can be used with any reference fasta file. If you want to have
+a broad idea of your community taxonomy, we recommend you to use
+latest [Silva](https://www.arb-silva.de/).
+
+Download the database and put it in `./resources/`:
+
+```sh
+RELEASE=138.2
+URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
+INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
+OUTPUT="SINGLELINE_${INPUT/_NR99/}"
+FOLDER="resources"
+
+mkdir -p "${FOLDER}"
+
+echo "downloading and formating SILVA reference, this will take a few minutes."
+wget --output-document - "${URL}/${INPUT}" | \
+    gunzip --stdout | \
+    awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
+    gzip > "./${FOLDER}/${OUTPUT}"
+
+unset RELEASE URL INPUT OUTPUT
+```
+
 ## R environment installation
 
 ```sh
-conda create --name R-phyloseq -c bioconda -c conda-forge bioconductor-phyloseq
+conda create -y --name R-phyloseq -c bioconda -c conda-forge bioconductor-phyloseq
 conda activate R-phyloseq
 Rscript -e 'install.packages("dplyr", repos = "https://cran.r-project.org")'
 conda deactivate
@@ -167,6 +198,7 @@ conda deactivate
 ## Test run on MK1C device
 
 ```sh
+conda activate NanoASV
 nanoasv --mock
 ```
 
@@ -188,10 +220,17 @@ snakemake \
 
 # How NanoASV works
 
+![Workflow](config/workflow.png)
+
+
 ## Data preparation
 
 Directly input your `/path/to/sequence/data/fastq_pass` directory
 4000 sequences `fastq.gz` files are concatenated by barcode identity to make one `barcodeXX.fastq.gz` file.
+
+#### About single barcode experiment
+
+Note that NanoASV is able to handle a single barcode experiment. You need to put your fastq file in a directory named ```barcode01``` and it still needs a metadata file with two lines (header and data). Results will be produced as usual. A one sample phyloseq object and a classical CSV for quick lookup.
 
 ## Filtering
 
@@ -219,8 +258,8 @@ Can be modified with `--subsampling int`
 ## Alignment
 
 `minimap2` will align previously filtered sequences against the reference dataset (SILVA 138.2 by default)
-Can be executed in parallel (default `--num-process 1`)
-`barcode*_abundance.tsv`, `Taxonomy_barcode*.csv` and `barcode*_exact_affiliations.tsv` like files are produced.
+Can be executed in parallel (default `--num-process 1`). Default minimap2 alignement model is map-ont. This can be changed with --model option. Avalaible options are `map-ont map-hifi map-pb asm5 asm10 asm20 splice splice:hq ava-pb ava-ont`. Changing minimap2 model will have heavy consequences on your treatment. We recommend you to check NanoASV Supplementary materials.
+Individual barcode abundance: `barcode*_abundance.tsv`, Taxonomy: `Taxonomy_barcode*.csv` and `barcode*_exact_affiliations.tsv` files are produced by NanoASV. Those files are then used to create the final phyloseq object. 
 Those files can be found in the `./Results/` directory.
 
 ## Unknown sequences clustering
@@ -232,7 +271,7 @@ Outputs into `./Results/Unknown_clusters`
 ## Phylogenetic tree generation
 
 Reference ASV sequence from fasta reference file are extracted accordingly to detected entities.
-Unknown OTUs seed sequence are added. The final file is fed to FastTree to produce a tree file
+Unknown OTUs seed sequence are added. The final file is fed to FastTree (default `--fastest`) to produce a tree file.
 Tree file is then implemented into the final phyloseq object.
 This allows for phylogeny of unknown OTUs and 16S based phylogeny taxonomical estimation of the entity.
 This step can be avoided with the `--notree` option.
@@ -244,9 +283,91 @@ Please refer to the `metadata.csv` file in Minimal dataset to be sure to input t
 You can choose not to remove Eukaryota, Chloroplasta and Mitochondria sequences (pruned by default) using `--r_cleaning 0`
 A CSV file encompassing taxonomy and abundance is produced as well and stored into `./Results/CSV`.
 
+## Output structure
+
+```
+OUTPUT/
+└── Results
+    ├── ASV
+    │   ├── barcode01_abundance.tsv
+    │   └── barcode02_abundance.tsv
+    ├── CSV
+    │   └── Taxonomy-Abundance_table.csv
+    ├── Exact_affiliations
+    │   ├── barcode01_Exact_affiliations.tsv
+    │   └── barcode02_Exact_affiliations.tsv
+    ├── Phylogeny
+    │   └── ASV.tree
+    ├── Rdata
+    │   └── NanoASV.rdata
+    ├── Tax
+    │   ├── Taxonomy_barcode01.csv
+    │   └── Taxonomy_barcode02.csv
+    └── Unknown_clusters
+        ├── Consensus_seq_OTU.fasta
+        └── unknown_clusters.tsv
+```
+
+Most useful files for ecological analyses in NanoASV's output are `Results/Rdata/NanoASV.rdata` and `Results/CSV/Taxonomy-Abundance_table.csv`. 
+- The `Rdata` formated phyloseq object encompassing Abundance and taxonomy tables, Full length 16S based phylogeny and sample metadata. It is fully compatible with phyloseq R package. 
+- The `Taxonomy-Abundance_table.csv` file is the needed data to make analysis with spreadsheet software (Calc, Excel, etc.). 
+
+`Unknown_clusters/` contains one fasta file containing the clusters consensus sequences. Those are the sequences used in the 16S phylogeny. `unknown_clusters.tsv` is the abundance table produced by vsearch and used in the phyloseq object generation. 
+
+Exact affiliations files are encompassing individual reads assignments, associated samflag and mapping quality (MapQ). 
+`Header = Read ID - Sam Flag - Assignement ID -  MapQ value`
+This file is useful if you suspect strange assignement with your dataset. It allows you to have an idea of the confidence behing assignement. Both in term of alignement sam flag and MapQ. **Please note that MapQ is not an average nucleotide identity (ANI)**. 
+
+`Results/Phylogeny/ASV.tree` is the FastTree newick format generated full length 16S tree.
+
+`Results/ASV/` and `Results/Tax/` are intermediate, individual barcode abundances and taxonomy tables. Those files are not meant to be used directly bu are phyloseq basis to produce the `Rdata` formated object. Those files are useful only if you have to rebuild the phyloseq object by yourself. In any case, they do not hide data that would be absent from nor phyloseq object nor the CSV file.
+
+# Benchmark
+
+## Nygaard dataset
+
+We ran (Nygaard et al. 2020) dataset with three different software solution : SituSeq (Zorz et al. 2023), Nygaard manual pipeline (Nygaard et al. 2020) and NanoASV. It should be noted that NanoASV is the only one that outputs a phyloseq (McMurdie and Holmes 2013) object. The two others require manual file manipulation to achieve the same results. NanoASV can natively output a 16S phylogeny thanks to MAFFT (Katoh and Standley 2013) and FastTree (Price, Dehal, and Arkin 2009). The same reference dataset was used in each pipeline : DADA2 maintained training set silva_nr99_v138.1_train_set.fa. We made this choice as it was the easiest reference to use with SituSeq. Random UUID were assigned to each reference sequence to make it work with NanoASV. 
+
+### Alpha Diversity
+
+![Alpha](config/Figs/Benchmark_alpĥa.png)
+
+We see above in [alpha diversity figure](#Alpha) that NanoASV and Nygaard pipeline outputs show similar trends in matter of numerical richness and Shannon index. Despite lower values, the same trends are observed with SituSeq. This is shown in the following [correlation matrix](#Corr).
+
+![Corr](config/Figs/Alpha_div_corr_matrix.png)
+
+### Taxonomic profile
+
+![Taxo](config/Figs/Pipelines_Genus_composition.jpg)
+
+We see with above [taxonomical profile](#Taxo) that Genus level taxonomical profile looks very similar between NanoASV and Nygaard pipeline. SituSeq had difficulies recovering a precise taxonomical profile with unassigned sequences representing 59 to 97% of a sample total taxonomical assignments (Any taxonomical level considered). While NanoASV and Nygaard pipelines both assigned 100% of sequences against the silva_nr99_v138.1_train_set.fa reference dataset. A Mantel test (vegan::mantel() with 999 permutations) was performed to compare different pipelines Bray-Curtis dissimilarity matrices. NanoASV and Nygaard pipeline showed high similarity (Mantel statistic r: 0.8735 – Significance: 0.001). NanoASV and SituSeq showed about half this value (Mantel statistic r: 0.5459 – Significance: 0.005). Nygaard and SituSeq showed the lowest similarity (Mantel statistic r: 0.3464 – Significance: 0.021).
+
+
+
+### Pipeline Specs comparisons
+
+![Specs](config/Figs/Nice_table_screen.png)
+
+
+Specs on personal computer were obtained with `usr/bin/time -v`  : Max Resident Set Size. On slurm cluster, maximum resident size was obtained through slurm command sacct. Multi-threaded jobs can be hard to track for memory consumption. Peak memory values are probably underestimated. 
+[Specs table](#Specs) shows that NanoASV is faster and more memory efficient than Nygaard pipeline and SituSeq.
+
+## Benchmark conclusion
+
+SituSeq showed to be very different in term of output when compared to Nygaard pipeline and NanoASV. SituSeq did not recover an extensive taxonomical profile , but global trends still similar. 
+NanoASV shows very similar trends as Nygaard pipeline, in matter of alpha diversity and taxonomical profile. NanoASV appeared around 6 times faster and more memory efficient than Nygaard manual pipeline.
+
+## Benchmarking Bibliography
+
+- Katoh, K., and D. M. Standley. 2013. “MAFFT Multiple Sequence Alignment Software Version 7: Improvements in Performance and Usability.” Molecular Biology and Evolution 30 (4): 772–80. https://doi.org/10.1093/molbev/mst010.
+- McMurdie, Paul J., and Susan Holmes. 2013. “Phyloseq: An R Package for Reproducible Interactive Analysis and Graphics of Microbiome Census Data.” Edited by Michael Watson. PLoS ONE 8 (4): e61217. https://doi.org/10.1371/journal.pone.0061217.
+- **Nygaard, Anders B., Hege S. Tunsjø, Roger Meisal, and Colin Charnock. 2020. “A Preliminary Study on the Potential of Nanopore MinION and Illumina MiSeq 16S rRNA Gene Sequencing to Characterize Building-Dust Microbiomes.” Scientific Reports 10 (1): 3209. https://doi.org/10.1038/s41598-020-59771-0.**
+- Price, M. N., P. S. Dehal, and A. P. Arkin. 2009. “FastTree: Computing Large Minimum Evolution Trees with Profiles Instead of a Distance Matrix.” Molecular Biology and Evolution 26 (7): 1641–50. https://doi.org/10.1093/molbev/msp077.
+- Zorz, Jackie, Carmen Li, Anirban Chakraborty, Daniel A Gittins, Taylor Surcon, Natasha Morrison, Robbie Bennett, Adam MacDonald, and Casey R J Hubert. 2023. “SituSeq : An Offline Protocol for Rapid and Remote Nanopore 16S rRNA Amplicon Sequence Analysis.” ISME Communications 3 (1): 33. https://doi.org/10.1038/s43705-023-00239-3.
+
 ## Acknowledgments
 
-We thank Antoine Cousson, Fiona Elmaleh and Meren for their time and energy with NanoASV beta testing!
+We are grateful to the genotoul bioinformatics platform Toulouse Occitanie (Bioinfo Genotoul, https://doi.org/10.15454/1.5572369328961167E12) for providing help, computing and storage resources. We deeply thank Enrique Ortega for its valuable contribution in the very first steps of the project. We deeply thank Antoine Cousson, Fiona Elmaleh and Meren for their role in software beta testing.
 
 ## Citation
 
@@ -263,6 +384,10 @@ De Coster, Wouter, and Rosa Rademakers. 2023. “NanoPack2: Population-Scale Eva
 Long-Read Sequencing Data.” Edited by Can Alkan. Bioinformatics 39 (5): btad311.
 https://doi.org/10.1093/bioinformatics/btad311.
 
+Li, Heng. 2018. “Minimap2: Pairwise Alignment for Nucleotide Sequences.”
+Edited by Inanc Birol. Bioinformatics 34 (18): 3094–3100. 
+ttps://doi.org/10.1093/bioinformatics/bty191.
+
 Katoh, K., and D. M. Standley. 2013. “MAFFT Multiple Sequence Alignment Software Version 7:
 Improvements in Performance and Usability.” Molecular Biology and Evolution 30 (4):
 772–80. https://doi.org/10.1093/molbev/mst010.
@@ -270,9 +395,6 @@ Improvements in Performance and Usability.” Molecular Biology and Evolution 30
 McMurdie, Paul J., and Susan Holmes. 2013. “Phyloseq: An R Package for Reproducible
 Interactive Analysis and Graphics of Microbiome Census Data.” Edited by Michael Watson.
 PLoS ONE 8 (4): e61217. https://doi.org/10.1371/journal.pone.0061217.
-
-Md, Vasimuddin, Sanchit Misra, Heng Li, and Srinivas Aluru. 2019. “Efficient Architecture-Aware
-Acceleration of BWA-MEM for Multicore Systems.” arXiv. http://arxiv.org/abs/1907.12931.
 
 Nygaard, Anders B., Hege S. Tunsjø, Roger Meisal, and Colin Charnock. 2020. “A Preliminary
 Study on the Potential of Nanopore MinION and Illumina MiSeq 16S rRNA Gene
@@ -287,8 +409,9 @@ Quast, Christian, Elmar Pruesse, Pelin Yilmaz, Jan Gerken, Timmy Schweer, Pablo 
 Peplies, and Frank Oliver Glöckner. 2012. “The SILVA Ribosomal RNA Gene Database
 Project: Improved Data Processing and Web-Based Tools.” Nucleic Acids Research 41 (D1): D590–96. https://doi.org/10.1093/nar/gks1219.
 
-Rodríguez-Pérez, Héctor, Laura Ciuffreda, and Carlos Flores. 2021. “NanoCLUST: A Species-Level Analysis of 16S rRNA Nanopore Sequencing Data.” Edited by Birol Inanc. Bioinformatics 37 (11): 1600–1601. https://doi.org/10.1093/bioinformatics/btaa900.
-
 Rognes, Torbjørn, Tomáš Flouri, Ben Nichols, Christopher Quince, and Frédéric Mahé. 2016. “VSEARCH: A Versatile Open Source Tool for Metagenomics.” PeerJ 4 (October): e2584. https://doi.org/10.7717/peerj.2584.
 
-Santos, Andres, Ronny van Aerle, Leticia Barrientos, and Jaime Martinez-Urtaza. 2020. “Computational Methods for 16S Metabarcoding Studies Using Nanopore Sequencing Data.” Computational and Structural Biotechnology Journal 18: 296–305. https://doi.org/10.1016/j.csbj.2020.01.005.
+## Funding
+
+The PhD grant that allowed this production is a Contrat Doctoral Spécifique Normalien (CDSN) granted by the École Normale Supérieure de Paris and the French Ministère de l’Enseignement Supérieur et de la Recherche. The present work was also funded by the French National Institute of Research for Development (IRD). This project was financially supported by ANR under the framework of the U2 Worm project (ANR-20-CE01-0015-01), and under the Investissements d’Avenir programme with the reference ANR-10-LABX-001-01 Labex Agro and coordinated by Agropolis Fondation, under the framework of the Innov’Earth Project (convention 2101-003) and the MetaCast project (convention 2202-214).
+

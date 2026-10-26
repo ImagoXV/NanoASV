@@ -1,7 +1,6 @@
 SAVE_tmp_files/
 .RData
 .Rhistory
-Mock_run_OUPUT/
 resources/
 results/
 Results/
@@ -13,3 +12,6 @@ TEST_out/
 tmp_files/
 SAVE_MOCK_classical_tmp/
 Nygaard/
+config/Tests_with_real_dataset
+config/Model_testings
+config/Database_testing

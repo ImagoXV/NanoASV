@@ -37,9 +37,10 @@ rule database_indexing:
         DATABASE
     output:
         "tmp_files/00_database_indexing/.indexing.done"
+    threads: NUM_PROCESSES
     shell:
         """
-        minimap2 -x {MOD} -d tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input}
+        minimap2 -x {MOD} -t {threads} -d tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input}
         zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME}
         touch {output}
         """
@@ -51,7 +52,13 @@ rule concatenate_fastq_files:
     output:
         temporary("tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz")
     shell:
-        "cat {input}/*fastq.gz > {output}"
+        """
+        if ls {input}/*.fastq 1> /dev/null 2>&1; then
+            (gzip -c {input}/*.fastq 2>/dev/null; cat {input}/*.fastq.gz 2>/dev/null) > {output}
+        else
+            cat {input}/*.fastq.gz > {output}
+        fi
+        """
 
 
 # Step 3/9 : Filtering sequences based on quality with Chopper
@@ -60,8 +67,9 @@ rule sequence_quality_filtering:
         "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
     output:
         temporary("tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz")
+    threads: NUM_PROCESSES
     shell:
-        "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} -i {input} | gzip > {output}"
+        "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} --threads {threads} -i {input} | gzip > {output}"
 
 
 # Step 4/9 : Trim adapaters with Porechop
@@ -70,8 +78,9 @@ rule adapters_trimming:
         "tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"
     output:
         temporary("tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz")
+    threads: NUM_PROCESSES
     shell:
-        "porechop --verbosity 0 -i {input} -o {output}"
+        "porechop --verbosity 0 --threads {threads} -i {input} -o {output}"
 
 
 # Step 5/9 : Subsampling
@@ -89,8 +98,9 @@ rule minimap2:
         indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
     output:
         temporary("tmp_files/05_minimap2/{barcode}.sam")
+    threads: NUM_PROCESSES
     shell:
-        "minimap2 -a -x {MOD} --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
+        "minimap2 -a -x {MOD} -t {threads} --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
 
 # Step 6/9 : Reads alignements with minimap2 against the database
 rule sam_to_bam_format:
@@ -126,6 +136,7 @@ rule vsearch:
         expand("tmp_files/06_sam_to_bam_format/{barcode}_unmatched.fastq", barcode=INPUT.barcode)
     output:
         "tmp_files/07_unknown_sequences_clustering/.vsearch.done"
+    threads: NUM_PROCESSES
     shell:
         """
         cat tmp_files/06_sam_to_bam_format/barcode*_unmatched.fastq > tmp_files/07_unknown_sequences_clustering/seqs
@@ -133,7 +144,7 @@ rule vsearch:
         if [ -s "tmp_files/07_unknown_sequences_clustering/seqs" ]; then
             vsearch \
             --cluster_size tmp_files/07_unknown_sequences_clustering/seqs \
-            --threads {NUM_PROCESSES} \
+            --threads {threads} \
             --id {ID} \
             --iddef 4 \
             --relabel "${{UNIQ_ID}}_Unknown_cluster_" \
@@ -145,20 +156,20 @@ rule vsearch:
                                     for (i=2; i<=NF; i++) {{s += $i}}
                                     if (s >= MINAB) {{print $0}}
                             }}' > tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv) \
-            --clusterout_id \
             --clusterout_sort \
             --fasta_width 0 \
             --quiet \
             --consout - | \
-            sed -E '/^>/ s/^>centroid=/>/ ; s/;seqs=[1-9]+//' | \
+            sed -E '/^>/ s/;seqs=[0-9]+//' | \
+            sed -E '/^>/ s/^>centroid=/>/' | \
             vsearch \
                 --fastx_filter - \
                 --sizein \
-                --sizeout \
                 --quiet \
                 --minsize {MINAB} \
                 --fastaout tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
             sed -i 's/;/_/g' tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta #Semicolons trigger format problem with tree file
+            sed -E -i '/^>/ s/_size=[0-9]+//' tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta #Remove size information 
             rm tmp_files/07_unknown_sequences_clustering/seqs
             if [ $(wc -l < tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv) -lt 2 ]; then
                 rm tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
@@ -185,7 +196,6 @@ rule phylogeny:
             [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]] && cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
             mafft --thread {threads} tmp_files/08_phylogeny/ALL_ASV_OTU.fasta > tmp_files/08_phylogeny/ALL_ASV.aln 2> /dev/null 
             ## FastTree
-            echo
             FastTree -nt -{FASTTREE_MOD} tmp_files/08_phylogeny/ALL_ASV.aln > tmp_files/08_phylogeny/ASV.tree 2> /dev/null #Verbose debugging
         else
             echo "Step 8/9 : Skipped - no phylogeny"
@@ -225,6 +235,6 @@ rule phyloseq:
         "tmp_files/.rscript.done"
     shell:
         """
-        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA} 2> /dev/null
+        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA}
         touch {output}
         """
