@@ -17,9 +17,9 @@ Reference file requirements :
 - Correct fasta format with ">" based header, followed by sequence.
 - Singleleaved and interleaved fasta files are both handled
 - The header must at least contain a unique identifier. NanoASV can output a phyloseq object with no more taxonomy than the unique identifier.
-- In order to be properly outputed by NanoASV, taxonomy must contain in correct order :
+- In order to be properly output by NanoASV, taxonomy must contain in correct order :
     * The unique identifier (ex: AP017610.220271.221808)
-    * A whitespace between the unique ID and the taxonomic informations
+    * A whitespace between the unique ID and the taxonomic information
     * Multi-level taxonomy must be separated with semicolons (;)
         NanoASV currently handles up to 25 taxonomic levels which should be enough for most application. If it's not, please open an issue on github.
 
