@@ -216,8 +216,7 @@ snakemake \
     --jobs 100 \
     --profile slurm \
     --cluster-config cluster.json \
-    -s workflow/snakefile \
-    --configfile config/config.yaml
+    -s workflow/snakefile
 ```
 -->
 
