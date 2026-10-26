@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #This script is a wrapper to launch NanoASV snakemake version with ease
-source "$(conda info --base)/etc/profile.d/conda.sh"
-conda activate NanoASV
 trap 'echo "ERROR: Something went wrong - Carefully read the above message to understand how to fix it. If you think this is a bug, please reach us out on github"' ERR
 set -e
 
@@ -187,14 +185,12 @@ mkdir -p tmp_files
 # Check if DIR is empty and no default value is provided
 if [[ -z $DIR ]]; then
     cowpy -e dead "Error: -d needs an argument, I don't know where your sequences are." >&2
-    conda deactivate
     cat $NANOASV_PATH/config/help.txt
     exit 1
 fi
 # Check if OUT is empty and no default value is provided
 if [[ -z $OUT ]]; then
     cowpy -e dead "Error: -o needs an argument. You don't want me to print to stdout" >&2
-    conda deactivate
     exit 1
 fi
 
@@ -415,4 +411,3 @@ fi
 
 rm -rf tmp_files/tmp_seq_dir
 
-conda deactivate 
