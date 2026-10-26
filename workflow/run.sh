@@ -264,6 +264,7 @@ fi
 #exit 1 #Break debug
 
 #Metadata sanity checks ****************************************************************************************************
+INPUT_PATH="$(realpath "${DIR}")"
 (cd "${METADATA}"
  #Check if metadata.csv has been provided by the user
  [[ -s metadata.csv ]] || \
@@ -286,7 +287,7 @@ fi
  cut -f1 -d "," metadata.csv | \
      tail -n +2 | \
      while read sample_name ; do
-         [[ -d ${sample_name} ]] || \
+         [[ -d "${INPUT_PATH}/${sample_name}" ]] || \
              { echo 'ERROR,' ${sample_name} 'sequences not found. Please check metadata.csv and barcodes directories' ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
      done
 
