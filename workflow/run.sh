@@ -331,7 +331,7 @@ fi
 #Checking reference dataset fits to requirements
 echo 'Checking reference format'
 #Check if sequences contain uniq ID before taxonomy
-if ! grep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
+if ! zgrep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
     cat "$NANOASV_PATH/config/requirements.txt"
         echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
         Keep in mind that those uniq ID will not be consistent from one run to another.\n\
@@ -339,14 +339,21 @@ if ! grep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
         For better practice, we advise you to add one yourself.\n\
         Formatting will take a while ..."
 
-    while IFS= read -r line; do
-    if [[ $line == ">"* ]]; then
-        uuid=$(uuidgen)
-        echo ">${uuid} ${line:1}" >> tmp_files/CORRECT_HEADER_reference.fasta
-    else #Manage singleleaved and interleaved fasta file
-        echo "$line" >> tmp_files/CORRECT_HEADER_reference.fasta
-    fi
-    done < ${DATABASE}
+    # random uuid v4 in awk: one uuidgen call per header takes ~20 min on SILVA
+    zcat -f "${DATABASE}" | \
+        awk 'function hex(n,   s) {
+                 s = ""
+                 while (n-- > 0) s = s sprintf("%x", int(rand() * 16))
+                 return s
+             }
+             BEGIN { srand() }
+             /^>/ {
+                 printf ">%s-%s-4%s-%x%s-%s %s\n", hex(8), hex(4), hex(3),
+                        8 + int(rand() * 4), hex(3), hex(12), substr($0, 2)
+                 next
+             }
+             { print } #Manage singleleaved and interleaved fasta file
+            ' > tmp_files/CORRECT_HEADER_reference.fasta
     DATABASE=tmp_files/CORRECT_HEADER_reference.fasta
 fi
 # Ensure reference file is singleleaved fasta

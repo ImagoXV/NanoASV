@@ -217,6 +217,43 @@ grep -qE "^>[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12} Bacteria;Phylum;" \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+DESCRIPTION="reference headers without IDs get unique uuids"
+new_workdir
+awk 'BEGIN { for (i = 1; i <= 1000; i++) print ">Bacteria;P;C;O;F;G;S\nACGT" }' > ref.fasta
+"${NANOASV}" --dry-run -db ref.fasta > /dev/null 2>&1
+grep -o "^>[^ ]*" tmp_files/CORRECT_HEADER_reference.fasta | \
+    sort -u | \
+    wc -l | \
+    grep -qx "1000" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="reference headers without IDs: a file from an earlier run is replaced"
+new_workdir
+printf ">Bacteria;Phylum;Class;Order;Family;Genus;Species\nACGT\n" > ref.fasta
+"${NANOASV}" --dry-run -db ref.fasta > /dev/null 2>&1
+"${NANOASV}" --dry-run -db ref.fasta > /dev/null 2>&1
+grep -c "^>" tmp_files/CORRECT_HEADER_reference.fasta | \
+    grep -qx "1" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="headers of a gzipped reference without IDs get a uuid"
+new_workdir
+printf ">Bacteria;Phylum;Class;Order;Family;Genus;Species\nACGT\n" | gzip > ref.fasta.gz
+"${NANOASV}" --dry-run -db ref.fasta.gz > /dev/null 2>&1
+grep -qE "^>[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12} Bacteria;Phylum;" \
+     tmp_files/CORRECT_HEADER_reference.fasta && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="headers of a gzipped reference are read after decompression"
+new_workdir
+printf ">s1 Bacteria;P;C;O;F;G;S\nACGT\n" | gzip > ref.fasta.gz
+"${NANOASV}" --dry-run -db ref.fasta.gz > /dev/null 2>&1 && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="reference headers with IDs are kept"
 new_workdir
 "${NANOASV}" --dry-run -db "${MOCK_REFERENCE}" > /dev/null 2>&1
@@ -241,11 +278,5 @@ printf "\n" | \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="a small gzipped reference is rejected (known bug: plain grep on gzipped reference)"
-new_workdir
-printf ">s1 Bacteria;P;C;O;F;G;S\nACGT\n" | gzip > ref.fasta.gz
-"${NANOASV}" --dry-run -db ref.fasta.gz > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
 
 exit 0
