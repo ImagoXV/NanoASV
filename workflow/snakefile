@@ -37,9 +37,10 @@ rule database_indexing:
         DATABASE
     output:
         "tmp_files/00_database_indexing/.indexing.done"
+    threads: NUM_PROCESSES
     shell:
         """
-        minimap2 -x {MOD} -d tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input}
+        minimap2 -x {MOD} -t {threads} -d tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input}
         zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME}
         touch {output}
         """
@@ -66,8 +67,9 @@ rule sequence_quality_filtering:
         "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
     output:
         temporary("tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz")
+    threads: NUM_PROCESSES
     shell:
-        "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} -i {input} | gzip > {output}"
+        "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} --threads {threads} -i {input} | gzip > {output}"
 
 
 # Step 4/9 : Trim adapaters with Porechop
@@ -76,8 +78,9 @@ rule adapters_trimming:
         "tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"
     output:
         temporary("tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz")
+    threads: NUM_PROCESSES
     shell:
-        "porechop --verbosity 0 -i {input} -o {output}"
+        "porechop --verbosity 0 --threads {threads} -i {input} -o {output}"
 
 
 # Step 5/9 : Subsampling
@@ -95,8 +98,9 @@ rule minimap2:
         indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
     output:
         temporary("tmp_files/05_minimap2/{barcode}.sam")
+    threads: NUM_PROCESSES
     shell:
-        "minimap2 -a -x {MOD} --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
+        "minimap2 -a -x {MOD} -t {threads} --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
 
 # Step 6/9 : Reads alignements with minimap2 against the database
 rule sam_to_bam_format:
@@ -132,6 +136,7 @@ rule vsearch:
         expand("tmp_files/06_sam_to_bam_format/{barcode}_unmatched.fastq", barcode=INPUT.barcode)
     output:
         "tmp_files/07_unknown_sequences_clustering/.vsearch.done"
+    threads: NUM_PROCESSES
     shell:
         """
         cat tmp_files/06_sam_to_bam_format/barcode*_unmatched.fastq > tmp_files/07_unknown_sequences_clustering/seqs
@@ -139,7 +144,7 @@ rule vsearch:
         if [ -s "tmp_files/07_unknown_sequences_clustering/seqs" ]; then
             vsearch \
             --cluster_size tmp_files/07_unknown_sequences_clustering/seqs \
-            --threads {NUM_PROCESSES} \
+            --threads {threads} \
             --id {ID} \
             --iddef 4 \
             --relabel "${{UNIQ_ID}}_Unknown_cluster_" \
