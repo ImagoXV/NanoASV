@@ -67,7 +67,7 @@ new_workdir
     failure "${DESCRIPTION}" || \
         success "${DESCRIPTION}"
 
-# help.txt documents --sam-quality, run.sh only accepts --sam-qual
+# help.txt documented --sam-quality by mistake: the option is --sam-qual
 DESCRIPTION="--sam-quality is an unknown option"
 new_workdir
 "${NANOASV}" --sam-quality 10 2> /dev/null | \
