@@ -13,13 +13,15 @@
    -l ,  --minlength     Minimum amplicon length for Chopper, default: 1300                              
    -L ,  --maxlength     Maximum amplicon length for Chopper, default: 1700                              
    -i ,  --id-vsearch    Identity threshold for vsearch unknown sequences clustering step, default: 0.7  
-   -ab,  --minab         Minimum unknown cluster total abundance to be kept                        
+   -ab,  --minab         Minimum unknown cluster total abundance to be kept, default: 5
    -p ,  --num-process   Number of cores for parallelization, default: 1                                 
    --subsampling         Max number of sequences per barcode, default: 50,000                            
    --no-r-cleaning       To keep Eukaryota, Chloroplast, and Mitochondria sequences from phyloseq object
    --metadata            Specify metadata.csv file directory, default is demultiplexed directory (--dir) 
    --notree              To remove phylogeny step and subsequent tree from phyloseq object
-   --sam-quality         To tune samtools filtering mapQ threshold, default : 0 
+   --sam-qual            To tune samtools filtering mapQ threshold, default : 0 
+   --model               minimap2 alignment model (see README), default: map-ont
+   --fasttree-model      FastTree model: gtr, gamma, wag, lg or fastest, default: fastest
    --requirements        To display personal reference fasta requirements
    --dry-run             Perform a snakemake dry run
    --mock                Run NanoASV with Mock dataset
