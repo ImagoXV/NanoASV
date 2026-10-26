@@ -127,6 +127,10 @@ dry_run_matches "default minimum cluster abundance: 5" \
 dry_run_matches "default number of threads: 1" \
                 "--threads 1 "
 
+# mafft asks for 20 threads: Snakemake gives it at most --cores
+dry_run_matches "default number of cores: 1 (mafft gets 1 thread)" \
+                "mafft --thread 1 "
+
 dry_run_matches "default R cleaning and tree: on (1 1)" \
                 "script\.r [^ ]+ [^ ]+ 1 1 "
 
@@ -173,6 +177,16 @@ done
 for OPTION in -p --num-process ; do
     dry_run_matches "${OPTION} is passed to vsearch --threads" \
                     "--threads 3 " "${OPTION}" 3
+    dry_run_matches "${OPTION} is passed to chopper --threads" \
+                    "chopper .* --threads 3 " "${OPTION}" 3
+    dry_run_matches "${OPTION} is passed to porechop --threads" \
+                    "porechop .* --threads 3 " "${OPTION}" 3
+    dry_run_matches "${OPTION} is passed to minimap2 -t (indexing)" \
+                    "minimap2 -x map-ont -t 3 -d " "${OPTION}" 3
+    dry_run_matches "${OPTION} is passed to minimap2 -t (mapping)" \
+                    "minimap2 -a -x map-ont -t 3 " "${OPTION}" 3
+    dry_run_matches "${OPTION} sets the number of cores (mafft gets 3 threads)" \
+                    "mafft --thread 3 " "${OPTION}" 3
 done
 
 dry_run_matches "--no-r-cleaning is passed to the R script" \
