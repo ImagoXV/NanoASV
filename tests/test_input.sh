@@ -269,11 +269,20 @@ printf ">s1 Bacteria;P;C;O;F;G;S\nACGT\nACGT\n" > ref.fasta
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="an uncompressed interleaved reference is emptied (known bug: plain zcat)"
+DESCRIPTION="an uncompressed interleaved reference is linearized"
 new_workdir
 printf ">s1 Bacteria;P;C;O;F;G;S\nACGT\nACGT\n" > ref.fasta
 "${NANOASV}" --dry-run -db ref.fasta > /dev/null 2>&1
-printf "\n" | \
+printf ">s1 Bacteria;P;C;O;F;G;S\nACGTACGT\n" | \
+    cmp -s - tmp_files/SINGLELINE_reference.fasta && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="a gzipped interleaved reference is linearized"
+new_workdir
+printf ">s1 Bacteria;P;C;O;F;G;S\nACGT\nACGT\n" | gzip > ref.fasta.gz
+"${NANOASV}" --dry-run -db ref.fasta.gz > /dev/null 2>&1
+printf ">s1 Bacteria;P;C;O;F;G;S\nACGTACGT\n" | \
     cmp -s - tmp_files/SINGLELINE_reference.fasta && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
