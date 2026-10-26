@@ -12,12 +12,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 print_header "Pending fixes"
 
 
-DESCRIPTION="an unknown FastTree model is rejected"
-new_workdir
-"${NANOASV}" --dry-run --fasttree-model unknown > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
-
 DESCRIPTION="barcode directories are looked for in the input directory, not in --metadata"
 new_workdir
 make_input_dir input
