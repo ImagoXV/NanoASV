@@ -264,6 +264,7 @@ fi
 #exit 1 #Break debug
 
 #Metadata sanity checks ****************************************************************************************************
+INPUT_PATH="$(realpath "${DIR}")"
 (cd "${METADATA}"
  #Check if metadata.csv has been provided by the user
  [[ -s metadata.csv ]] || \
@@ -285,10 +286,20 @@ fi
  # Check if metadata barcodes are found within DIR
  cut -f1 -d "," metadata.csv | \
      tail -n +2 | \
-     while read sample_name ; do
-         [[ -d ${sample_name} ]] || \
-             { echo 'ERROR,' ${sample_name} 'sequences not found. Please check metadata.csv and barcodes directories' ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
+     while read -r sample_name ; do
+         [[ -d "${INPUT_PATH}/${sample_name}" ]] || \
+             { echo "ERROR, ${sample_name} sequences not found. Please check metadata.csv and barcodes directories" ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
      done
+
+ # the R step fails on a sample missing from metadata.csv
+ for sample_dir in "${INPUT_PATH}"/*/ ; do
+     compgen -G "${sample_dir}*.fastq*" > /dev/null || continue
+     sample_name="$(basename "${sample_dir}")"
+     cut -f1 -d "," metadata.csv | \
+         tail -n +2 | \
+         grep -qxF "${sample_name}" || \
+         { echo "ERROR, ${sample_name} is not listed in metadata.csv. Please check metadata.csv and barcodes directories" ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
+ done
 
  #Check if number of fields is consistent is consistent accross all number of lines
  awk -F "," '{print NF}' metadata.csv | \

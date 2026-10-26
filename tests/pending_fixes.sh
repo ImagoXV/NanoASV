@@ -12,15 +12,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 print_header "Pending fixes"
 
 
-DESCRIPTION="barcode directories are looked for in the input directory, not in --metadata"
-new_workdir
-make_input_dir input
-mkdir metadata
-mv input/metadata.csv metadata/
-"${NANOASV}" --dry-run -d input --metadata metadata > /dev/null 2>&1 && \
-    success "${DESCRIPTION}" || \
-        failure "${DESCRIPTION}"
-
 DESCRIPTION="missing -d is reported when stdin is not a terminal (cowpy)"
 new_workdir
 "${NANOASV}" -o out 2>&1 | \

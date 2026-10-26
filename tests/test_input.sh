@@ -153,11 +153,32 @@ metadata_rejected "metadata.csv with uneven numbers of columns is rejected" \
                   "not all the lines have the same number of columns" \
                   ",ID,Origin\nbarcode01,1,A\nbarcode02,2,B,extra\n"
 
-DESCRIPTION="metadata.csv may list a subset of the barcodes"
+metadata_rejected "a sample directory missing from metadata.csv is rejected" \
+                  "^ERROR, barcode02 is not listed in metadata.csv" \
+                  ",ID,Origin\nbarcode01,1,A\n"
+
+DESCRIPTION="a directory without fastq files is not a sample"
 new_workdir
 make_input_dir input
-printf ",ID,Origin\nbarcode01,1,A\n" > input/metadata.csv
+mkdir input/notes
 "${NANOASV}" --dry-run -d input > /dev/null 2>&1 && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="metadata.csv with CRLF line endings is accepted"
+new_workdir
+make_input_dir input
+printf ",ID,Origin\r\nbarcode01,1,A\r\nbarcode02,2,B\r\n" > input/metadata.csv
+"${NANOASV}" --dry-run -d input > /dev/null 2>&1 && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="barcode directories are looked for in the input directory, not in --metadata"
+new_workdir
+make_input_dir input
+mkdir metadata
+mv input/metadata.csv metadata/
+"${NANOASV}" --dry-run -d input --metadata metadata > /dev/null 2>&1 && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
