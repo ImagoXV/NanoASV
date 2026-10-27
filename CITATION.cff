@@ -16,8 +16,8 @@ authors:
   given-names: "Laetitia"
   orcid: "https://orcid.org/0000-0002-7057-6182"
 title: "NanoASV: a snakemake workflow for reproducible field-based Nanopore full-length 16S metabarcoding amplicon data analysis"
-version: 1.2.2
-date-released: 2025-02-17
+version: 1.2.3
+date-released: 2026-10-27
 url: "https://github.com/ImagoXV/NanoASV"
 preferred-citation:
   type: article
