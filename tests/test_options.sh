@@ -32,7 +32,7 @@ for OPTION in -v --version ; do
     DESCRIPTION="${OPTION} prints the version number"
     new_workdir
     "${NANOASV}" "${OPTION}" 2> /dev/null | \
-        grep -q "^NanoASV 1\.2\.2 " && \
+        grep -q "^NanoASV 1\.2\.3 " && \
         success "${DESCRIPTION}" || \
             failure "${DESCRIPTION}"
 done
