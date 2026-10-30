@@ -40,7 +40,9 @@ jobs:
         source "${CONDA}/etc/profile.d/conda.sh"
         bash config/install.sh
 
-    - name: Run the CLI tests
+    - name: Run the tests
+      env:
+        NORMALIZED_MINI_RESULTS: ${{ github.workspace }}/normalized_mini_results
       run: |
         source "${CONDA}/etc/profile.d/conda.sh"
         conda activate "./$(head -n1 environment.yml | cut -f2 -d ' ')"
@@ -73,3 +75,10 @@ jobs:
       with:
         name: mock-normalized-results
         path: normalized_results/
+
+    - name: Upload normalized mini-run results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: mini-normalized-results
+        path: normalized_mini_results/
