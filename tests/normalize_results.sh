@@ -4,7 +4,8 @@
 #
 # Copy the outputs of a NanoASV run into a form that can be compared
 # with the golden files in tests/golden/: what changes from run to run
-# (read order, tree branch lengths, binary .rdata) is normalized.
+# (read order, tree branch lengths, unknown-cluster labels, binary
+# .rdata) is normalized.
 
 set -euo pipefail
 
