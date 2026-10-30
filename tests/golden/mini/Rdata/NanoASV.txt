@@ -1,0 +1,8 @@
+taxa: 4 
+samples: 2 
+ranks: Kingdom Phylum Class Order Family Genus Species 
+sample variables: ID Origin 
+          ID Origin
+barcode01  1   Mini
+barcode02  2   Mini
+tree tips match taxa: TRUE 

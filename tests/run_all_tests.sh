@@ -7,7 +7,7 @@ set -euo pipefail
 TESTS_DIR="$(dirname "${BASH_SOURCE[0]}")"
 readonly TESTS_DIR
 
-for script in "${TESTS_DIR}"/{test_options,test_input}.sh ; do
+for script in "${TESTS_DIR}"/{test_options,test_input,test_mini_run}.sh ; do
     bash "${script}"
     echo
 done
