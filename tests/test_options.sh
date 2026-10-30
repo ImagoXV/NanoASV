@@ -265,4 +265,27 @@ dry_run_matches "--metadata is passed to the R script" \
                 "script\.r .* ${TMP_ROOT}/metadata$" \
                 --metadata "${TMP_ROOT}/metadata"
 
+dry_run_matches "--mock sets the number of threads to 2" \
+                vsearch \
+                "--threads 2 " --mock
+
+
+## -------------------------------------------------------- tmp_files/
+
+DESCRIPTION="tmp_files/ is kept by default"
+new_workdir
+"${NANOASV}" --dry-run > /dev/null 2>&1
+[[ -d tmp_files ]] && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+for OPTION in --remove-tmp --mock ; do
+    DESCRIPTION="${OPTION} removes tmp_files/"
+    new_workdir
+    "${NANOASV}" --dry-run "${OPTION}" > /dev/null 2>&1
+    [[ ! -e tmp_files ]] && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+done
+
 exit 0
