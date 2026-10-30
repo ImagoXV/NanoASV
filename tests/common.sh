@@ -51,14 +51,25 @@ make_input_dir () {
     printf ",ID,Origin\nbarcode01,1,A\nbarcode02,2,B\n" > "${dir}/metadata.csv"
 }
 
-# usage: dry_run_matches DESCRIPTION REGEX [OPTION...]
-# run a dry run in a new working directory, search its output for REGEX
+# usage: rule_jobs RULE < DRY_RUN_OUTPUT
+# keep the jobs of RULE: each job starts with a timestamp line "[...]"
+rule_jobs () {
+    awk -v rule_line="rule ${1}:" '
+        /^\[/ { in_rule = 0 }
+        $0 == rule_line { in_rule = 1 }
+        in_rule'
+}
+
+# usage: dry_run_matches DESCRIPTION RULE REGEX [OPTION...]
+# run a dry run in a new working directory, search the jobs of RULE for REGEX
 dry_run_matches () {
     local -r description="${1}"
-    local -r regex="${2}"
-    shift 2
+    local -r rule="${2}"
+    local -r regex="${3}"
+    shift 3
     new_workdir
     "${NANOASV}" --dry-run "$@" 2>&1 | \
+        rule_jobs "${rule}" | \
         grep -qE -- "${regex}" && \
         success "${description}" || \
             failure "${description}"
