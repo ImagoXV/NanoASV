@@ -367,4 +367,4 @@ printf ">s1 Bacteria;P;C;O;F;G;S\nACGTACGT\n" | \
         failure "${DESCRIPTION}"
 
 
-exit 0
+exit_with_failure_count

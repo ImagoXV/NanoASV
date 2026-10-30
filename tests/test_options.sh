@@ -288,4 +288,4 @@ for OPTION in --remove-tmp --mock ; do
             failure "${DESCRIPTION}"
 done
 
-exit 0
+exit_with_failure_count
