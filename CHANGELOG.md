@@ -9,10 +9,21 @@ Earlier versions are described in the
 
 ## [Unreleased]
 
+### Upgrade notes
+
+- Results change: reads aligned to the reverse strand are now counted,
+  so abundances roughly double. On the mock dataset, assigned reads go
+  from 3,000 to 6,043 and taxa from 1,700 to 2,714.
+
 ### Removed
 
 - Support for Oxford Nanopore MK1C devices, discontinued by Oxford
   Nanopore: README installation instructions removed.
+
+### Fixed
+
+- Reads aligned to the reverse strand (about half of the reads) were
+  dropped after alignment (#154)
 
 
 ## [1.2.3] - 2026-10-27

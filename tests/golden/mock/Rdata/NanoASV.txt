@@ -1,4 +1,4 @@
-taxa: 1700 
+taxa: 2714 
 samples: 2 
 ranks: Kingdom Phylum Class Order Family Genus Species 
 sample variables: ID Refs Origin Sampling_Date Measure_1 Measure_2 
