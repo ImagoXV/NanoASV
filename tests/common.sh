@@ -62,6 +62,16 @@ make_input_dir () {
     printf ",ID,Origin\nbarcode01,1,A\nbarcode02,2,B\n" > "${dir}/metadata.csv"
 }
 
+# usage: exits_with STATUS COMMAND [ARG...]
+# run COMMAND, output discarded; succeed if its exit status is STATUS
+exits_with () {
+    local -r expected_status="${1}"
+    shift
+    local status=0
+    "$@" > /dev/null 2>&1 || status=$?
+    (( status == expected_status ))
+}
+
 # usage: rule_jobs RULE < DRY_RUN_OUTPUT
 # keep the jobs of RULE: each job starts with a timestamp line "[...]"
 rule_jobs () {
