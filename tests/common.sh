@@ -5,13 +5,24 @@ RED="\033[1;31m"
 GREEN="\033[1;32m"
 NO_COLOR="\033[0m"
 
+FAILURES=0
+
 failure () {
     printf "%bFAIL%b: %s\n" "${RED}" "${NO_COLOR}" "${1}"
-    exit 1
+    FAILURES=$((FAILURES + 1))
 }
 
 success () {
     printf "%bPASS%b: %s\n" "${GREEN}" "${NO_COLOR}" "${1}"
+}
+
+# usage: exit_with_failure_count (last line of a test script)
+exit_with_failure_count () {
+    if (( FAILURES > 0 )) ; then
+        printf "%b%d test(s) failed%b\n" "${RED}" "${FAILURES}" "${NO_COLOR}"
+        exit 1
+    fi
+    exit 0
 }
 
 print_header () {

@@ -19,4 +19,4 @@ new_workdir
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-exit 0
+exit_with_failure_count
