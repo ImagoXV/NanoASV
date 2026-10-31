@@ -10,8 +10,7 @@ NanoASV is a conda environment snakemake based workflow using state of
 the art bioinformatic software to process full-length SSU rRNA
 (16S/18S) amplicons acquired with Oxford Nanopore Sequencing
 technology. Its strength lies in reproducibility, portability and the
-possibility to run offline. It can be installed on the Nanopore MK1C
-sequencing device and process data locally.
+possibility to run offline.
 
 ## Options
 
@@ -47,9 +46,6 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 
 
 # Installation with Conda
-
-(to install NanoASV on Oxford Nanopore MK1C sequencing devices, see
-section [ONT MK1C Installation](#ont-mk1c-installation))
 
 Clone the repository from [github](https://github.com/ImagoXV/NanoASV.git):
 
@@ -116,94 +112,6 @@ nanoasv --mock
 
 You can inspect NanoASV's output structure in `${HOME}/NanoASV/Mock_run_OUTPUT/`.
 
-
-# ONT MK1C Installation
-
-You need to use the [aarch64-MK1C](https://github.com/ImagoXV/NanoASV/tree/aarch64-MK1C-conda) branch, **otherwise, it will not work.**
-
-You first need to install
-[miniconda](https://docs.anaconda.com/miniconda/). Note that `/data/`
-will be used for installation for storage capacity matters.
-
-```sh
-mkdir -p /data/miniconda3
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /data/miniconda3/miniconda.sh --no-check-certificate
-bash /data/miniconda3/miniconda.sh -b -u -p /data/miniconda3
-rm /data/miniconda3/miniconda.sh
-source /data/miniconda3/bin/activate
-```
-
-Then proceed to install `conda`.
-
-Chopper needs to be Aarch64 compiled. Therefore, you need to download
-this specific archive or a newer one if someone cross-compiles it.
-
-Warning, don't setup NanoASV environment from the `conda (base)`
-environment. Otherwise you'll run into issues.
-
-```sh
-cd /data/
-git clone \
-    --branch aarch64-MK1C-conda \
-    --single-branch https://github.com/ImagoXV/NanoASV.git
-cd ./NanoASV/
-conda deactivate
-conda env create -f environment.yml
-(
-    cd ./config/
-    wget https://github.com/wdecoster/chopper/releases/download/v0.7.0/chopper-aarch64.zip
-    unzip chopper-aarch64.zip
-)
-ROOT_DIR="$(conda env list | grep -w 'NanoASV' | awk '{print $2}')"
-ACTIVATE_DIR="${ROOT_DIR}/etc/conda/activate.d"
-cp ./config/{alias,paths}.sh ${ACTIVATE_DIR}/
-echo "export NANOASV_PATH=$(pwd)" >> ${ACTIVATE_DIR}/paths.sh
-DEACTIVATE_DIR="${ROOT_DIR}/etc/conda/deactivate.d"
-cp ./config/unalias.sh ${DEACTIVATE_DIR}/
-chmod +x ./workflow/run.sh
-```
-
-## Database setup
-
-NanoASV can be used with any reference fasta file. If you want to have
-a broad idea of your community taxonomy, we recommend you to use
-latest [Silva](https://www.arb-silva.de/).
-
-Download the database and put it in `./resources/`:
-
-```sh
-RELEASE=138.2
-URL="https://www.arb-silva.de/fileadmin/silva_databases/release_${RELEASE}/Exports"
-INPUT="SILVA_${RELEASE}_SSURef_NR99_tax_silva.fasta.gz"
-OUTPUT="SINGLELINE_${INPUT/_NR99/}"
-FOLDER="resources"
-
-mkdir -p "${FOLDER}"
-
-echo "downloading and formatting SILVA reference, this will take a few minutes."
-wget --output-document - "${URL}/${INPUT}" | \
-    gunzip --stdout | \
-    awk '/^>/ {printf("%s%s\n", (NR == 1) ? "" : RS, $0) ; next} {printf("%s", $0)} END {printf("\n")}' | \
-    gzip > "./${FOLDER}/${OUTPUT}"
-
-unset RELEASE URL INPUT OUTPUT
-```
-
-## R environment installation
-
-```sh
-conda create -y --name R-phyloseq -c bioconda -c conda-forge bioconductor-phyloseq
-conda activate R-phyloseq
-Rscript -e 'install.packages("dplyr", repos = "https://cran.r-project.org")'
-conda deactivate
-```
-
-## Test run on MK1C device
-
-```sh
-conda activate NanoASV
-nanoasv --mock
-```
 
 <!--
 ## Cluster execution

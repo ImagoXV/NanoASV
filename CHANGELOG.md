@@ -7,6 +7,14 @@ Earlier versions are described in the
 [GitHub releases](https://github.com/ImagoXV/NanoASV/releases).
 
 
+## [Unreleased]
+
+### Removed
+
+- Support for Oxford Nanopore MK1C devices, discontinued by Oxford
+  Nanopore: README installation instructions removed.
+
+
 ## [1.2.3] - 2026-10-27
 
 Bug-fix release: no new features. Results are unchanged for runs that
@@ -57,4 +65,5 @@ worked with v1.2.2 (checked against the mock dataset).
   outputs, lint report (#160, #161, #162, #163)
 - Removed the unused `config/config.yaml` and `UV_transition/` (#173)
 
+[Unreleased]: https://github.com/ImagoXV/NanoASV/compare/v1.2.3...dev
 [1.2.3]: https://github.com/ImagoXV/NanoASV/compare/v1.2.2...v1.2.3
