@@ -98,26 +98,51 @@ mini_run input out && \
         failure "${DESCRIPTION}"
 
 
-## ------------------------------------------------ globs over tmp_files/
+## ---------------------------------------- leftovers from an earlier run
 
-DESCRIPTION="tmp_files/ glob: a sample from an earlier run leaks into the results (known bug)"
+# same working directory: run 2 drops barcode02, which holds the unknown
+# reads and the only read of AB1.1.1500
 new_workdir
-cp -r "${DATASET}" with_barcode03
-cp -r with_barcode03/barcode01 with_barcode03/barcode03
-printf "barcode03,3,Mini\n" >> with_barcode03/metadata.csv
-mini_run with_barcode03 out1
-mini_run "${DATASET}" out2
-[[ -e out2/Results/ASV/barcode03_abundance.tsv ]] && \
+cp -r "${DATASET}" without_barcode02
+rm -r without_barcode02/barcode02
+sed -i "/^barcode02,/d" without_barcode02/metadata.csv
+mini_run "${DATASET}" out1
+
+DESCRIPTION="a run after an earlier run in the same directory exits with status 0"
+mini_run without_barcode02 out2 && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="vsearch glob: unmatched reads of a sample not named barcode* are not clustered (known bug)"
+DESCRIPTION="results have no sample from an earlier run"
+[[ -e out2/Results/ASV/barcode01_abundance.tsv ]] && \
+    ! compgen -G "out2/Results/*/*barcode02*" > /dev/null && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="the tree has no reference from an earlier run"
+[[ -s out2/Results/Phylogeny/ASV.tree ]] && \
+    ! grep -qF "AB1.1.1500" out2/Results/Phylogeny/ASV.tree && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="results have no unknown clusters from an earlier run"
+[[ -d out2/Results/Unknown_clusters ]] && \
+    ! compgen -G "out2/Results/Unknown_clusters/*" > /dev/null && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+
+## ------------------------------------------------ sample names
+
+DESCRIPTION="unmatched reads of a sample not named barcode* are clustered"
 new_workdir
 cp -r "${DATASET}" input
 mv input/barcode02 input/soilA
 sed -i "s/^barcode02,/soilA,/" input/metadata.csv
-mini_run input out && \
-    ! compgen -G "out/Results/Unknown_clusters/*" > /dev/null && \
+mini_run input out
+head -n 1 out/Results/Unknown_clusters/unknown_clusters.tsv | \
+    cut -f 2 | \
+    grep -qx "soilA" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
