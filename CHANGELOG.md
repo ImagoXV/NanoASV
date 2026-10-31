@@ -24,6 +24,10 @@ Earlier versions are described in the
 
 - Reads aligned to the reverse strand (about half of the reads) were
   dropped after alignment (#154)
+- Reference IDs are matched exactly: an ID that was a prefix of another
+  (`AB1.1.15` and `AB1.1.1500`) added references without reads to
+  `Results/Tax/` files and to the tree, which could change its
+  topology. Abundances were not affected.
 
 
 ## [1.2.3] - 2026-10-27

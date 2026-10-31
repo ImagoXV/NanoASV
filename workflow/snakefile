@@ -126,7 +126,7 @@ rule sam_to_bam_format:
             echo 'XXX XXX;XXX;XXX;XXX;XXX;SANITY'> {output.taxonomy_file}
         else
             grep -Eo "[^ ]+$" tmp_files/06_sam_to_bam_format/{wildcards.barcode}_abundance.tsv > {output.ASV_list}
-            grep -f {output.ASV_list} tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME} > {output.taxonomy_file}
+            awk 'NR == FNR {{ids[$1]; next}} $1 in ids' {output.ASV_list} tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME} > {output.taxonomy_file}
         fi
         """
 
@@ -191,7 +191,7 @@ rule phylogeny:
     shell:
         """
         if [ {TREE} -eq 1 ]; then
-            zgrep --no-group-separator -A 1 -f <(cat tmp_files/06_sam_to_bam_format/*_ASV_list.tsv) {DATABASE} > tmp_files/08_phylogeny/ALL_ASV.fasta
+            zcat -f {DATABASE} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat tmp_files/06_sam_to_bam_format/*_ASV_list.tsv) - > tmp_files/08_phylogeny/ALL_ASV.fasta
             cp tmp_files/08_phylogeny/ALL_ASV.fasta tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
             [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]] && cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
             mafft --thread {threads} tmp_files/08_phylogeny/ALL_ASV_OTU.fasta > tmp_files/08_phylogeny/ALL_ASV.aln 2> /dev/null 
