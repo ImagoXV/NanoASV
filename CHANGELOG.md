@@ -28,6 +28,12 @@ Earlier versions are described in the
   (`AB1.1.15` and `AB1.1.1500`) added references without reads to
   `Results/Tax/` files and to the tree, which could change its
   topology. Abundances were not affected.
+- A run started in the same directory as an earlier run picked up the
+  earlier run's samples, tree references and unknown clusters from
+  `tmp_files/` (the final R step then failed on samples missing from
+  `metadata.csv`)
+- Unmatched reads of samples not named `barcode*` were left out of the
+  unknown-sequence clustering
 
 
 ## [1.2.3] - 2026-10-27
