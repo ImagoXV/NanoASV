@@ -248,6 +248,13 @@ exits_with 1 "${NANOASV}" --dry-run --fasttree-model map-pb && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+DESCRIPTION="the minimap2 preset map-pb is reported as an invalid FastTree model"
+new_workdir
+"${NANOASV}" --dry-run --fasttree-model map-pb 2> /dev/null | \
+    grep -q "^ERROR: --fasttree-model invalid specification" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 for MODEL in gtr gamma wag lg fastest ; do
     DESCRIPTION="FastTree model ${MODEL} is accepted"
     new_workdir
@@ -276,6 +283,14 @@ DESCRIPTION="an empty reference file is rejected"
 new_workdir
 touch empty.fasta
 exits_with 1 "${NANOASV}" --dry-run -db empty.fasta && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="an empty reference file is reported"
+new_workdir
+touch empty.fasta
+"${NANOASV}" --dry-run -db empty.fasta 2> /dev/null | \
+    grep -q "^No reference file found at empty.fasta" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
