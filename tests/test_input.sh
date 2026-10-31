@@ -59,6 +59,17 @@ printf "@r1\nACGT\n+\nIIII\n" | gzip > input/reads.fastq.gz
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+# barcode01 gets a link to reads.fastq, the snakefile only reads *.fastq.gz
+DESCRIPTION="uncompressed fastq files without barcode directories are not processed (known bug)"
+new_workdir
+mkdir input
+printf "@r1\nACGT\n+\nIIII\n" > input/reads.fastq
+"${NANOASV}" --dry-run -d input > dry_run.txt 2>&1
+grep -q "^rule phyloseq:$" dry_run.txt && \
+    ! grep -q "^rule concatenate_fastq_files:$" dry_run.txt && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="without metadata.csv, a dummy one is made from the mock metadata"
 new_workdir
 mkdir input
