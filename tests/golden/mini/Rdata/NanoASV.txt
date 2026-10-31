@@ -1,4 +1,4 @@
-taxa: 4 
+taxa: 5 
 samples: 2 
 ranks: Kingdom Phylum Class Order Family Genus Species 
 sample variables: ID Origin 

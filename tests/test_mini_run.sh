@@ -43,10 +43,10 @@ diff -r "${TESTS_DIR}/golden/mini" "${NORMALIZED}" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="issue #154 --- reverse-strand reads are dropped (known bug)"
-grep -qF "REV1.1.1500" "${RESULTS}"/ASV/*.tsv "${RESULTS}"/CSV/*.csv && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+DESCRIPTION="issue #154 --- reverse-strand reads are kept"
+grep -qx "2 REV1\.1\.1500" "${RESULTS}/ASV/barcode01_abundance.tsv" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="taxonomy lookup with grep -f: AB1.1.15 also matches AB1.1.1500 (known bug)"
 grep -q "^AB1\.1\.1500 " "${RESULTS}/Tax/Taxonomy_barcode01.csv" && \
