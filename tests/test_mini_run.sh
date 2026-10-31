@@ -48,10 +48,14 @@ grep -qx "2 REV1\.1\.1500" "${RESULTS}/ASV/barcode01_abundance.tsv" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="taxonomy lookup with grep -f: AB1.1.15 also matches AB1.1.1500 (known bug)"
-grep -q "^AB1\.1\.1500 " "${RESULTS}/Tax/Taxonomy_barcode01.csv" && \
-    success "${DESCRIPTION}" || \
-        failure "${DESCRIPTION}"
+# AB1.1.15 is a prefix of AB1.1.1500
+for BARCODE in barcode01 barcode02 ; do
+    DESCRIPTION="taxonomy of ${BARCODE}: exactly the references with reads"
+    cmp -s <(cut -d " " -f 2 "${RESULTS}/ASV/${BARCODE}_abundance.tsv" | sort) \
+           <(cut -d " " -f 1 "${RESULTS}/Tax/Taxonomy_${BARCODE}.csv" | sort) && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+done
 
 DESCRIPTION="5 identical unmatched reads form one unknown cluster"
 tail -n +2 "${NORMALIZED}/Unknown_clusters/unknown_clusters.tsv" | \
@@ -77,6 +81,19 @@ new_workdir
 mini_run "${DATASET}" out --no-r-cleaning
 grep -cE '^"(EUK|MITO|CHLO)\.' out/Results/CSV/Taxonomy-Abundance_table.csv | \
     grep -qx "3" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+
+## ------------------------------------------------ exact ID matching
+
+DESCRIPTION="the tree has no tip for a reference without reads (AB1.1.15 is a prefix of AB1.1.1500)"
+new_workdir
+cp -r "${DATASET}" input
+rm -r input/barcode02
+sed -i "/^barcode02,/d" input/metadata.csv
+mini_run input out && \
+    ! grep -qF "AB1.1.1500" out/Results/Phylogeny/ASV.tree && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
