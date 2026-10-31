@@ -63,9 +63,9 @@ new_workdir
 
 DESCRIPTION="an unknown option exits with status 1"
 new_workdir
-"${NANOASV}" --unknown > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" --unknown && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 # help.txt documented --sam-quality by mistake: the option is --sam-qual
 DESCRIPTION="--sam-quality is an unknown option"
@@ -84,16 +84,16 @@ new_workdir
 
 DESCRIPTION="missing -d exits with status 1"
 new_workdir
-"${NANOASV}" -o out > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" -o out && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="missing -o exits with status 1"
 new_workdir
 make_input_dir input
-"${NANOASV}" -d input > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" -d input && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 
 ## --------------------------------------------------------------- dry run

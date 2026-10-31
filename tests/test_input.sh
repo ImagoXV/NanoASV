@@ -21,9 +21,9 @@ new_workdir
 
 DESCRIPTION="a missing input directory exits with status 1"
 new_workdir
-"${NANOASV}" -d missing -o out > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" -d missing -o out && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="an empty input directory is reported"
 new_workdir
@@ -107,18 +107,18 @@ metadata_rejected () {
     new_workdir
     make_input_dir input
     printf "%b" "${content}" > input/metadata.csv
-    "${NANOASV}" --dry-run -d input > /dev/null 2>&1 && \
-        failure "${description} (exit status 1)" || \
-            success "${description} (exit status 1)"
+    exits_with 1 "${NANOASV}" --dry-run -d input && \
+        success "${description} (exit status 1)" || \
+            failure "${description} (exit status 1)"
 }
 
 DESCRIPTION="a missing metadata.csv is rejected"
 new_workdir
 make_input_dir input
 rm input/metadata.csv
-"${NANOASV}" --dry-run -d input > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" --dry-run -d input && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="a missing metadata.csv prints config/requirements.txt"
 new_workdir
@@ -194,9 +194,9 @@ new_workdir
 
 DESCRIPTION="an unknown minimap2 model exits with status 1"
 new_workdir
-"${NANOASV}" --dry-run --model unknown > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" --dry-run --model unknown && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="an unknown minimap2 model: the default model is shown"
 new_workdir
@@ -224,9 +224,9 @@ new_workdir
 
 DESCRIPTION="an unknown FastTree model exits with status 1"
 new_workdir
-"${NANOASV}" --dry-run --fasttree-model unknown > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" --dry-run --fasttree-model unknown && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="an unknown FastTree model: the default model is shown"
 new_workdir
@@ -244,9 +244,9 @@ new_workdir
 
 DESCRIPTION="the minimap2 preset map-pb is not a FastTree model"
 new_workdir
-"${NANOASV}" --dry-run --fasttree-model map-pb > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" --dry-run --fasttree-model map-pb && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 for MODEL in gtr gamma wag lg fastest ; do
     DESCRIPTION="FastTree model ${MODEL} is accepted"
@@ -268,16 +268,16 @@ new_workdir
 
 DESCRIPTION="a missing reference file exits with status 1"
 new_workdir
-"${NANOASV}" --dry-run -db missing.fasta > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" --dry-run -db missing.fasta && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="an empty reference file is rejected"
 new_workdir
 touch empty.fasta
-"${NANOASV}" --dry-run -db empty.fasta > /dev/null 2>&1 && \
-    failure "${DESCRIPTION}" || \
-        success "${DESCRIPTION}"
+exits_with 1 "${NANOASV}" --dry-run -db empty.fasta && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="reference headers without IDs are reported"
 new_workdir
