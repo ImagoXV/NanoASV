@@ -108,6 +108,33 @@ dry_run_matches "--dry-run plans all steps up to the R script" \
                 phyloseq \
                 "script\.r "
 
+DESCRIPTION="--dry-run replaces a -d given before it with the mock directory (known bug)"
+new_workdir
+make_input_dir input
+"${NANOASV}" -d input --dry-run 2>&1 | \
+    rule_jobs phyloseq | \
+    grep -qE "script\.r ${NANOASV_PATH}/config/MOCK " && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="--dry-run replaces a -o given before it with the mock output (known bug)"
+new_workdir
+"${NANOASV}" -o out --dry-run 2>&1 | \
+    rule_jobs phyloseq | \
+    grep -qE "script\.r [^ ]+ ${NANOASV_PATH}/Mock_run_OUTPUT " && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="--dry-run replaces a -db given before it with the mock reference (known bug)"
+new_workdir
+cp "${NANOASV_PATH}/config/MOCK/mock_references/complete-reference.fasta" \
+   my_reference.fasta
+"${NANOASV}" -db my_reference.fasta --dry-run 2>&1 | \
+    rule_jobs database_indexing | \
+    grep -qE "complete-reference\.mmi " && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 
 ## --------------------------------------------------------- default values
 
