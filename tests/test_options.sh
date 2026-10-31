@@ -204,6 +204,10 @@ dry_run_matches "--subsampling is converted to fastq lines (x 4)" \
                 subsampling \
                 "head -n 40 " --subsampling 10
 
+dry_run_matches "--subsampling is not checked: a non-number keeps 0 reads (known bug)" \
+                subsampling \
+                "head -n 0 " --subsampling abc
+
 dry_run_matches "--sam-qual is passed to samtools view -q" \
                 sam_to_bam_format \
                 "samtools view .* -q 7 " --sam-qual 7
