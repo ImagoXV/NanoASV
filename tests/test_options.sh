@@ -312,6 +312,43 @@ dry_run_matches "--mock sets the number of threads to 2" \
                 "--threads 2 " --mock
 
 
+
+## ------------------------------------------------------ snakemake options
+
+# a stand-in snakemake that prints its arguments, one per line
+readonly FAKE_SNAKEMAKE_DIR="${TMP_ROOT}/fake_snakemake"
+mkdir -p "${FAKE_SNAKEMAKE_DIR}"
+printf '#!/bin/bash\nprintf "%%s\\n" "$@"\n' > "${FAKE_SNAKEMAKE_DIR}/snakemake"
+chmod +x "${FAKE_SNAKEMAKE_DIR}/snakemake"
+
+for OPTION in --rerun-incomplete --unlock ; do
+    DESCRIPTION="${OPTION} is passed to snakemake"
+    new_workdir
+    PATH="${FAKE_SNAKEMAKE_DIR}:${PATH}" "${NANOASV}" --dry-run "${OPTION}" 2> /dev/null | \
+        grep -qx -- "${OPTION}" && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+done
+
+DESCRIPTION="no empty argument is passed to snakemake"
+new_workdir
+PATH="${FAKE_SNAKEMAKE_DIR}:${PATH}" "${NANOASV}" --dry-run > arguments.txt 2> /dev/null
+grep -qx -- "--config" arguments.txt && \
+    ! grep -qx "" arguments.txt && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="-d, -o and -db with spaces: the dry run plans all steps"
+new_workdir
+make_input_dir "my input"
+cp "${NANOASV_PATH}/config/MOCK/mock_references/complete-reference.fasta" \
+   "my reference.fasta"
+"${NANOASV}" --dry-run -d "my input" -o "my output" -db "my reference.fasta" 2>&1 | \
+    rule_jobs phyloseq | \
+    grep -q "script\.r my input my output " && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 ## -------------------------------------------------------- tmp_files/
 
 DESCRIPTION="tmp_files/ is kept by default"
