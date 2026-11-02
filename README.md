@@ -240,7 +240,7 @@ We ran (Nygaard et al. 2020) dataset with three different software solution : Si
 
 ### Alpha Diversity
 
-![Alpha](config/Figs/Benchmark_alpĥa.png)
+![Alpha](config/Figs/Benchmark_alpha.png)
 
 We see above in [alpha diversity figure](#Alpha) that NanoASV and Nygaard pipeline outputs show similar trends in matter of numerical richness and Shannon index. Despite lower values, the same trends are observed with SituSeq. This is shown in the following [correlation matrix](#Corr).
 
