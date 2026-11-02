@@ -204,9 +204,20 @@ dry_run_matches "--subsampling is converted to fastq lines (x 4)" \
                 subsampling \
                 "head -n 40 " --subsampling 10
 
-dry_run_matches "--subsampling is not checked: a non-number keeps 0 reads (known bug)" \
-                subsampling \
-                "head -n 0 " --subsampling abc
+for VALUE in abc 0 -5 1.5 ; do
+    DESCRIPTION="--subsampling ${VALUE} is rejected"
+    new_workdir
+    "${NANOASV}" --dry-run --subsampling "${VALUE}" 2> /dev/null | \
+        grep -q "^ERROR: --subsampling must be a positive integer" && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+
+    DESCRIPTION="--subsampling ${VALUE} exits with status 1"
+    new_workdir
+    exits_with 1 "${NANOASV}" --dry-run --subsampling "${VALUE}" && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+done
 
 dry_run_matches "--sam-qual is passed to samtools view -q" \
                 sam_to_bam_format \
