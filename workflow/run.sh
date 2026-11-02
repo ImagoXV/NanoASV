@@ -5,6 +5,7 @@ trap 'echo "ERROR: Something went wrong - Carefully read the above message to un
 set -e
 
 # Read the arguments passed to the script
+SNAKEMAKE_OPTIONS=()
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
@@ -73,12 +74,10 @@ while [[ $# -gt 0 ]]; do
         -v|--version)
             echo 'NanoASV 1.2.3 - Conda-x-Snakemake - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and Ulysse Guyet '
             exit
-            shift
             ;;
         -h|--help)
-            cat $NANOASV_PATH/config/help.txt
+            cat "${NANOASV_PATH}/config/help.txt"
             exit
-            shift
             ;;
         --metadata)
             METADATA="$2"
@@ -86,9 +85,8 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --requirements)
-            cat $NANOASV_PATH/config/requirements.txt
+            cat "${NANOASV_PATH}/config/requirements.txt"
             exit
-            shift
             ;;
         --dry-run)
             DRY="n"
@@ -108,11 +106,11 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --rerun-incomplete)
-            RERUN="--rerun-incomplete"
+            SNAKEMAKE_OPTIONS+=(--rerun-incomplete)
             shift
             ;;
         --unlock)
-            UNLK="--unlock"
+            SNAKEMAKE_OPTIONS+=(--unlock)
             shift
             ;;
         --fasttree-model)
@@ -126,10 +124,9 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            echo 'Unknown option:' $1
-            cat $NANOASV_PATH/config/help.txt
+            echo 'Unknown option:' "$1"
+            cat "${NANOASV_PATH}/config/help.txt"
             exit 1
-            shift
             ;;
     esac
 done
@@ -153,13 +150,10 @@ DEFAULT_R_CLEANING=1
 DEFAULT_MINAB=5
 DEFAULT_SUBSAMPLING=50000
 DEFAULT_TREE=1
-DEFAULT_DOCKER=0
-DEFAULT_R_STEP_ONLY=0
 DEFAULT_METADATA=${DIR}
 DEFAULT_DATABASE=$NANOASV_PATH/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta.gz
 DEFAULT_TMP_FILES=1
 DEFAULT_MOD="map-ont"
-DEFAULT_RERUN=" "
 DEFAULT_FASTTREE_MOD="fastest"
 DEFAULT_SAMQ=0
 #***************************************************************************************************************************
@@ -178,13 +172,11 @@ if [[ ! "${SUBSAMPLING}" =~ ^[1-9][0-9]*$ ]]; then
     exit 1
 fi
 SUBSAMPLING=$((SUBSAMPLING * 4))
-R_STEP_ONLY="${R_STEP_ONLY:-$DEFAULT_R_STEP_ONLY}"
 METADATA="${METADATA:-$DEFAULT_METADATA}"
 MINAB="${MINAB:-$DEFAULT_MINAB}"
 TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 MOD="${MOD:-$DEFAULT_MOD}"
 DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
-RERUN="${RERUN:-$DEFAULT_RERUN}"
 FASTTREE_MOD="${FASTTREE_MOD:-$DEFAULT_FASTTREE_MOD}"
 SAMQ="${SAMQ:-$DEFAULT_SAMQ}"
 
@@ -193,7 +185,7 @@ mkdir -p tmp_files
 # Check if DIR is empty and no default value is provided
 if [[ -z $DIR ]]; then
     cowpy -e dead "Error: -d needs an argument, I don't know where your sequences are." >&2
-    cat $NANOASV_PATH/config/help.txt
+    cat "${NANOASV_PATH}/config/help.txt"
     exit 1
 fi
 # Check if OUT is empty and no default value is provided
@@ -204,15 +196,15 @@ fi
 
 #Check if flat fastq files are present
 
-if find $DIR -mindepth 2 -name "*.fastq" | grep -q .; then
+if find "${DIR}" -mindepth 2 -name "*.fastq" | grep -q .; then
 echo "NanoASV found flat fastq files. Compressing temporary files for compatibility"
 TMP_SEQ_DIR="tmp_files/tmp_seq_dir"
-mkdir -p $TMP_SEQ_DIR
+mkdir -p "${TMP_SEQ_DIR}"
 for barcode_dir in "$DIR"/barcode*/; do
     [ -d "$barcode_dir" ] || continue  
     tmp_barcode_dir="$TMP_SEQ_DIR/$(basename "$barcode_dir")"
     mkdir -p "$tmp_barcode_dir"
-    echo $tmp_barcode_dir
+    echo "${tmp_barcode_dir}"
     # Process files in barcode directory
     for file in "$barcode_dir"/*; do
         if [[ -f "$file" ]]; then
@@ -226,9 +218,9 @@ for barcode_dir in "$DIR"/barcode*/; do
         fi
     done
 done
-cp $METADATA/metadata.csv $TMP_SEQ_DIR/metadata.csv
-DIR=$TMP_SEQ_DIR
-METADATA=$DIR
+cp "${METADATA}/metadata.csv" "${TMP_SEQ_DIR}/metadata.csv"
+DIR="${TMP_SEQ_DIR}"
+METADATA="${DIR}"
 fi
 
 #Check if DIR has canonical structure. If not, fix it in tmp_files/
@@ -400,26 +392,26 @@ fi
 #***************************************************************************************************************************
 #Run the pipeline
 
-snakemake -"${DRY}"p -s "${NANOASV_PATH}"/workflow/snakefile ${RERUN} ${UNLK}\
+snakemake -"${DRY}"p -s "${NANOASV_PATH}/workflow/snakefile" "${SNAKEMAKE_OPTIONS[@]}" \
     --cores "${NUM_PROCESSES}" \
     --config \
-        QUAL=$QUAL \
-        MINL=$MINL \
-        MAXL=$MAXL \
-        ID=$ID \
-        NUM_PROCESSES=$NUM_PROCESSES \
-        R_CLEANING=$R_CLEANING \
-        MINAB=$MINAB \
-        SUBSAMPLING=$SUBSAMPLING \
-        TREE=$TREE \
-        INPUT_DIR=$DIR \
-        OUT=$OUT \
-        METADATA=$METADATA \
-        DATABASE=$DATABASE \
-        NANOASV_PATH=$NANOASV_PATH \
-        MOD=$MOD \
-        FASTTREE_MOD=$FASTTREE_MOD \
-        SAMQ=$SAMQ
+        QUAL="${QUAL}" \
+        MINL="${MINL}" \
+        MAXL="${MAXL}" \
+        ID="${ID}" \
+        NUM_PROCESSES="${NUM_PROCESSES}" \
+        R_CLEANING="${R_CLEANING}" \
+        MINAB="${MINAB}" \
+        SUBSAMPLING="${SUBSAMPLING}" \
+        TREE="${TREE}" \
+        INPUT_DIR="${DIR}" \
+        OUT="${OUT}" \
+        METADATA="${METADATA}" \
+        DATABASE="${DATABASE}" \
+        NANOASV_PATH="${NANOASV_PATH}" \
+        MOD="${MOD}" \
+        FASTTREE_MOD="${FASTTREE_MOD}" \
+        SAMQ="${SAMQ}"
 
 #***************************************************************************************************************************
 #Remove tmp files if flag is not set
@@ -428,7 +420,7 @@ if [[ "${TMP_FILES}" -eq 0 ]]; then
 fi
 
 if [[ "${DRY}" != "n" ]]; then 
-    tree $OUT
+    tree "${OUT}"
 fi
 
 rm -rf tmp_files/tmp_seq_dir
