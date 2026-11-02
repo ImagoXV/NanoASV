@@ -275,7 +275,7 @@ fi
 
 #Metadata sanity checks ****************************************************************************************************
 INPUT_PATH="$(realpath "${DIR}")"
-(cd "${METADATA}"
+(cd "${METADATA}" || exit 1
  #Check if metadata.csv has been provided by the user
  [[ -s metadata.csv ]] || \
      { cowpy -e dead "Error : Please provide a metadata.csv" >&2 ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
@@ -299,7 +299,7 @@ INPUT_PATH="$(realpath "${DIR}")"
      while read -r sample_name ; do
          [[ -d "${INPUT_PATH}/${sample_name}" ]] || \
              { echo "ERROR, ${sample_name} sequences not found. Please check metadata.csv and barcodes directories" ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
-     done
+     done || exit 1
 
  # the R step fails on a sample missing from metadata.csv
  for sample_dir in "${INPUT_PATH}"/*/ ; do

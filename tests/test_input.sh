@@ -186,6 +186,10 @@ metadata_rejected "metadata.csv listing a missing barcode is rejected" \
                   "^ERROR, barcode03 sequences not found" \
                   ",ID,Origin\nbarcode01,1,A\nbarcode03,3,C\n"
 
+metadata_rejected "metadata.csv listing a missing barcode, its only error, is rejected" \
+                  "^ERROR, barcode03 sequences not found" \
+                  ",ID,Origin\nbarcode01,1,A\nbarcode02,2,B\nbarcode03,3,C\n"
+
 metadata_rejected "metadata.csv with uneven numbers of columns is rejected" \
                   "not all the lines have the same number of columns" \
                   ",ID,Origin\nbarcode01,1,A\nbarcode02,2,B,extra\n"
@@ -193,6 +197,14 @@ metadata_rejected "metadata.csv with uneven numbers of columns is rejected" \
 metadata_rejected "a sample directory missing from metadata.csv is rejected" \
                   "^ERROR, barcode02 is not listed in metadata.csv" \
                   ",ID,Origin\nbarcode01,1,A\n"
+
+DESCRIPTION="a missing --metadata directory exits with status 1 (metadata.csv in the working directory)"
+new_workdir
+make_input_dir input
+cp input/metadata.csv .
+exits_with 1 "${NANOASV}" --dry-run -d input --metadata missing && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="a directory without fastq files is not a sample"
 new_workdir
