@@ -130,6 +130,14 @@ metadata_rejected () {
     exits_with 1 "${NANOASV}" --dry-run -d input && \
         success "${description} (exit status 1)" || \
             failure "${description} (exit status 1)"
+
+    new_workdir
+    make_input_dir input
+    printf "%b" "${content}" > input/metadata.csv
+    "${NANOASV}" --dry-run -d input 2>&1 | \
+        grep -q "Something went wrong" && \
+        failure "${description} (no generic error message)" || \
+            success "${description} (no generic error message)"
 }
 
 DESCRIPTION="a missing metadata.csv is rejected"
@@ -139,6 +147,15 @@ rm input/metadata.csv
 exits_with 1 "${NANOASV}" --dry-run -d input && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
+
+DESCRIPTION="a missing metadata.csv: no generic error message"
+new_workdir
+make_input_dir input
+rm input/metadata.csv
+"${NANOASV}" --dry-run -d input 2>&1 | \
+    grep -q "Something went wrong" && \
+    failure "${DESCRIPTION}" || \
+        success "${DESCRIPTION}"
 
 DESCRIPTION="a missing metadata.csv prints config/requirements.txt"
 new_workdir

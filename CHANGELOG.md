@@ -40,6 +40,8 @@ Earlier versions are described in the
   mock dataset values
 - `--subsampling` accepted any value: a non-number or `0` kept no read.
   It must now be a positive integer
+- `metadata.csv` errors were followed by a generic "Something went
+  wrong" message suggesting a NanoASV bug
 
 
 ## [1.2.3] - 2026-10-27
