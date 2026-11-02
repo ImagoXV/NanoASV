@@ -353,8 +353,15 @@ fi
 #***************************************************************************************************************************
 #Checking reference dataset fits to requirements
 echo 'Checking reference format'
+# minimap2 gives an empty name to a sequence whose header starts with '> '
+if zgrep -q '^> ' "${DATABASE}"; then
+    cat "${NANOASV_PATH}/config/requirements.txt"
+    echo "ERROR: reference fasta headers must not have a space after '>'. First one found:"
+    zcat -f "${DATABASE}" | grep -m 1 '^> '
+    exit 1
+fi
 #Check if sequences contain uniq ID before taxonomy
-if ! zgrep -qE '^> ?[^ ;]+ [^ ]' "$DATABASE"; then
+if ! zgrep -qE '^>[^ ;]+ [^ ]' "$DATABASE"; then
     cat "$NANOASV_PATH/config/requirements.txt"
         echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
         Keep in mind that those uniq ID will not be consistent from one run to another.\n\
