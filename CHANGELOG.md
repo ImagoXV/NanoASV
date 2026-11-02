@@ -36,6 +36,8 @@ Earlier versions are described in the
   unknown-sequence clustering
 - Uncompressed fastq files given directly in `-d` (no barcode
   directories) were not processed, and `nanoasv` exited with status 0
+- `--dry-run` replaced `-d`, `-o` and `-db` given before it with the
+  mock dataset values
 
 
 ## [1.2.3] - 2026-10-27
