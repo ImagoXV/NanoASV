@@ -59,14 +59,23 @@ printf "@r1\nACGT\n+\nIIII\n" | gzip > input/reads.fastq.gz
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-# barcode01 gets a link to reads.fastq, the snakefile only reads *.fastq.gz
-DESCRIPTION="uncompressed fastq files without barcode directories are not processed (known bug)"
+DESCRIPTION="uncompressed fastq files without barcode directories are compressed into barcode01"
 new_workdir
 mkdir input
 printf "@r1\nACGT\n+\nIIII\n" > input/reads.fastq
-"${NANOASV}" --dry-run -d input > dry_run.txt 2>&1
-grep -q "^rule phyloseq:$" dry_run.txt && \
-    ! grep -q "^rule concatenate_fastq_files:$" dry_run.txt && \
+"${NANOASV}" --dry-run -d input > /dev/null 2>&1
+zcat tmp_files/barcodes/barcode01/reads.fastq.gz | \
+    cmp -s - input/reads.fastq && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="uncompressed fastq files without barcode directories are processed"
+new_workdir
+mkdir input
+printf "@r1\nACGT\n+\nIIII\n" > input/reads.fastq
+"${NANOASV}" --dry-run -d input 2>&1 | \
+    rule_jobs concatenate_fastq_files | \
+    grep -q "barcode01" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 

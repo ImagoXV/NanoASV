@@ -234,9 +234,16 @@ elif find "$DIR" -maxdepth 1 -type f \( -name "*.fastq.gz" -o -name "*.fastq" \)
     mkdir -p "$TMP_BARCODES/barcode01"
 
     # Link fastq files to tmp barcode directory
-    for file in "$DIR"/*.fastq.gz "$DIR"/*.fastq; do
+    for file in "$DIR"/*.fastq.gz; do
         if [[ -e "$file" ]]; then
             ln -sf "$(realpath "$file")" "$TMP_BARCODES/barcode01"
+        fi
+    done
+
+    # the snakefile reads *.fastq.gz only
+    for file in "$DIR"/*.fastq; do
+        if [[ -e "$file" ]]; then
+            gzip -c "$file" > "$TMP_BARCODES/barcode01/$(basename "$file").gz"
         fi
     done
 

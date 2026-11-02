@@ -34,6 +34,8 @@ Earlier versions are described in the
   `metadata.csv`)
 - Unmatched reads of samples not named `barcode*` were left out of the
   unknown-sequence clustering
+- Uncompressed fastq files given directly in `-d` (no barcode
+  directories) were not processed, and `nanoasv` exited with status 0
 
 
 ## [1.2.3] - 2026-10-27
