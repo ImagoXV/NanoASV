@@ -92,9 +92,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --dry-run)
             DRY="n"
-            DIR="$NANOASV_PATH/config/MOCK"
-            OUT="$NANOASV_PATH/Mock_run_OUTPUT"
-            DATABASE="$NANOASV_PATH/config/MOCK/mock_references/complete-reference.fasta"
             shift
             ;;
         --mock)
@@ -136,6 +133,13 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# after the loop: options given before --dry-run are kept
+if [[ "${DRY}" == "n" ]]; then
+    DIR="${DIR:-${NANOASV_PATH}/config/MOCK}"
+    OUT="${OUT:-${NANOASV_PATH}/Mock_run_OUTPUT}"
+    DATABASE="${DATABASE:-${NANOASV_PATH}/config/MOCK/mock_references/complete-reference.fasta}"
+fi
 
 #***************************************************************************************************************************
 # Manual entries - Arguments
