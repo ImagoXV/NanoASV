@@ -42,6 +42,9 @@ Earlier versions are described in the
   It must now be a positive integer
 - `metadata.csv` errors were followed by a generic "Something went
   wrong" message suggesting a NanoASV bug
+- Reference headers with a space after `>` (`> ID taxonomy`) made
+  minimap2 crash; they are now rejected before the run starts, and
+  `nanoasv --requirements` no longer shows one as a valid example
 
 
 ## [1.2.3] - 2026-10-27
