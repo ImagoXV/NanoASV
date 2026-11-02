@@ -316,7 +316,7 @@ INPUT_PATH="$(realpath "${DIR}")"
      sort -u | \
      awk 'END {exit NR == 1 ? 0 : 1}' || \
      { echo 'ERROR: Check metadata.csv: not all the lines have the same number of columns' ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
-)
+) || exit 1
 
 #***************************************************************************************************************************
 # Check if provided minimap2 model is correct
