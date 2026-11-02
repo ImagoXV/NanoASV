@@ -38,6 +38,8 @@ Earlier versions are described in the
   directories) were not processed, and `nanoasv` exited with status 0
 - `--dry-run` replaced `-d`, `-o` and `-db` given before it with the
   mock dataset values
+- `--subsampling` accepted any value: a non-number or `0` kept no read.
+  It must now be a positive integer
 
 
 ## [1.2.3] - 2026-10-27
