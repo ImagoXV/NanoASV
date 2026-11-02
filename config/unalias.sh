@@ -1,2 +1,2 @@
-#/bin/bash
+# shellcheck shell=sh
 unalias nanoasv 2> /dev/null || true
