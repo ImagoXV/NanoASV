@@ -331,6 +331,25 @@ touch empty.fasta
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+for CASE in plain gzipped no_id ; do
+    DESCRIPTION="reference headers with a space after '>' are rejected (${CASE})"
+    new_workdir
+    case "${CASE}" in
+        plain) printf "> s1 Bacteria;P;C;O;F;G;S\nACGT\n" > ref.fasta ;;
+        gzipped) printf "> s1 Bacteria;P;C;O;F;G;S\nACGT\n" | gzip > ref.fasta ;;
+        no_id) printf "> Bacteria;P;C;O;F;G;S\nACGT\n" > ref.fasta ;;
+    esac
+    "${NANOASV}" --dry-run -db ref.fasta 2> /dev/null | \
+        grep -q "^ERROR: reference fasta headers must not have a space after '>'" && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+
+    DESCRIPTION="reference headers with a space after '>' exit with status 1 (${CASE})"
+    exits_with 1 "${NANOASV}" --dry-run -db ref.fasta && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+done
+
 DESCRIPTION="reference headers without IDs are reported"
 new_workdir
 printf ">Bacteria;Phylum;Class;Order;Family;Genus;Species\nACGT\n" > ref.fasta
