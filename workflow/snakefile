@@ -37,17 +37,15 @@ rule database_indexing:
     input:
         DATABASE
     output:
-        "tmp_files/00_database_indexing/.indexing.done"
-    params:
-        model=MOD,
         index=DATABASE_INDEX,
         taxonomy=DATABASE_TAXONOMY
+    params:
+        model=MOD
     threads: NUM_PROCESSES
     shell:
         """
-        minimap2 -x {params.model} -t {threads} -d {params.index} {input}
-        zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > {params.taxonomy}
-        touch {output}
+        minimap2 -x {params.model} -t {threads} -d {output.index} {input}
+        zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > {output.taxonomy}
         """
 
 # Step 2/9 : Concatenation of fastq files
@@ -106,21 +104,20 @@ rule subsampling:
 rule minimap2:
     input:
         fastq_file="tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq",
-        indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
+        index=DATABASE_INDEX
     output:
         temporary("tmp_files/05_minimap2/{barcode}.sam")
     params:
-        model=MOD,
-        index=DATABASE_INDEX
+        model=MOD
     threads: NUM_PROCESSES
     shell:
-        "minimap2 -a -x {params.model} -t {threads} --seed 666 {params.index} {input.fastq_file} > {output}"
+        "minimap2 -a -x {params.model} -t {threads} --seed 666 {input.index} {input.fastq_file} > {output}"
 
 # Step 6/9 : Reads alignements with minimap2 against the database
 rule sam_to_bam_format:
     input:
         sam_file="tmp_files/05_minimap2/{barcode}.sam",
-        indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
+        taxonomy=DATABASE_TAXONOMY
     output:
         taxonomy_file="tmp_files/06_sam_to_bam_format/Taxonomy_{barcode}.csv",
         ASV_list="tmp_files/06_sam_to_bam_format/{barcode}_ASV_list.tsv",
@@ -128,8 +125,7 @@ rule sam_to_bam_format:
         abundance="tmp_files/06_sam_to_bam_format/{barcode}_abundance.tsv",
         exact_affiliations="tmp_files/06_sam_to_bam_format/{barcode}_Exact_affiliations.tsv"
     params:
-        min_mapping_quality=SAMQ,
-        taxonomy=DATABASE_TAXONOMY
+        min_mapping_quality=SAMQ
     shell:
         """
         samtools fastq -f 4 {input.sam_file} | awk '{{if (NR%4==1) {{sub("^@", "@"); print $0 ";barcodelabel={wildcards.barcode}"}} else print $0}}' > {output.unmatched_fastq}
@@ -144,7 +140,7 @@ rule sam_to_bam_format:
             echo 'XXX XXX;XXX;XXX;XXX;XXX;SANITY'> {output.taxonomy_file}
         else
             grep -Eo "[^ ]+$" {output.abundance} > {output.ASV_list}
-            awk 'NR == FNR {{ids[$1]; next}} $1 in ids' {output.ASV_list} {params.taxonomy} > {output.taxonomy_file}
+            awk 'NR == FNR {{ids[$1]; next}} $1 in ids' {output.ASV_list} {input.taxonomy} > {output.taxonomy_file}
         fi
         """
 
@@ -203,32 +199,49 @@ rule vsearch:
 
 
 
-# Phylogeny with MAFFT and FastTree
-rule phylogeny:
+# Phylogeny with MAFFT and FastTree (not run with --notree)
+rule tree_reference_sequences:
     input:
-        ASV_lists=expand("tmp_files/06_sam_to_bam_format/{barcode}_ASV_list.tsv", barcode=INPUT.barcode),
+        expand("tmp_files/06_sam_to_bam_format/{barcode}_ASV_list.tsv", barcode=INPUT.barcode)
+    output:
+        "tmp_files/08_phylogeny/ALL_ASV.fasta"
+    params:
+        database=DATABASE
+    shell:
+        "zcat -f {params.database} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat {input}) - > {output}"
+
+rule tree_input_sequences:
+    input:
+        reference_sequences="tmp_files/08_phylogeny/ALL_ASV.fasta",
         vsearch_done_file="tmp_files/07_unknown_sequences_clustering/.vsearch.done"
     output:
-        "tmp_files/08_phylogeny/.phylogeny.done"
-    params:
-        tree=TREE,
-        database=DATABASE,
-        fasttree_model=FASTTREE_MOD
-    threads: 20
+        "tmp_files/08_phylogeny/ALL_ASV_OTU.fasta"
     shell:
         """
-        if [ {params.tree} -eq 1 ]; then
-            zcat -f {params.database} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat {input.ASV_lists}) - > tmp_files/08_phylogeny/ALL_ASV.fasta
-            cp tmp_files/08_phylogeny/ALL_ASV.fasta tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
-            [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]] && cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
-            mafft --thread {threads} tmp_files/08_phylogeny/ALL_ASV_OTU.fasta > tmp_files/08_phylogeny/ALL_ASV.aln 2> /dev/null 
-            ## FastTree
-            FastTree -nt -{params.fasttree_model} tmp_files/08_phylogeny/ALL_ASV.aln > tmp_files/08_phylogeny/ASV.tree 2> /dev/null #Verbose debugging
-        else
-            echo "Step 8/9 : Skipped - no phylogeny"
+        cp {input.reference_sequences} {output}
+        if [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]]; then
+            cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> {output}
         fi
-        touch {output}
         """
+
+rule align_sequences:
+    input:
+        "tmp_files/08_phylogeny/ALL_ASV_OTU.fasta"
+    output:
+        "tmp_files/08_phylogeny/ALL_ASV.aln"
+    threads: 20
+    shell:
+        "mafft --thread {threads} {input} > {output} 2> /dev/null"
+
+rule build_tree:
+    input:
+        "tmp_files/08_phylogeny/ALL_ASV.aln"
+    output:
+        "tmp_files/08_phylogeny/ASV.tree"
+    params:
+        fasttree_model=FASTTREE_MOD
+    shell:
+        "FastTree -nt -{params.fasttree_model} {input} > {output} 2> /dev/null #Verbose debugging"
 
 
 # Export results
@@ -237,20 +250,20 @@ rule export_results:
         taxonomy_files=expand("tmp_files/06_sam_to_bam_format/Taxonomy_{barcode}.csv", barcode=INPUT.barcode),
         abundance_files=expand("tmp_files/06_sam_to_bam_format/{barcode}_abundance.tsv", barcode=INPUT.barcode),
         exact_affiliations_files=expand("tmp_files/06_sam_to_bam_format/{barcode}_Exact_affiliations.tsv", barcode=INPUT.barcode),
-        phylogeny_done_file="tmp_files/08_phylogeny/.phylogeny.done"
+        vsearch_done_file="tmp_files/07_unknown_sequences_clustering/.vsearch.done",
+        tree=["tmp_files/08_phylogeny/ASV.tree"] if TREE == 1 else []
     output:
         "tmp_files/.export.done"
     params:
-        out=OUT,
-        tree=TREE
+        out=OUT
     shell:
         """
         mkdir -p {params.out}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
         cp {input.abundance_files} {params.out}/Results/ASV/
         cp {input.taxonomy_files} {params.out}/Results/Tax/
         cp {input.exact_affiliations_files} {params.out}/Results/Exact_affiliations/
-        if [ {params.tree} -eq 1 ]; then
-            cp tmp_files/08_phylogeny/ASV.tree {params.out}/Results/Phylogeny/
+        if [ -n "{input.tree}" ]; then
+            cp {input.tree} {params.out}/Results/Phylogeny/
         fi
         if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv" ]; then
             cp tmp_files/07_unknown_sequences_clustering/{{unknown_clusters.tsv,Consensus_seq_OTU.fasta}} {params.out}/Results/Unknown_clusters/
