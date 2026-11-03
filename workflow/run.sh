@@ -11,6 +11,24 @@ readonly MOCK_OUT="${NANOASV_PATH}/Mock_run_OUTPUT"
 readonly MOCK_DATABASE="${MOCK_DIR}/mock_references/complete-reference.fasta"
 readonly MOCK_NUM_PROCESSES=2
 
+readonly DEFAULT_QUAL=8
+readonly DEFAULT_MINL=1300
+readonly DEFAULT_MAXL=1700
+readonly DEFAULT_ID=0.7
+readonly DEFAULT_NUM_PROCESSES=1
+readonly DEFAULT_R_CLEANING=1
+readonly DEFAULT_MINAB=5
+readonly DEFAULT_SUBSAMPLING=50000
+readonly DEFAULT_TREE=1
+readonly DEFAULT_DATABASE="${NANOASV_PATH}/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta.gz"
+readonly DEFAULT_TMP_FILES=1
+readonly DEFAULT_MOD="map-ont"
+readonly DEFAULT_FASTTREE_MOD="fastest"
+readonly DEFAULT_SAMQ=0
+readonly LINES_PER_FASTQ_ENTRY=4
+readonly -a MINIMAP2_MODELS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
+readonly -a FASTTREE_MODELS=("gtr" "gamma" "wag" "lg" "fastest")
+
 # usage: is_one_of VALUE ITEM...
 is_one_of () {
     local -r value="${1}"
@@ -225,242 +243,237 @@ check_metadata () (
         reject_metadata 'ERROR: Check metadata.csv: not all the lines have the same number of columns'
 )
 
-# Read the arguments passed to the script
-SNAKEMAKE_OPTIONS=()
-while [[ $# -gt 0 ]]; do
-    key="$1"
-    case $key in
-        -d|--dir)
-            DIR="$2"
-            shift
-            shift
-            ;;
-        -o|--out)
-            OUT="$2"
-            shift
-            shift
-            ;;
-        -q|--quality)
-            QUAL="$2"
-            shift
-            shift
-            ;;
-        -l|--minlength)
-            MINL="$2"
-            shift
-            shift
-            ;;
-        -L|--maxlength)
-            MAXL="$2"
-            shift
-            shift
-            ;;
-        -i|--id-vsearch)
-            ID="$2"
-            shift
-            shift
-            ;;
-        -ab|--minab)
-            MINAB="$2"
-            shift
-            shift
-            ;;
-        -p|--num-process)
-            NUM_PROCESSES="$2"
-            shift
-            shift
-            ;;
-        -db|--database)
-            DATABASE="$2"
-            shift
-            shift
-            ;;
-        --no-r-cleaning)
-            R_CLEANING=0
-            shift
-            ;;
-        --subsampling)
-            SUBSAMPLING="$2"
-            shift
-            shift
-            ;;
-        --notree)
-            TREE=0
-            shift
-            ;;
-        --remove-tmp)
-            TMP_FILES=0
-            shift
-            ;;
-        -v|--version)
-            echo 'NanoASV 1.2.3 - Conda-x-Snakemake - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and Ulysse Guyet '
-            exit
-            ;;
-        -h|--help)
-            cat "${NANOASV_PATH}/config/help.txt"
-            exit
-            ;;
-        --metadata)
-            METADATA="$2"
-            shift
-            shift
-            ;;
-        --requirements)
-            cat "${NANOASV_PATH}/config/requirements.txt"
-            exit
-            ;;
-        --dry-run)
-            DRY="n"
-            shift
-            ;;
-        --mock)
-            DIR="${MOCK_DIR}"
-            OUT="${MOCK_OUT}"
-            DATABASE="${MOCK_DATABASE}"
-            NUM_PROCESSES="${MOCK_NUM_PROCESSES}"
-            TMP_FILES=0
-            shift
-            ;;
-        --model)
-            MOD="$2"
-            shift
-            shift
-            ;;
-        --rerun-incomplete)
-            SNAKEMAKE_OPTIONS+=(--rerun-incomplete)
-            shift
-            ;;
-        --unlock)
-            SNAKEMAKE_OPTIONS+=(--unlock)
-            shift
-            ;;
-        --fasttree-model)
-            FASTTREE_MOD="$2"
-            shift
-            shift
-            ;;
-        --sam-qual)
-            SAMQ="$2"
-            shift
-            shift
-            ;;
-        *)
-            echo 'Unknown option:' "$1"
-            cat "${NANOASV_PATH}/config/help.txt"
-            exit 1
-            ;;
-    esac
-done
+# usage: parse_options "$@" (sets the option variables)
+parse_options () {
+    SNAKEMAKE_OPTIONS=()
+    local key
+    while [[ $# -gt 0 ]]; do
+        key="$1"
+        case "${key}" in
+            -d|--dir)
+                DIR="$2"
+                shift
+                shift
+                ;;
+            -o|--out)
+                OUT="$2"
+                shift
+                shift
+                ;;
+            -q|--quality)
+                QUAL="$2"
+                shift
+                shift
+                ;;
+            -l|--minlength)
+                MINL="$2"
+                shift
+                shift
+                ;;
+            -L|--maxlength)
+                MAXL="$2"
+                shift
+                shift
+                ;;
+            -i|--id-vsearch)
+                ID="$2"
+                shift
+                shift
+                ;;
+            -ab|--minab)
+                MINAB="$2"
+                shift
+                shift
+                ;;
+            -p|--num-process)
+                NUM_PROCESSES="$2"
+                shift
+                shift
+                ;;
+            -db|--database)
+                DATABASE="$2"
+                shift
+                shift
+                ;;
+            --no-r-cleaning)
+                R_CLEANING=0
+                shift
+                ;;
+            --subsampling)
+                SUBSAMPLING="$2"
+                shift
+                shift
+                ;;
+            --notree)
+                TREE=0
+                shift
+                ;;
+            --remove-tmp)
+                TMP_FILES=0
+                shift
+                ;;
+            -v|--version)
+                echo 'NanoASV 1.2.3 - Conda-x-Snakemake - https://github.com/ImagoXV/NanoASV - Arthur Cousson, Frederic Mahe and Ulysse Guyet '
+                exit
+                ;;
+            -h|--help)
+                cat "${NANOASV_PATH}/config/help.txt"
+                exit
+                ;;
+            --metadata)
+                METADATA="$2"
+                shift
+                shift
+                ;;
+            --requirements)
+                cat "${NANOASV_PATH}/config/requirements.txt"
+                exit
+                ;;
+            --dry-run)
+                DRY="n"
+                shift
+                ;;
+            --mock)
+                DIR="${MOCK_DIR}"
+                OUT="${MOCK_OUT}"
+                DATABASE="${MOCK_DATABASE}"
+                NUM_PROCESSES="${MOCK_NUM_PROCESSES}"
+                TMP_FILES=0
+                shift
+                ;;
+            --model)
+                MOD="$2"
+                shift
+                shift
+                ;;
+            --rerun-incomplete)
+                SNAKEMAKE_OPTIONS+=(--rerun-incomplete)
+                shift
+                ;;
+            --unlock)
+                SNAKEMAKE_OPTIONS+=(--unlock)
+                shift
+                ;;
+            --fasttree-model)
+                FASTTREE_MOD="$2"
+                shift
+                shift
+                ;;
+            --sam-qual)
+                SAMQ="$2"
+                shift
+                shift
+                ;;
+            *)
+                echo 'Unknown option:' "$1"
+                cat "${NANOASV_PATH}/config/help.txt"
+                exit 1
+                ;;
+        esac
+    done
 
-# after the loop: options given before --dry-run are kept
-if [[ "${DRY}" == "n" ]]; then
-    DIR="${DIR:-${MOCK_DIR}}"
-    OUT="${OUT:-${MOCK_OUT}}"
-    DATABASE="${DATABASE:-${MOCK_DATABASE}}"
-fi
+    # after the loop: options given before --dry-run are kept
+    if [[ "${DRY}" == "n" ]]; then
+        DIR="${DIR:-${MOCK_DIR}}"
+        OUT="${OUT:-${MOCK_OUT}}"
+        DATABASE="${DATABASE:-${MOCK_DATABASE}}"
+    fi
+}
 
-#***************************************************************************************************************************
-# Manual entries - Arguments
-# Set default values
-readonly DEFAULT_QUAL=8
-readonly DEFAULT_MINL=1300
-readonly DEFAULT_MAXL=1700
-readonly DEFAULT_ID=0.7
-readonly DEFAULT_NUM_PROCESSES=1
-readonly DEFAULT_R_CLEANING=1
-readonly DEFAULT_MINAB=5
-readonly DEFAULT_SUBSAMPLING=50000
-readonly DEFAULT_TREE=1
-readonly DEFAULT_DATABASE="${NANOASV_PATH}/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta.gz"
-readonly DEFAULT_TMP_FILES=1
-readonly DEFAULT_MOD="map-ont"
-readonly DEFAULT_FASTTREE_MOD="fastest"
-readonly DEFAULT_SAMQ=0
-readonly LINES_PER_FASTQ_ENTRY=4
-readonly -a MINIMAP2_MODELS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
-readonly -a FASTTREE_MODELS=("gtr" "gamma" "wag" "lg" "fastest")
-#***************************************************************************************************************************
-# Assign default values if variables are empty
-QUAL="${QUAL:-$DEFAULT_QUAL}"
-MINL="${MINL:-$DEFAULT_MINL}"
-MAXL="${MAXL:-$DEFAULT_MAXL}"
-ID="${ID:-$DEFAULT_ID}"
-NUM_PROCESSES="${NUM_PROCESSES:-$DEFAULT_NUM_PROCESSES}"
-R_CLEANING="${R_CLEANING:-$DEFAULT_R_CLEANING}"
-SUBSAMPLING="${SUBSAMPLING:-$DEFAULT_SUBSAMPLING}"
-TREE="${TREE:-$DEFAULT_TREE}"
-if [[ ! "${SUBSAMPLING}" =~ ^[1-9][0-9]*$ ]]; then
-    echo "ERROR: --subsampling must be a positive integer (number of reads per sample), not '${SUBSAMPLING}'."
-    exit 1
-fi
-readonly SUBSAMPLING_LINES=$((SUBSAMPLING * LINES_PER_FASTQ_ENTRY))
-METADATA="${METADATA:-${DIR}}"
-MINAB="${MINAB:-$DEFAULT_MINAB}"
-TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
-MOD="${MOD:-$DEFAULT_MOD}"
-DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
-FASTTREE_MOD="${FASTTREE_MOD:-$DEFAULT_FASTTREE_MOD}"
-SAMQ="${SAMQ:-$DEFAULT_SAMQ}"
+# usage: set_defaults (fills in the options left out)
+set_defaults () {
+    QUAL="${QUAL:-$DEFAULT_QUAL}"
+    MINL="${MINL:-$DEFAULT_MINL}"
+    MAXL="${MAXL:-$DEFAULT_MAXL}"
+    ID="${ID:-$DEFAULT_ID}"
+    NUM_PROCESSES="${NUM_PROCESSES:-$DEFAULT_NUM_PROCESSES}"
+    R_CLEANING="${R_CLEANING:-$DEFAULT_R_CLEANING}"
+    SUBSAMPLING="${SUBSAMPLING:-$DEFAULT_SUBSAMPLING}"
+    TREE="${TREE:-$DEFAULT_TREE}"
+    METADATA="${METADATA:-${DIR}}"
+    MINAB="${MINAB:-$DEFAULT_MINAB}"
+    TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
+    MOD="${MOD:-$DEFAULT_MOD}"
+    DATABASE="${DATABASE:-$DEFAULT_DATABASE}"
+    FASTTREE_MOD="${FASTTREE_MOD:-$DEFAULT_FASTTREE_MOD}"
+    SAMQ="${SAMQ:-$DEFAULT_SAMQ}"
+}
 
-mkdir -p tmp_files 
-#***************************************************************************************************************************
-# Check if DIR is empty and no default value is provided
-if [[ -z $DIR ]]; then
-    cowpy -e dead "Error: -d needs an argument, I don't know where your sequences are." >&2
-    cat "${NANOASV_PATH}/config/help.txt"
-    exit 1
-fi
-# Check if OUT is empty and no default value is provided
-if [[ -z $OUT ]]; then
-    cowpy -e dead "Error: -o needs an argument. You don't want me to print to stdout" >&2
-    exit 1
-fi
+check_subsampling () {
+    if [[ ! "${SUBSAMPLING}" =~ ^[1-9][0-9]*$ ]]; then
+        echo "ERROR: --subsampling must be a positive integer (number of reads per sample), not '${SUBSAMPLING}'."
+        exit 1
+    fi
+}
 
-gzip_fastq_in_barcode_dirs
-prepare_input_layout
-check_metadata "${DIR}" "${METADATA}" || exit 1
+check_required_options () {
+    if [[ -z "${DIR}" ]]; then
+        cowpy -e dead "Error: -d needs an argument, I don't know where your sequences are." >&2
+        cat "${NANOASV_PATH}/config/help.txt"
+        exit 1
+    fi
+    if [[ -z "${OUT}" ]]; then
+        cowpy -e dead "Error: -o needs an argument. You don't want me to print to stdout" >&2
+        exit 1
+    fi
+}
 
-check_minimap2_model
-check_fasttree_model
-check_reference_exists
-echo 'Checking reference format'
-check_reference_headers
-add_reference_ids
-linearize_reference
+run_snakemake () {
+    snakemake -"${DRY}"p -s "${NANOASV_PATH}/workflow/snakefile" "${SNAKEMAKE_OPTIONS[@]}" \
+        --cores "${NUM_PROCESSES}" \
+        --config \
+            QUAL="${QUAL}" \
+            MINL="${MINL}" \
+            MAXL="${MAXL}" \
+            ID="${ID}" \
+            NUM_PROCESSES="${NUM_PROCESSES}" \
+            R_CLEANING="${R_CLEANING}" \
+            MINAB="${MINAB}" \
+            SUBSAMPLING="$((SUBSAMPLING * LINES_PER_FASTQ_ENTRY))" \
+            TREE="${TREE}" \
+            INPUT_DIR="${DIR}" \
+            OUT="${OUT}" \
+            METADATA="${METADATA}" \
+            DATABASE="${DATABASE}" \
+            NANOASV_PATH="${NANOASV_PATH}" \
+            MOD="${MOD}" \
+            FASTTREE_MOD="${FASTTREE_MOD}" \
+            SAMQ="${SAMQ}"
+}
 
-#***************************************************************************************************************************
-#Run the pipeline
+clean_up () {
+    if [[ "${TMP_FILES}" -eq 0 ]]; then
+        rm -r tmp_files
+    fi
 
-snakemake -"${DRY}"p -s "${NANOASV_PATH}/workflow/snakefile" "${SNAKEMAKE_OPTIONS[@]}" \
-    --cores "${NUM_PROCESSES}" \
-    --config \
-        QUAL="${QUAL}" \
-        MINL="${MINL}" \
-        MAXL="${MAXL}" \
-        ID="${ID}" \
-        NUM_PROCESSES="${NUM_PROCESSES}" \
-        R_CLEANING="${R_CLEANING}" \
-        MINAB="${MINAB}" \
-        SUBSAMPLING="${SUBSAMPLING_LINES}" \
-        TREE="${TREE}" \
-        INPUT_DIR="${DIR}" \
-        OUT="${OUT}" \
-        METADATA="${METADATA}" \
-        DATABASE="${DATABASE}" \
-        NANOASV_PATH="${NANOASV_PATH}" \
-        MOD="${MOD}" \
-        FASTTREE_MOD="${FASTTREE_MOD}" \
-        SAMQ="${SAMQ}"
+    if [[ "${DRY}" != "n" ]]; then
+        tree "${OUT}"
+    fi
 
-#***************************************************************************************************************************
-#Remove tmp files if flag is not set
-if [[ "${TMP_FILES}" -eq 0 ]]; then 
-    rm -r tmp_files
-fi
+    rm -rf tmp_files/tmp_seq_dir
+}
 
-if [[ "${DRY}" != "n" ]]; then 
-    tree "${OUT}"
-fi
+main () {
+    parse_options "$@"
+    set_defaults
+    check_subsampling
+    mkdir -p tmp_files
+    check_required_options
 
-rm -rf tmp_files/tmp_seq_dir
+    gzip_fastq_in_barcode_dirs
+    prepare_input_layout
+    check_metadata "${DIR}" "${METADATA}" || exit 1
 
+    check_minimap2_model
+    check_fasttree_model
+    check_reference_exists
+    echo 'Checking reference format'
+    check_reference_headers
+    add_reference_ids
+    linearize_reference
+
+    run_snakemake
+    clean_up
+}
+
+main "$@"
