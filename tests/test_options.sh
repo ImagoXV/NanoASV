@@ -155,7 +155,7 @@ dry_run_matches "default minimap2 model: map-ont" \
                 "minimap2 -a -x map-ont "
 
 dry_run_matches "default FastTree model: fastest" \
-                phylogeny \
+                build_tree \
                 "FastTree -nt -fastest "
 
 dry_run_matches "default vsearch identity: 0.7" \
@@ -172,7 +172,7 @@ dry_run_matches "default number of threads: 1" \
 
 # mafft asks for 20 threads: Snakemake gives it at most --cores
 dry_run_matches "default number of cores: 1 (mafft gets 1 thread)" \
-                phylogeny \
+                align_sequences \
                 "mafft --thread 1 "
 
 dry_run_matches "default R cleaning and tree: on (1 1)" \
@@ -228,7 +228,7 @@ dry_run_matches "--model is passed to minimap2 -x" \
                 "minimap2 -a -x asm5 " --model asm5
 
 dry_run_matches "--fasttree-model is passed to FastTree" \
-                phylogeny \
+                build_tree \
                 "FastTree -nt -gtr " --fasttree-model gtr
 
 for OPTION in -i --id-vsearch ; do
@@ -260,7 +260,7 @@ for OPTION in -p --num-process ; do
                     minimap2 \
                     "minimap2 -a -x map-ont -t 3 " "${OPTION}" 3
     dry_run_matches "${OPTION} sets the number of cores (mafft gets 3 threads)" \
-                    phylogeny \
+                    align_sequences \
                     "mafft --thread 3 " "${OPTION}" 3
 done
 
@@ -272,9 +272,20 @@ dry_run_matches "--notree is passed to the R script" \
                 phyloseq \
                 "script\.r [^ ]+ [^ ]+ 1 0 " --notree
 
-dry_run_matches "--notree skips the phylogeny" \
-                phylogeny \
-                "if \[ 0 -eq 1 \]" --notree
+DESCRIPTION="a tree is built by default"
+new_workdir
+"${NANOASV}" --dry-run 2>&1 | \
+    grep -q "^rule build_tree:$" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="--notree skips the phylogeny"
+new_workdir
+"${NANOASV}" --dry-run --notree > dry_run.txt 2>&1
+grep -q "^rule phyloseq:$" dry_run.txt && \
+    ! grep -qE "^rule (tree_reference_sequences|tree_input_sequences|align_sequences|build_tree):$" dry_run.txt && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 for OPTION in -d --dir ; do
     make_input_dir "${TMP_ROOT}/input_${OPTION}"
