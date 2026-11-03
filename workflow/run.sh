@@ -9,6 +9,132 @@ readonly MOCK_OUT="${NANOASV_PATH}/Mock_run_OUTPUT"
 readonly MOCK_DATABASE="${MOCK_DIR}/mock_references/complete-reference.fasta"
 readonly MOCK_NUM_PROCESSES=2
 
+# usage: gzip_fastq_in_barcode_dirs (updates DIR and METADATA)
+# barcode directories holding uncompressed fastq files are copied to
+# tmp_files/tmp_seq_dir/, with every fastq file gzipped
+gzip_fastq_in_barcode_dirs () {
+    find "${DIR}" -mindepth 2 -name "*.fastq" | grep -q . || return 0
+    echo "NanoASV found flat fastq files. Compressing temporary files for compatibility"
+    local -r tmp_seq_dir="tmp_files/tmp_seq_dir"
+    mkdir -p "${tmp_seq_dir}"
+    local barcode_dir
+    local tmp_barcode_dir
+    local file
+    for barcode_dir in "${DIR}"/barcode*/; do
+        [[ -d "${barcode_dir}" ]] || continue
+        tmp_barcode_dir="${tmp_seq_dir}/$(basename "${barcode_dir}")"
+        mkdir -p "${tmp_barcode_dir}"
+        echo "${tmp_barcode_dir}"
+        for file in "${barcode_dir}"/*; do
+            if [[ -f "${file}" ]]; then
+                if [[ "${file}" == *.fastq.gz ]]; then
+                    ln -s "$(realpath "${file}")" "${tmp_barcode_dir}/"
+                elif [[ "${file}" == *.fastq ]]; then
+                    gzip -c "${file}" > "${tmp_barcode_dir}/$(basename "${file}").gz"
+                fi
+            fi
+        done
+    done
+    cp "${METADATA}/metadata.csv" "${tmp_seq_dir}/metadata.csv"
+    DIR="${tmp_seq_dir}"
+    METADATA="${DIR}"
+}
+
+# usage: prepare_input_layout (updates DIR and METADATA)
+# expects barcode directories; fastq files given without barcode
+# directories become barcode01 in tmp_files/barcodes/
+prepare_input_layout () {
+    if find "${DIR}" -mindepth 1 -maxdepth 1 -type d -name "barcode*" | grep -q .; then
+        echo "Found barcode directories in ${DIR}"
+        return 0
+    fi
+    if ! find "${DIR}" -maxdepth 1 -type f \( -name "*.fastq.gz" -o -name "*.fastq" \) | grep -q .; then
+        echo "ERROR - No barcode directories or fastq files found in ${DIR} - Please fix your input data path."
+        echo "ABORTING"
+        exit 1
+    fi
+    echo "WARNING - Found fastq files in ${DIR} - Formatting tmp file structure. Please prefer a barcodeXX directory structure"
+
+    local -r tmp_barcodes="tmp_files/barcodes"
+    mkdir -p "${tmp_barcodes}/barcode01"
+    local file
+    for file in "${DIR}"/*.fastq.gz; do
+        if [[ -e "${file}" ]]; then
+            ln -sf "$(realpath "${file}")" "${tmp_barcodes}/barcode01"
+        fi
+    done
+
+    # the snakefile reads *.fastq.gz only
+    for file in "${DIR}"/*.fastq; do
+        if [[ -e "${file}" ]]; then
+            gzip -c "${file}" > "${tmp_barcodes}/barcode01/$(basename "${file}").gz"
+        fi
+    done
+
+    if [[ ! -s "${METADATA}/metadata.csv" ]]; then
+        echo "WARNING - No metadata file provided. NanoASV will generate a dummy one. Please prefer using your own metadata file"
+        head -n2 "${MOCK_DIR}/metadata.csv" > "${tmp_barcodes}/metadata.csv"
+    else
+        cp "${METADATA}/metadata.csv" "${tmp_barcodes}/metadata.csv"
+    fi
+
+    DIR="${tmp_barcodes}"
+    METADATA="${DIR}"
+}
+
+# usage: reject_metadata MESSAGE
+reject_metadata () {
+    echo "${1}"
+    cat "${NANOASV_PATH}/config/requirements.txt"
+    exit 1
+}
+
+# usage: check_metadata INPUT_DIR METADATA_DIR
+# runs in a subshell (cd); called as "check_metadata ... || exit 1", so
+# set -e is off: every check exits explicitly
+check_metadata () (
+    local input_path
+    input_path="$(realpath "${1}")"
+    cd "${2}" || exit 1
+
+    [[ -s metadata.csv ]] || \
+        { cowpy -e dead "Error : Please provide a metadata.csv" >&2 ; cat "${NANOASV_PATH}/config/requirements.txt" ; exit 1 ; }
+
+    # at least 3 columns: row names and two data columns
+    awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
+        reject_metadata 'ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?'
+
+    awk -F "," 'NR == 1 { exit $1 == "" ? 0 : 1}' metadata.csv || \
+        reject_metadata 'ERROR: First field of first line should be empty. Please check metadata.csv file structure.'
+
+    awk 'END{ exit NR > 1 ? 0 : 1}' metadata.csv || \
+        reject_metadata 'ERROR: metadata.csv: Missing header and/or data information. Too few lines.'
+
+    local sample_name
+    cut -f1 -d "," metadata.csv | \
+        tail -n +2 | \
+        while read -r sample_name ; do
+            [[ -d "${input_path}/${sample_name}" ]] || \
+                reject_metadata "ERROR, ${sample_name} sequences not found. Please check metadata.csv and barcodes directories"
+        done || exit 1
+
+    # the R step fails on a sample missing from metadata.csv
+    local sample_dir
+    for sample_dir in "${input_path}"/*/ ; do
+        compgen -G "${sample_dir}*.fastq*" > /dev/null || continue
+        sample_name="$(basename "${sample_dir}")"
+        cut -f1 -d "," metadata.csv | \
+            tail -n +2 | \
+            grep -qxF "${sample_name}" || \
+            reject_metadata "ERROR, ${sample_name} is not listed in metadata.csv. Please check metadata.csv and barcodes directories"
+    done
+
+    awk -F "," '{print NF}' metadata.csv | \
+        sort -u | \
+        awk 'END {exit NR == 1 ? 0 : 1}' || \
+        reject_metadata 'ERROR: Check metadata.csv: not all the lines have the same number of columns'
+)
+
 # Read the arguments passed to the script
 SNAKEMAKE_OPTIONS=()
 while [[ $# -gt 0 ]]; do
@@ -198,121 +324,9 @@ if [[ -z $OUT ]]; then
     exit 1
 fi
 
-#Check if flat fastq files are present
-
-if find "${DIR}" -mindepth 2 -name "*.fastq" | grep -q .; then
-echo "NanoASV found flat fastq files. Compressing temporary files for compatibility"
-TMP_SEQ_DIR="tmp_files/tmp_seq_dir"
-mkdir -p "${TMP_SEQ_DIR}"
-for barcode_dir in "$DIR"/barcode*/; do
-    [ -d "$barcode_dir" ] || continue  
-    tmp_barcode_dir="$TMP_SEQ_DIR/$(basename "$barcode_dir")"
-    mkdir -p "$tmp_barcode_dir"
-    echo "${tmp_barcode_dir}"
-    # Process files in barcode directory
-    for file in "$barcode_dir"/*; do
-        if [[ -f "$file" ]]; then
-            if [[ "$file" == *.fastq.gz ]]; then
-                # Symlink .fastq.gz files
-                ln -s "$(realpath "$file")" "$tmp_barcode_dir/"
-            elif [[ "$file" == *.fastq ]]; then
-                # Compress .fastq files into mock dir
-                gzip -c "$file" > "$tmp_barcode_dir/$(basename "$file").gz"
-            fi
-        fi
-    done
-done
-cp "${METADATA}/metadata.csv" "${TMP_SEQ_DIR}/metadata.csv"
-DIR="${TMP_SEQ_DIR}"
-METADATA="${DIR}"
-fi
-
-#Check if DIR has canonical structure. If not, fix it in tmp_files/
-
-if find "$DIR" -mindepth 1 -maxdepth 1 -type d -name "barcode*" | grep -q .; then
-    echo "Found barcode directories in $DIR"
-elif find "$DIR" -maxdepth 1 -type f \( -name "*.fastq.gz" -o -name "*.fastq" \) | grep -q .; then
-    echo "WARNING - Found fastq files in $DIR - Formatting tmp file structure. Please prefer a barcodeXX directory structure"
-    
-    TMP_BARCODES="tmp_files/barcodes"
-    mkdir -p "$TMP_BARCODES/barcode01"
-
-    # Link fastq files to tmp barcode directory
-    for file in "$DIR"/*.fastq.gz; do
-        if [[ -e "$file" ]]; then
-            ln -sf "$(realpath "$file")" "$TMP_BARCODES/barcode01"
-        fi
-    done
-
-    # the snakefile reads *.fastq.gz only
-    for file in "$DIR"/*.fastq; do
-        if [[ -e "$file" ]]; then
-            gzip -c "$file" > "$TMP_BARCODES/barcode01/$(basename "$file").gz"
-        fi
-    done
-
-    # Handle metadata file
-    if [[ ! -s "$METADATA/metadata.csv" ]]; then
-        echo "WARNING - No metadata file provided. NanoASV will generate a dummy one. Please prefer using your own metadata file"
-        head -n2 "$NANOASV_PATH/config/MOCK/metadata.csv" > tmp_files/barcodes/metadata.csv
-    else
-        cp "$METADATA/metadata.csv" tmp_files/barcodes/metadata.csv
-    fi
-
-    DIR="$TMP_BARCODES"
-    METADATA="$DIR"
-else
-    echo "ERROR - No barcode directories or fastq files found in $DIR - Please fix your input data path."
-    echo "ABORTING"
-    exit 1
-fi
-
-#exit 1 #Break debug
-
-#Metadata sanity checks ****************************************************************************************************
-INPUT_PATH="$(realpath "${DIR}")"
-(cd "${METADATA}" || exit 1
- #Check if metadata.csv has been provided by the user
- [[ -s metadata.csv ]] || \
-     { cowpy -e dead "Error : Please provide a metadata.csv" >&2 ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
-
- #Check if metadata is indeed a csv and has at least 3 columns (1 rownames, two data)
- awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
-     { echo 'ERROR: Check metadata.csv: it does not look like a csv file. Are you sure you are using coma to separate the fields? Do you have more than two columns?' ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
-
- #Check if metadata.csv rownames structure is correct
- awk -F "," 'NR == 1 { exit $1 == "" ? 0 : 1}' metadata.csv || \
-     { echo 'ERROR: First field of first line should be empty. Please check metadata.csv file structure.' ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
-
- #Check if metadata.csv contains enough lines
- awk 'END{ exit NR > 1 ? 0 : 1}' metadata.csv || \
-     { echo 'ERROR: metadata.csv: Missing header and/or data information. Too few lines.' ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
-
-
- # Check if metadata barcodes are found within DIR
- cut -f1 -d "," metadata.csv | \
-     tail -n +2 | \
-     while read -r sample_name ; do
-         [[ -d "${INPUT_PATH}/${sample_name}" ]] || \
-             { echo "ERROR, ${sample_name} sequences not found. Please check metadata.csv and barcodes directories" ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
-     done || exit 1
-
- # the R step fails on a sample missing from metadata.csv
- for sample_dir in "${INPUT_PATH}"/*/ ; do
-     compgen -G "${sample_dir}*.fastq*" > /dev/null || continue
-     sample_name="$(basename "${sample_dir}")"
-     cut -f1 -d "," metadata.csv | \
-         tail -n +2 | \
-         grep -qxF "${sample_name}" || \
-         { echo "ERROR, ${sample_name} is not listed in metadata.csv. Please check metadata.csv and barcodes directories" ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
- done
-
- #Check if number of fields is consistent is consistent accross all number of lines
- awk -F "," '{print NF}' metadata.csv | \
-     sort -u | \
-     awk 'END {exit NR == 1 ? 0 : 1}' || \
-     { echo 'ERROR: Check metadata.csv: not all the lines have the same number of columns' ; cat "$NANOASV_PATH/config/requirements.txt" ; exit 1 ; }
-) || exit 1
+gzip_fastq_in_barcode_dirs
+prepare_input_layout
+check_metadata "${DIR}" "${METADATA}" || exit 1
 
 #***************************************************************************************************************************
 # Check if provided minimap2 model is correct
