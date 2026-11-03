@@ -56,10 +56,17 @@ new_workdir
 
 DESCRIPTION="an unknown option is reported"
 new_workdir
-"${NANOASV}" --unknown 2> /dev/null | \
+"${NANOASV}" --unknown 2>&1 > /dev/null | \
     grep -q "^Unknown option: --unknown$" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
+
+DESCRIPTION="an unknown option: nothing is printed on stdout"
+new_workdir
+"${NANOASV}" --unknown 2> /dev/null | \
+    grep -q . && \
+    failure "${DESCRIPTION}" || \
+        success "${DESCRIPTION}"
 
 DESCRIPTION="an unknown option exits with status 1"
 new_workdir
@@ -70,14 +77,14 @@ exits_with 1 "${NANOASV}" --unknown && \
 # help.txt documented --sam-quality by mistake: the option is --sam-qual
 DESCRIPTION="--sam-quality is an unknown option"
 new_workdir
-"${NANOASV}" --sam-quality 10 2> /dev/null | \
+"${NANOASV}" --sam-quality 10 2>&1 > /dev/null | \
     grep -q "^Unknown option: --sam-quality$" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
 DESCRIPTION="missing -d prints config/help.txt"
 new_workdir
-"${NANOASV}" -o out 2> /dev/null | \
+"${NANOASV}" -o out 2>&1 > /dev/null | \
     grep -q "Synopsis" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -207,7 +214,7 @@ dry_run_matches "--subsampling is converted to fastq lines (x 4)" \
 for VALUE in abc 0 -5 1.5 ; do
     DESCRIPTION="--subsampling ${VALUE} is rejected"
     new_workdir
-    "${NANOASV}" --dry-run --subsampling "${VALUE}" 2> /dev/null | \
+    "${NANOASV}" --dry-run --subsampling "${VALUE}" 2>&1 > /dev/null | \
         grep -q "^ERROR: --subsampling must be a positive integer" && \
         success "${DESCRIPTION}" || \
             failure "${DESCRIPTION}"
