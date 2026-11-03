@@ -315,7 +315,7 @@ mkdir "${TMP_ROOT}/metadata"
 cp "${NANOASV_PATH}/config/MOCK/metadata.csv" "${TMP_ROOT}/metadata/"
 dry_run_matches "--metadata is passed to the R script" \
                 phyloseq \
-                "script\.r .* ${TMP_ROOT}/metadata$" \
+                "script\.r .* ${TMP_ROOT}/metadata( |$)" \
                 --metadata "${TMP_ROOT}/metadata"
 
 dry_run_matches "--mock sets the number of threads to 2" \
