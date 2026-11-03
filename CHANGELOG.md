@@ -15,6 +15,13 @@ Earlier versions are described in the
   so abundances roughly double. On the mock dataset, assigned reads go
   from 3,000 to 6,043 and taxa from 1,700 to 2,714.
 
+### Changed
+
+- Messages of the pipeline tools (minimap2, chopper, vsearch, mafft,
+  FastTree...) go to log files in `tmp_files/logs/` instead of the
+  terminal; when a step fails, Snakemake prints the path of its log.
+  The R step still writes to the terminal (and to its log)
+
 ### Removed
 
 - Support for Oxford Nanopore MK1C devices, discontinued by Oxford

@@ -42,8 +42,11 @@ rule database_indexing:
     params:
         model=MOD
     threads: NUM_PROCESSES
+    log:
+        "tmp_files/logs/database_indexing.log"
     shell:
         """
+        exec 2> {log}
         minimap2 -x {params.model} -t {threads} -d {output.index} {input}
         zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > {output.taxonomy}
         """
@@ -54,8 +57,11 @@ rule concatenate_fastq_files:
         os.path.join(INPUT_DIR, "{barcode}", "")
     output:
         temporary("tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz")
+    log:
+        "tmp_files/logs/concatenate_fastq_files/{barcode}.log"
     shell:
         """
+        exec 2> {log}
         if ls {input}/*.fastq 1> /dev/null 2>&1; then
             (gzip -c {input}/*.fastq 2>/dev/null; cat {input}/*.fastq.gz 2>/dev/null) > {output}
         else
@@ -75,8 +81,13 @@ rule sequence_quality_filtering:
         min_length=MINL,
         max_length=MAXL
     threads: NUM_PROCESSES
+    log:
+        "tmp_files/logs/sequence_quality_filtering/{barcode}.log"
     shell:
-        "chopper -q {params.quality} -l {params.min_length} --maxlength {params.max_length} --threads {threads} -i {input} | gzip > {output}"
+        """
+        exec 2> {log}
+        chopper -q {params.quality} -l {params.min_length} --maxlength {params.max_length} --threads {threads} -i {input} | gzip > {output}
+        """
 
 
 # Step 4/9 : Trim adapaters with Porechop
@@ -86,8 +97,13 @@ rule adapters_trimming:
     output:
         temporary("tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz")
     threads: NUM_PROCESSES
+    log:
+        "tmp_files/logs/adapters_trimming/{barcode}.log"
     shell:
-        "porechop --verbosity 0 --threads {threads} -i {input} -o {output}"
+        """
+        exec 2> {log}
+        porechop --verbosity 0 --threads {threads} -i {input} -o {output}
+        """
 
 
 # Step 5/9 : Subsampling
@@ -98,8 +114,13 @@ rule subsampling:
         "tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq"
     params:
         lines=SUBSAMPLING
+    log:
+        "tmp_files/logs/subsampling/{barcode}.log"
     shell:
-        "head -n {params.lines} < <(zcat {input}) > {output}"
+        """
+        exec 2> {log}
+        head -n {params.lines} < <(zcat {input}) > {output}
+        """
 
 rule minimap2:
     input:
@@ -110,8 +131,13 @@ rule minimap2:
     params:
         model=MOD
     threads: NUM_PROCESSES
+    log:
+        "tmp_files/logs/minimap2/{barcode}.log"
     shell:
-        "minimap2 -a -x {params.model} -t {threads} --seed 666 {input.index} {input.fastq_file} > {output}"
+        """
+        exec 2> {log}
+        minimap2 -a -x {params.model} -t {threads} --seed 666 {input.index} {input.fastq_file} > {output}
+        """
 
 # Step 6/9 : Reads alignements with minimap2 against the database
 rule sam_to_bam_format:
@@ -126,8 +152,11 @@ rule sam_to_bam_format:
         exact_affiliations="tmp_files/06_sam_to_bam_format/{barcode}_Exact_affiliations.tsv"
     params:
         min_mapping_quality=SAMQ
+    log:
+        "tmp_files/logs/sam_to_bam_format/{barcode}.log"
     shell:
         """
+        exec 2> {log}
         samtools fastq -f 4 {input.sam_file} | awk '{{if (NR%4==1) {{sub("^@", "@"); print $0 ";barcodelabel={wildcards.barcode}"}} else print $0}}' > {output.unmatched_fastq}
 
         samtools view -F UNMAP,SECONDARY,SUPPLEMENTARY -q {params.min_mapping_quality} {input.sam_file} | \
@@ -154,8 +183,11 @@ rule vsearch:
         identity=ID,
         min_abundance=MINAB
     threads: NUM_PROCESSES
+    log:
+        "tmp_files/logs/vsearch.log"
     shell:
         """
+        exec 2> {log}
         # not declared as outputs: they exist only when clusters are kept
         rm -f tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
         cat {input} > tmp_files/07_unknown_sequences_clustering/seqs
@@ -207,8 +239,13 @@ rule tree_reference_sequences:
         "tmp_files/08_phylogeny/ALL_ASV.fasta"
     params:
         database=DATABASE
+    log:
+        "tmp_files/logs/tree_reference_sequences.log"
     shell:
-        "zcat -f {params.database} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat {input}) - > {output}"
+        """
+        exec 2> {log}
+        zcat -f {params.database} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat {input}) - > {output}
+        """
 
 rule tree_input_sequences:
     input:
@@ -216,8 +253,11 @@ rule tree_input_sequences:
         vsearch_done_file="tmp_files/07_unknown_sequences_clustering/.vsearch.done"
     output:
         "tmp_files/08_phylogeny/ALL_ASV_OTU.fasta"
+    log:
+        "tmp_files/logs/tree_input_sequences.log"
     shell:
         """
+        exec 2> {log}
         cp {input.reference_sequences} {output}
         if [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]]; then
             cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> {output}
@@ -230,8 +270,13 @@ rule align_sequences:
     output:
         "tmp_files/08_phylogeny/ALL_ASV.aln"
     threads: 20
+    log:
+        "tmp_files/logs/align_sequences.log"
     shell:
-        "mafft --thread {threads} {input} > {output} 2> /dev/null"
+        """
+        exec 2> {log}
+        mafft --thread {threads} {input} > {output}
+        """
 
 rule build_tree:
     input:
@@ -240,8 +285,13 @@ rule build_tree:
         "tmp_files/08_phylogeny/ASV.tree"
     params:
         fasttree_model=FASTTREE_MOD
+    log:
+        "tmp_files/logs/build_tree.log"
     shell:
-        "FastTree -nt -{params.fasttree_model} {input} > {output} 2> /dev/null #Verbose debugging"
+        """
+        exec 2> {log}
+        FastTree -nt -{params.fasttree_model} {input} > {output}
+        """
 
 
 # Export results
@@ -256,8 +306,11 @@ rule export_results:
         "tmp_files/.export.done"
     params:
         out=OUT
+    log:
+        "tmp_files/logs/export_results.log"
     shell:
         """
+        exec 2> {log}
         mkdir -p {params.out}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
         cp {input.abundance_files} {params.out}/Results/ASV/
         cp {input.taxonomy_files} {params.out}/Results/Tax/
@@ -285,8 +338,10 @@ rule phyloseq:
         r_cleaning=R_CLEANING,
         tree=TREE,
         metadata=METADATA
+    log:
+        "tmp_files/logs/phyloseq.log"
     shell:
         """
-        Rscript {params.script} {params.input_dir} {params.out} {params.r_cleaning} {params.tree} {params.metadata}
+        Rscript {params.script} {params.input_dir} {params.out} {params.r_cleaning} {params.tree} {params.metadata} 2>&1 | tee {log}
         touch {output}
         """

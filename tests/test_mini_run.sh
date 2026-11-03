@@ -43,6 +43,16 @@ diff -r "${TESTS_DIR}/golden/mini" "${NORMALIZED}" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+DESCRIPTION="tool messages are kept in tmp_files/logs/ (minimap2)"
+[[ -s tmp_files/logs/minimap2/barcode01.log ]] && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="the R step output is kept in tmp_files/logs/"
+grep -q "Exporting results" tmp_files/logs/phyloseq.log && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="issue #154 --- reverse-strand reads are kept"
 grep -qx "2 REV1\.1\.1500" "${RESULTS}/ASV/barcode01_abundance.tsv" && \
     success "${DESCRIPTION}" || \
