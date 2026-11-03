@@ -1,3 +1,6 @@
+import os
+import re
+
 QUAL=config["QUAL"]
 MINL=config["MINL"]
 MAXL=config["MAXL"]
@@ -16,13 +19,11 @@ MOD=config["MOD"]
 FASTTREE_MOD=config["FASTTREE_MOD"]
 SAMQ=config["SAMQ"]
 
-INPUT = glob_wildcards(INPUT_DIR+"/{barcode}/{FASTQ_FILE}.fastq.gz")
+INPUT = glob_wildcards(os.path.join(INPUT_DIR, "{barcode}", "{FASTQ_FILE}.fastq.gz"))
 
-DATABASE_NAME = DATABASE.split("/")[-1]
-if DATABASE_NAME.endswith(".fasta.gz"):
-    DATABASE_NAME = DATABASE_NAME[:-9]  
-elif DATABASE_NAME.endswith(".fasta"):
-    DATABASE_NAME = DATABASE_NAME[:-6]  
+DATABASE_NAME = re.sub(r"\.fasta(\.gz)?$", "", os.path.basename(DATABASE))
+DATABASE_INDEX = f"tmp_files/00_database_indexing/{DATABASE_NAME}.mmi"
+DATABASE_TAXONOMY = f"tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME}"
 
 rule all:
     input:
@@ -37,18 +38,22 @@ rule database_indexing:
         DATABASE
     output:
         "tmp_files/00_database_indexing/.indexing.done"
+    params:
+        model=MOD,
+        index=DATABASE_INDEX,
+        taxonomy=DATABASE_TAXONOMY
     threads: NUM_PROCESSES
     shell:
         """
-        minimap2 -x {MOD} -t {threads} -d tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input}
-        zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME}
+        minimap2 -x {params.model} -t {threads} -d {params.index} {input}
+        zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > {params.taxonomy}
         touch {output}
         """
 
 # Step 2/9 : Concatenation of fastq files
 rule concatenate_fastq_files:
     input:
-        INPUT_DIR+"/{barcode}/"
+        os.path.join(INPUT_DIR, "{barcode}", "")
     output:
         temporary("tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz")
     shell:
@@ -67,9 +72,13 @@ rule sequence_quality_filtering:
         "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
     output:
         temporary("tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz")
+    params:
+        quality=QUAL,
+        min_length=MINL,
+        max_length=MAXL
     threads: NUM_PROCESSES
     shell:
-        "chopper -q {QUAL} -l {MINL} --maxlength {MAXL} --threads {threads} -i {input} | gzip > {output}"
+        "chopper -q {params.quality} -l {params.min_length} --maxlength {params.max_length} --threads {threads} -i {input} | gzip > {output}"
 
 
 # Step 4/9 : Trim adapaters with Porechop
@@ -89,8 +98,10 @@ rule subsampling:
         "tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz"
     output:
         "tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq"
+    params:
+        lines=SUBSAMPLING
     shell:
-        "head -n {SUBSAMPLING} < <(zcat {input}) > {output}"
+        "head -n {params.lines} < <(zcat {input}) > {output}"
 
 rule minimap2:
     input:
@@ -98,9 +109,12 @@ rule minimap2:
         indexing_done_file="tmp_files/00_database_indexing/.indexing.done"
     output:
         temporary("tmp_files/05_minimap2/{barcode}.sam")
+    params:
+        model=MOD,
+        index=DATABASE_INDEX
     threads: NUM_PROCESSES
     shell:
-        "minimap2 -a -x {MOD} -t {threads} --seed 666 tmp_files/00_database_indexing/{DATABASE_NAME}.mmi {input.fastq_file} > {output}"
+        "minimap2 -a -x {params.model} -t {threads} --seed 666 {params.index} {input.fastq_file} > {output}"
 
 # Step 6/9 : Reads alignements with minimap2 against the database
 rule sam_to_bam_format:
@@ -113,12 +127,14 @@ rule sam_to_bam_format:
         unmatched_fastq="tmp_files/06_sam_to_bam_format/{barcode}_unmatched.fastq",
         abundance="tmp_files/06_sam_to_bam_format/{barcode}_abundance.tsv",
         exact_affiliations="tmp_files/06_sam_to_bam_format/{barcode}_Exact_affiliations.tsv"
-
+    params:
+        min_mapping_quality=SAMQ,
+        taxonomy=DATABASE_TAXONOMY
     shell:
         """
         samtools fastq -f 4 {input.sam_file} | awk '{{if (NR%4==1) {{sub("^@", "@"); print $0 ";barcodelabel={wildcards.barcode}"}} else print $0}}' > {output.unmatched_fastq}
 
-        samtools view -F UNMAP,SECONDARY,SUPPLEMENTARY -q {SAMQ} {input.sam_file} | \
+        samtools view -F UNMAP,SECONDARY,SUPPLEMENTARY -q {params.min_mapping_quality} {input.sam_file} | \
         tee >(cut -f 1,2,3,5 > {output.exact_affiliations}) | \
         cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr | \
         sed 's/^[[:space:]]*//' > {output.abundance}
@@ -128,7 +144,7 @@ rule sam_to_bam_format:
             echo 'XXX XXX;XXX;XXX;XXX;XXX;SANITY'> {output.taxonomy_file}
         else
             grep -Eo "[^ ]+$" {output.abundance} > {output.ASV_list}
-            awk 'NR == FNR {{ids[$1]; next}} $1 in ids' {output.ASV_list} tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME} > {output.taxonomy_file}
+            awk 'NR == FNR {{ids[$1]; next}} $1 in ids' {output.ASV_list} {params.taxonomy} > {output.taxonomy_file}
         fi
         """
 
@@ -138,6 +154,9 @@ rule vsearch:
         expand("tmp_files/06_sam_to_bam_format/{barcode}_unmatched.fastq", barcode=INPUT.barcode)
     output:
         "tmp_files/07_unknown_sequences_clustering/.vsearch.done"
+    params:
+        identity=ID,
+        min_abundance=MINAB
     threads: NUM_PROCESSES
     shell:
         """
@@ -149,11 +168,11 @@ rule vsearch:
             vsearch \
             --cluster_size tmp_files/07_unknown_sequences_clustering/seqs \
             --threads {threads} \
-            --id {ID} \
+            --id {params.identity} \
             --iddef 4 \
             --relabel "${{UNIQ_ID}}_Unknown_cluster_" \
             --sizeout \
-            --otutabout >(awk -v MINAB={MINAB} \
+            --otutabout >(awk -v MINAB={params.min_abundance} \
                         'BEGIN {{FS = OFS = "\t"}}
                             NR == 1 {{print $0}}
                             NR > 1 {{s = 0
@@ -170,7 +189,7 @@ rule vsearch:
                 --fastx_filter - \
                 --sizein \
                 --quiet \
-                --minsize {MINAB} \
+                --minsize {params.min_abundance} \
                 --fastaout tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
             sed -i 's/;/_/g' tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta #Semicolons trigger format problem with tree file
             sed -E -i '/^>/ s/_size=[0-9]+//' tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta #Remove size information 
@@ -191,16 +210,20 @@ rule phylogeny:
         vsearch_done_file="tmp_files/07_unknown_sequences_clustering/.vsearch.done"
     output:
         "tmp_files/08_phylogeny/.phylogeny.done"
+    params:
+        tree=TREE,
+        database=DATABASE,
+        fasttree_model=FASTTREE_MOD
     threads: 20
     shell:
         """
-        if [ {TREE} -eq 1 ]; then
-            zcat -f {DATABASE} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat {input.ASV_lists}) - > tmp_files/08_phylogeny/ALL_ASV.fasta
+        if [ {params.tree} -eq 1 ]; then
+            zcat -f {params.database} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat {input.ASV_lists}) - > tmp_files/08_phylogeny/ALL_ASV.fasta
             cp tmp_files/08_phylogeny/ALL_ASV.fasta tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
             [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]] && cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> tmp_files/08_phylogeny/ALL_ASV_OTU.fasta
             mafft --thread {threads} tmp_files/08_phylogeny/ALL_ASV_OTU.fasta > tmp_files/08_phylogeny/ALL_ASV.aln 2> /dev/null 
             ## FastTree
-            FastTree -nt -{FASTTREE_MOD} tmp_files/08_phylogeny/ALL_ASV.aln > tmp_files/08_phylogeny/ASV.tree 2> /dev/null #Verbose debugging
+            FastTree -nt -{params.fasttree_model} tmp_files/08_phylogeny/ALL_ASV.aln > tmp_files/08_phylogeny/ASV.tree 2> /dev/null #Verbose debugging
         else
             echo "Step 8/9 : Skipped - no phylogeny"
         fi
@@ -217,17 +240,20 @@ rule export_results:
         phylogeny_done_file="tmp_files/08_phylogeny/.phylogeny.done"
     output:
         "tmp_files/.export.done"
+    params:
+        out=OUT,
+        tree=TREE
     shell:
         """
-        mkdir -p {OUT}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
-        cp {input.abundance_files} {OUT}/Results/ASV/
-        cp {input.taxonomy_files} {OUT}/Results/Tax/
-        cp {input.exact_affiliations_files} {OUT}/Results/Exact_affiliations/
-        if [ {TREE} -eq 1 ]; then
-            cp tmp_files/08_phylogeny/ASV.tree {OUT}/Results/Phylogeny/
+        mkdir -p {params.out}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
+        cp {input.abundance_files} {params.out}/Results/ASV/
+        cp {input.taxonomy_files} {params.out}/Results/Tax/
+        cp {input.exact_affiliations_files} {params.out}/Results/Exact_affiliations/
+        if [ {params.tree} -eq 1 ]; then
+            cp tmp_files/08_phylogeny/ASV.tree {params.out}/Results/Phylogeny/
         fi
         if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv" ]; then
-            cp tmp_files/07_unknown_sequences_clustering/{{unknown_clusters.tsv,Consensus_seq_OTU.fasta}} {OUT}/Results/Unknown_clusters/
+            cp tmp_files/07_unknown_sequences_clustering/{{unknown_clusters.tsv,Consensus_seq_OTU.fasta}} {params.out}/Results/Unknown_clusters/
         fi
 
         touch {output}
@@ -239,8 +265,15 @@ rule phyloseq:
         "tmp_files/.export.done" 
     output:
         "tmp_files/.rscript.done"
+    params:
+        script=os.path.join(NANOASV_PATH, "workflow", "scripts", "script.r"),
+        input_dir=INPUT_DIR,
+        out=OUT,
+        r_cleaning=R_CLEANING,
+        tree=TREE,
+        metadata=METADATA
     shell:
         """
-        Rscript {NANOASV_PATH}/workflow/scripts/script.r {INPUT_DIR} {OUT} {R_CLEANING} {TREE} {METADATA}
+        Rscript {params.script} {params.input_dir} {params.out} {params.r_cleaning} {params.tree} {params.metadata}
         touch {output}
         """
