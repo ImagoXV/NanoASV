@@ -3,6 +3,8 @@
 #This script is a wrapper to launch NanoASV snakemake version with ease
 trap 'echo "ERROR: Something went wrong - Carefully read the above message to understand how to fix it. If you think this is a bug, please reach us out on github"' ERR
 set -e
+# functions inherit the ERR trap
+set -E
 
 readonly MOCK_DIR="${NANOASV_PATH}/config/MOCK"
 readonly MOCK_OUT="${NANOASV_PATH}/Mock_run_OUTPUT"
