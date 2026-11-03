@@ -52,6 +52,8 @@ Earlier versions are described in the
 - Reference headers with a space after `>` (`> ID taxonomy`) made
   minimap2 crash; they are now rejected before the run starts, and
   `nanoasv --requirements` no longer shows one as a valid example
+- Input, output, reference and installation paths containing spaces
+  made the run fail
 
 
 ## [1.2.3] - 2026-10-27
