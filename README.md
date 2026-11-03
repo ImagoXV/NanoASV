@@ -113,21 +113,6 @@ nanoasv --mock
 You can inspect NanoASV's output structure in `${HOME}/NanoASV/Mock_run_OUTPUT/`.
 
 
-<!--
-## Cluster execution
-
-The workflow can be executed on a cluster using snakemake cluster configuration. Install a [profile](https://github.com/Snakemake-Profiles) for your cluster's job submission system. Edit the defaults in the file `cluster.json` and run the workflow. For example:
-
-```sh
-snakemake \
-    -p \
-    --jobs 100 \
-    --profile slurm \
-    --cluster-config cluster.json \
-    -s workflow/snakefile
-```
--->
-
 # How NanoASV works
 
 ![Workflow](config/workflow.png)
