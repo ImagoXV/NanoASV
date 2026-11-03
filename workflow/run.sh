@@ -4,6 +4,11 @@
 trap 'echo "ERROR: Something went wrong - Carefully read the above message to understand how to fix it. If you think this is a bug, please reach us out on github"' ERR
 set -e
 
+readonly MOCK_DIR="${NANOASV_PATH}/config/MOCK"
+readonly MOCK_OUT="${NANOASV_PATH}/Mock_run_OUTPUT"
+readonly MOCK_DATABASE="${MOCK_DIR}/mock_references/complete-reference.fasta"
+readonly MOCK_NUM_PROCESSES=2
+
 # Read the arguments passed to the script
 SNAKEMAKE_OPTIONS=()
 while [[ $# -gt 0 ]]; do
@@ -93,10 +98,10 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --mock)
-            DIR="$NANOASV_PATH/config/MOCK"
-            OUT="$NANOASV_PATH/Mock_run_OUTPUT"
-            DATABASE="$NANOASV_PATH/config/MOCK/mock_references/complete-reference.fasta"
-            NUM_PROCESSES=2
+            DIR="${MOCK_DIR}"
+            OUT="${MOCK_OUT}"
+            DATABASE="${MOCK_DATABASE}"
+            NUM_PROCESSES="${MOCK_NUM_PROCESSES}"
             TMP_FILES=0
             shift
             ;;
@@ -133,32 +138,31 @@ done
 
 # after the loop: options given before --dry-run are kept
 if [[ "${DRY}" == "n" ]]; then
-    DIR="${DIR:-${NANOASV_PATH}/config/MOCK}"
-    OUT="${OUT:-${NANOASV_PATH}/Mock_run_OUTPUT}"
-    DATABASE="${DATABASE:-${NANOASV_PATH}/config/MOCK/mock_references/complete-reference.fasta}"
+    DIR="${DIR:-${MOCK_DIR}}"
+    OUT="${OUT:-${MOCK_OUT}}"
+    DATABASE="${DATABASE:-${MOCK_DATABASE}}"
 fi
 
 #***************************************************************************************************************************
 # Manual entries - Arguments
 # Set default values
-DEFAULT_QUAL=8
-DEFAULT_MINL=1300
-DEFAULT_MAXL=1700
-DEFAULT_ID=0.7
-DEFAULT_NUM_PROCESSES=1
-DEFAULT_R_CLEANING=1
-DEFAULT_MINAB=5
-DEFAULT_SUBSAMPLING=50000
-DEFAULT_TREE=1
-DEFAULT_METADATA=${DIR}
-DEFAULT_DATABASE=$NANOASV_PATH/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta.gz
-DEFAULT_TMP_FILES=1
-DEFAULT_MOD="map-ont"
-DEFAULT_FASTTREE_MOD="fastest"
-DEFAULT_SAMQ=0
+readonly DEFAULT_QUAL=8
+readonly DEFAULT_MINL=1300
+readonly DEFAULT_MAXL=1700
+readonly DEFAULT_ID=0.7
+readonly DEFAULT_NUM_PROCESSES=1
+readonly DEFAULT_R_CLEANING=1
+readonly DEFAULT_MINAB=5
+readonly DEFAULT_SUBSAMPLING=50000
+readonly DEFAULT_TREE=1
+readonly DEFAULT_DATABASE="${NANOASV_PATH}/resources/SINGLELINE_SILVA_138.2_SSURef_tax_silva.fasta.gz"
+readonly DEFAULT_TMP_FILES=1
+readonly DEFAULT_MOD="map-ont"
+readonly DEFAULT_FASTTREE_MOD="fastest"
+readonly DEFAULT_SAMQ=0
+readonly LINES_PER_FASTQ_ENTRY=4
 #***************************************************************************************************************************
 # Assign default values if variables are empty
-#DIR="/data"
 QUAL="${QUAL:-$DEFAULT_QUAL}"
 MINL="${MINL:-$DEFAULT_MINL}"
 MAXL="${MAXL:-$DEFAULT_MAXL}"
@@ -171,8 +175,8 @@ if [[ ! "${SUBSAMPLING}" =~ ^[1-9][0-9]*$ ]]; then
     echo "ERROR: --subsampling must be a positive integer (number of reads per sample), not '${SUBSAMPLING}'."
     exit 1
 fi
-SUBSAMPLING=$((SUBSAMPLING * 4))
-METADATA="${METADATA:-$DEFAULT_METADATA}"
+readonly SUBSAMPLING_LINES=$((SUBSAMPLING * LINES_PER_FASTQ_ENTRY))
+METADATA="${METADATA:-${DIR}}"
 MINAB="${MINAB:-$DEFAULT_MINAB}"
 TMP_FILES="${TMP_FILES:-$DEFAULT_TMP_FILES}"
 MOD="${MOD:-$DEFAULT_MOD}"
@@ -312,13 +316,13 @@ INPUT_PATH="$(realpath "${DIR}")"
 
 #***************************************************************************************************************************
 # Check if provided minimap2 model is correct
-MODS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
+readonly -a MINIMAP2_MODELS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
 
 # shellcheck disable=SC2076  # literal match of a whole word
-if [[ ! " ${MODS[*]} " =~ " ${MOD} " ]]; then
+if [[ ! " ${MINIMAP2_MODELS[*]} " =~ " ${MOD} " ]]; then
     echo 'ERROR: --model invalid specification.'
     echo "Minimap2 default model is ${DEFAULT_MOD}."
-    echo "Available models are ${MODS[*]}"
+    echo "Available models are ${MINIMAP2_MODELS[*]}"
     echo 'WARNING, changing minimap2 alignment model will have strong repercussion on data treatment.'
     echo 'Use this option carefully. Please read minimap2 documentation.'
     exit 1
@@ -326,13 +330,13 @@ fi
 
 #***************************************************************************************************************************
 # Check if provided fasttree model is correct
-F_MODS=("gtr" "gamma" "wag" "lg" "fastest")
+readonly -a FASTTREE_MODELS=("gtr" "gamma" "wag" "lg" "fastest")
 
 # shellcheck disable=SC2076  # literal match of a whole word
-if [[ ! " ${F_MODS[*]} " =~ " ${FASTTREE_MOD} " ]]; then
+if [[ ! " ${FASTTREE_MODELS[*]} " =~ " ${FASTTREE_MOD} " ]]; then
     echo 'ERROR: --fasttree-model invalid specification.'
     echo "FastTree default model is \"${DEFAULT_FASTTREE_MOD}\"."
-    echo "Available models are ${F_MODS[*]}"
+    echo "Available models are ${FASTTREE_MODELS[*]}"
     exit 1
 fi
 
@@ -402,7 +406,7 @@ snakemake -"${DRY}"p -s "${NANOASV_PATH}/workflow/snakefile" "${SNAKEMAKE_OPTION
         NUM_PROCESSES="${NUM_PROCESSES}" \
         R_CLEANING="${R_CLEANING}" \
         MINAB="${MINAB}" \
-        SUBSAMPLING="${SUBSAMPLING}" \
+        SUBSAMPLING="${SUBSAMPLING_LINES}" \
         TREE="${TREE}" \
         INPUT_DIR="${DIR}" \
         OUT="${OUT}" \
