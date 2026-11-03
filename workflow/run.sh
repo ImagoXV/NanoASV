@@ -9,6 +9,94 @@ readonly MOCK_OUT="${NANOASV_PATH}/Mock_run_OUTPUT"
 readonly MOCK_DATABASE="${MOCK_DIR}/mock_references/complete-reference.fasta"
 readonly MOCK_NUM_PROCESSES=2
 
+# usage: is_one_of VALUE ITEM...
+is_one_of () {
+    local -r value="${1}"
+    shift
+    local item
+    for item in "$@" ; do
+        [[ "${item}" == "${value}" ]] && return 0
+    done
+    return 1
+}
+
+check_minimap2_model () {
+    is_one_of "${MOD}" "${MINIMAP2_MODELS[@]}" && return 0
+    echo 'ERROR: --model invalid specification.'
+    echo "Minimap2 default model is ${DEFAULT_MOD}."
+    echo "Available models are ${MINIMAP2_MODELS[*]}"
+    echo 'WARNING, changing minimap2 alignment model will have strong repercussion on data treatment.'
+    echo 'Use this option carefully. Please read minimap2 documentation.'
+    exit 1
+}
+
+check_fasttree_model () {
+    is_one_of "${FASTTREE_MOD}" "${FASTTREE_MODELS[@]}" && return 0
+    echo 'ERROR: --fasttree-model invalid specification.'
+    echo "FastTree default model is \"${DEFAULT_FASTTREE_MOD}\"."
+    echo "Available models are ${FASTTREE_MODELS[*]}"
+    exit 1
+}
+
+check_reference_exists () {
+    [[ -s "${DATABASE}" ]] && return 0
+    echo "No reference file found at ${DATABASE}. If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location."
+    exit 1
+}
+
+check_reference_headers () {
+    # minimap2 gives an empty name to a sequence whose header starts with '> '
+    zgrep -q '^> ' "${DATABASE}" || return 0
+    cat "${NANOASV_PATH}/config/requirements.txt"
+    echo "ERROR: reference fasta headers must not have a space after '>'. First one found:"
+    zcat -f "${DATABASE}" | grep -m 1 '^> '
+    exit 1
+}
+
+# usage: add_reference_ids (updates DATABASE)
+# headers without a unique ID before the taxonomy get a random uuid
+add_reference_ids () {
+    zgrep -qE '^>[^ ;]+ [^ ]' "${DATABASE}" && return 0
+    cat "${NANOASV_PATH}/config/requirements.txt"
+        echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
+        Keep in mind that those uniq ID will not be consistent from one run to another.\n\
+        If you like your reference dataset this way, save it from tmp_files before deleting:'tmp_files/CORRECT_HEADER_reference.fasta'\n\
+        For better practice, we advise you to add one yourself.\n\
+        Formatting will take a while ..."
+
+    # random uuid v4 in awk: one uuidgen call per header takes ~20 min on SILVA
+    zcat -f "${DATABASE}" | \
+        awk 'function hex(n,   s) {
+                 s = ""
+                 while (n-- > 0) s = s sprintf("%x", int(rand() * 16))
+                 return s
+             }
+             BEGIN { srand() }
+             /^>/ {
+                 printf ">%s-%s-4%s-%x%s-%s %s\n", hex(8), hex(4), hex(3),
+                        8 + int(rand() * 4), hex(3), hex(12), substr($0, 2)
+                 next
+             }
+             { print } #Manage singleleaved and interleaved fasta file
+            ' > tmp_files/CORRECT_HEADER_reference.fasta
+    DATABASE="tmp_files/CORRECT_HEADER_reference.fasta"
+}
+
+# usage: linearize_reference (updates DATABASE)
+# one sequence line per entry; the SILVA file made as in the README
+# already is
+linearize_reference () {
+    [[ "$(basename "${DATABASE}")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]] && return 0
+    local lines
+    lines="$(zcat -f "${DATABASE}" | wc -l)"
+    local sequences
+    sequences="$(zgrep -c "^>" "${DATABASE}")"
+    (( lines == sequences * 2 )) && return 0
+    echo 'Interleaved reference fasta file - Formating.'
+    zcat -f "${DATABASE}" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > tmp_files/SINGLELINE_reference.fasta
+    DATABASE="tmp_files/SINGLELINE_reference.fasta"
+}
+
 # usage: gzip_fastq_in_barcode_dirs (updates DIR and METADATA)
 # barcode directories holding uncompressed fastq files are copied to
 # tmp_files/tmp_seq_dir/, with every fastq file gzipped
@@ -287,6 +375,8 @@ readonly DEFAULT_MOD="map-ont"
 readonly DEFAULT_FASTTREE_MOD="fastest"
 readonly DEFAULT_SAMQ=0
 readonly LINES_PER_FASTQ_ENTRY=4
+readonly -a MINIMAP2_MODELS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
+readonly -a FASTTREE_MODELS=("gtr" "gamma" "wag" "lg" "fastest")
 #***************************************************************************************************************************
 # Assign default values if variables are empty
 QUAL="${QUAL:-$DEFAULT_QUAL}"
@@ -328,84 +418,13 @@ gzip_fastq_in_barcode_dirs
 prepare_input_layout
 check_metadata "${DIR}" "${METADATA}" || exit 1
 
-#***************************************************************************************************************************
-# Check if provided minimap2 model is correct
-readonly -a MINIMAP2_MODELS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
-
-# shellcheck disable=SC2076  # literal match of a whole word
-if [[ ! " ${MINIMAP2_MODELS[*]} " =~ " ${MOD} " ]]; then
-    echo 'ERROR: --model invalid specification.'
-    echo "Minimap2 default model is ${DEFAULT_MOD}."
-    echo "Available models are ${MINIMAP2_MODELS[*]}"
-    echo 'WARNING, changing minimap2 alignment model will have strong repercussion on data treatment.'
-    echo 'Use this option carefully. Please read minimap2 documentation.'
-    exit 1
-fi
-
-#***************************************************************************************************************************
-# Check if provided fasttree model is correct
-readonly -a FASTTREE_MODELS=("gtr" "gamma" "wag" "lg" "fastest")
-
-# shellcheck disable=SC2076  # literal match of a whole word
-if [[ ! " ${FASTTREE_MODELS[*]} " =~ " ${FASTTREE_MOD} " ]]; then
-    echo 'ERROR: --fasttree-model invalid specification.'
-    echo "FastTree default model is \"${DEFAULT_FASTTREE_MOD}\"."
-    echo "Available models are ${FASTTREE_MODELS[*]}"
-    exit 1
-fi
-
-#***************************************************************************************************************************
-#Ensure database exists
-if [ ! -s  "${DATABASE}" ]; then
-    echo "No reference file found at ${DATABASE}. If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location."
-    exit 1
-fi
-#***************************************************************************************************************************
-#Checking reference dataset fits to requirements
+check_minimap2_model
+check_fasttree_model
+check_reference_exists
 echo 'Checking reference format'
-# minimap2 gives an empty name to a sequence whose header starts with '> '
-if zgrep -q '^> ' "${DATABASE}"; then
-    cat "${NANOASV_PATH}/config/requirements.txt"
-    echo "ERROR: reference fasta headers must not have a space after '>'. First one found:"
-    zcat -f "${DATABASE}" | grep -m 1 '^> '
-    exit 1
-fi
-#Check if sequences contain uniq ID before taxonomy
-if ! zgrep -qE '^>[^ ;]+ [^ ]' "$DATABASE"; then
-    cat "$NANOASV_PATH/config/requirements.txt"
-        echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
-        Keep in mind that those uniq ID will not be consistent from one run to another.\n\
-        If you like your reference dataset this way, save it from tmp_files before deleting:'tmp_files/CORRECT_HEADER_reference.fasta'\n\
-        For better practice, we advise you to add one yourself.\n\
-        Formatting will take a while ..."
-
-    # random uuid v4 in awk: one uuidgen call per header takes ~20 min on SILVA
-    zcat -f "${DATABASE}" | \
-        awk 'function hex(n,   s) {
-                 s = ""
-                 while (n-- > 0) s = s sprintf("%x", int(rand() * 16))
-                 return s
-             }
-             BEGIN { srand() }
-             /^>/ {
-                 printf ">%s-%s-4%s-%x%s-%s %s\n", hex(8), hex(4), hex(3),
-                        8 + int(rand() * 4), hex(3), hex(12), substr($0, 2)
-                 next
-             }
-             { print } #Manage singleleaved and interleaved fasta file
-            ' > tmp_files/CORRECT_HEADER_reference.fasta
-    DATABASE=tmp_files/CORRECT_HEADER_reference.fasta
-fi
-# Ensure reference file is singleleaved fasta
-if [[ ! "$(basename "$DATABASE")" == SINGLELINE_SILVA_*_SSURef_tax_silva.fasta.gz ]]; then
-    LINES=$(zcat -f "${DATABASE}" | wc -l)
-    SEQS=$(zgrep -c "^>" "${DATABASE}") 
-    if [[ $LINES -ne $(( SEQS * 2 )) ]]; then
-        echo 'Interleaved reference fasta file - Formating.'
-        zcat -f "${DATABASE}" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > tmp_files/SINGLELINE_reference.fasta
-        DATABASE=tmp_files/SINGLELINE_reference.fasta
-    fi
-fi
+check_reference_headers
+add_reference_ids
+linearize_reference
 
 #***************************************************************************************************************************
 #Run the pipeline
