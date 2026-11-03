@@ -109,6 +109,16 @@ gunzip input/barcode01/reads.fastq.gz
         failure "${DESCRIPTION}"
 
 
+DESCRIPTION="an unexpected failure prints the generic error message"
+new_workdir
+mkdir -p input/barcode01
+printf "@r1\nACGT\n+\nIIII\n" > input/barcode01/reads.fastq
+"${NANOASV}" --dry-run -d input 2>&1 | \
+    grep -q "^ERROR: Something went wrong" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+
 ## ----------------------------------------------------------- metadata.csv
 
 # usage: metadata_rejected DESCRIPTION MESSAGE_REGEX METADATA_CONTENT
