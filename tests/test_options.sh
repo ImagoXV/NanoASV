@@ -356,7 +356,7 @@ cp "${NANOASV_PATH}/config/MOCK/mock_references/complete-reference.fasta" \
    "my reference.fasta"
 "${NANOASV}" --dry-run -d "my input" -o "my output" -db "my reference.fasta" 2>&1 | \
     rule_jobs phyloseq | \
-    grep -q "script\.r my input my output " && \
+    grep -q "script\.r 'my input' 'my output' " && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 

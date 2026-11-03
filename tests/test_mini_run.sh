@@ -95,6 +95,19 @@ grep -cE '^"(EUK|MITO|CHLO)\.' out/Results/CSV/Taxonomy-Abundance_table.csv | \
         failure "${DESCRIPTION}"
 
 
+
+## ------------------------------------------------- paths with spaces
+
+DESCRIPTION="-d, -o and -db with spaces: normalized results match tests/golden/mini"
+new_workdir
+cp -r "${DATASET}" "my input"
+mv "my input/reference.fasta" "my reference.fasta"
+"${NANOASV}" -d "my input" -o "my output" -db "my reference.fasta" > /dev/null 2>&1 && \
+    bash "${TESTS_DIR}/normalize_results.sh" "my output/Results" "my normalized results" && \
+    diff -r "${TESTS_DIR}/golden/mini" "my normalized results" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 ## ------------------------------------------------ exact ID matching
 
 DESCRIPTION="the tree has no tip for a reference without reads (AB1.1.15 is a prefix of AB1.1.1500)"

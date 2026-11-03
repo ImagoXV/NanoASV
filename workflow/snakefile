@@ -46,9 +46,9 @@ rule database_indexing:
         "tmp_files/logs/database_indexing.log"
     shell:
         """
-        exec 2> {log}
-        minimap2 -x {params.model} -t {threads} -d {output.index} {input}
-        zcat -f {input} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > {output.taxonomy}
+        exec 2> {log:q}
+        minimap2 -x {params.model} -t {threads} -d {output.index:q} {input:q}
+        zcat -f {input:q} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > {output.taxonomy:q}
         """
 
 # Step 2/9 : Concatenation of fastq files
@@ -61,11 +61,11 @@ rule concatenate_fastq_files:
         "tmp_files/logs/concatenate_fastq_files/{barcode}.log"
     shell:
         """
-        exec 2> {log}
-        if ls {input}/*.fastq 1> /dev/null 2>&1; then
-            (gzip -c {input}/*.fastq 2>/dev/null; cat {input}/*.fastq.gz 2>/dev/null) > {output}
+        exec 2> {log:q}
+        if ls {input:q}/*.fastq 1> /dev/null 2>&1; then
+            (gzip -c {input:q}/*.fastq 2>/dev/null; cat {input:q}/*.fastq.gz 2>/dev/null) > {output:q}
         else
-            cat {input}/*.fastq.gz > {output}
+            cat {input:q}/*.fastq.gz > {output:q}
         fi
         """
 
@@ -85,8 +85,8 @@ rule sequence_quality_filtering:
         "tmp_files/logs/sequence_quality_filtering/{barcode}.log"
     shell:
         """
-        exec 2> {log}
-        chopper -q {params.quality} -l {params.min_length} --maxlength {params.max_length} --threads {threads} -i {input} | gzip > {output}
+        exec 2> {log:q}
+        chopper -q {params.quality} -l {params.min_length} --maxlength {params.max_length} --threads {threads} -i {input:q} | gzip > {output:q}
         """
 
 
@@ -101,8 +101,8 @@ rule adapters_trimming:
         "tmp_files/logs/adapters_trimming/{barcode}.log"
     shell:
         """
-        exec 2> {log}
-        porechop --verbosity 0 --threads {threads} -i {input} -o {output}
+        exec 2> {log:q}
+        porechop --verbosity 0 --threads {threads} -i {input:q} -o {output:q}
         """
 
 
@@ -118,8 +118,8 @@ rule subsampling:
         "tmp_files/logs/subsampling/{barcode}.log"
     shell:
         """
-        exec 2> {log}
-        head -n {params.lines} < <(zcat {input}) > {output}
+        exec 2> {log:q}
+        head -n {params.lines} < <(zcat {input:q}) > {output:q}
         """
 
 rule minimap2:
@@ -135,8 +135,8 @@ rule minimap2:
         "tmp_files/logs/minimap2/{barcode}.log"
     shell:
         """
-        exec 2> {log}
-        minimap2 -a -x {params.model} -t {threads} --seed 666 {input.index} {input.fastq_file} > {output}
+        exec 2> {log:q}
+        minimap2 -a -x {params.model} -t {threads} --seed 666 {input.index:q} {input.fastq_file:q} > {output:q}
         """
 
 # Step 6/9 : Reads alignements with minimap2 against the database
@@ -156,20 +156,20 @@ rule sam_to_bam_format:
         "tmp_files/logs/sam_to_bam_format/{barcode}.log"
     shell:
         """
-        exec 2> {log}
-        samtools fastq -f 4 {input.sam_file} | awk '{{if (NR%4==1) {{sub("^@", "@"); print $0 ";barcodelabel={wildcards.barcode}"}} else print $0}}' > {output.unmatched_fastq}
+        exec 2> {log:q}
+        samtools fastq -f 4 {input.sam_file:q} | awk '{{if (NR%4==1) {{sub("^@", "@"); print $0 ";barcodelabel={wildcards.barcode}"}} else print $0}}' > {output.unmatched_fastq:q}
 
-        samtools view -F UNMAP,SECONDARY,SUPPLEMENTARY -q {params.min_mapping_quality} {input.sam_file} | \
-        tee >(cut -f 1,2,3,5 > {output.exact_affiliations}) | \
+        samtools view -F UNMAP,SECONDARY,SUPPLEMENTARY -q {params.min_mapping_quality} {input.sam_file:q} | \
+        tee >(cut -f 1,2,3,5 > {output.exact_affiliations:q}) | \
         cut -f 3 | sort | uniq -c | awk '$1 != 0' | sort -nr | \
-        sed 's/^[[:space:]]*//' > {output.abundance}
-        if [ ! -s {output.abundance} ]; then
-            echo '1 XXX' >> {output.abundance}
-            grep -Eo "[^ ]+$" {output.abundance} > {output.ASV_list}
-            echo 'XXX XXX;XXX;XXX;XXX;XXX;SANITY'> {output.taxonomy_file}
+        sed 's/^[[:space:]]*//' > {output.abundance:q}
+        if [ ! -s {output.abundance:q} ]; then
+            echo '1 XXX' >> {output.abundance:q}
+            grep -Eo "[^ ]+$" {output.abundance:q} > {output.ASV_list:q}
+            echo 'XXX XXX;XXX;XXX;XXX;XXX;SANITY'> {output.taxonomy_file:q}
         else
-            grep -Eo "[^ ]+$" {output.abundance} > {output.ASV_list}
-            awk 'NR == FNR {{ids[$1]; next}} $1 in ids' {output.ASV_list} {input.taxonomy} > {output.taxonomy_file}
+            grep -Eo "[^ ]+$" {output.abundance:q} > {output.ASV_list:q}
+            awk 'NR == FNR {{ids[$1]; next}} $1 in ids' {output.ASV_list:q} {input.taxonomy:q} > {output.taxonomy_file:q}
         fi
         """
 
@@ -187,10 +187,10 @@ rule vsearch:
         "tmp_files/logs/vsearch.log"
     shell:
         """
-        exec 2> {log}
+        exec 2> {log:q}
         # not declared as outputs: they exist only when clusters are kept
         rm -f tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
-        cat {input} > tmp_files/07_unknown_sequences_clustering/seqs
+        cat {input:q} > tmp_files/07_unknown_sequences_clustering/seqs
         UNIQ_ID=$(uuidgen)
         if [ -s "tmp_files/07_unknown_sequences_clustering/seqs" ]; then
             vsearch \
@@ -226,7 +226,7 @@ rule vsearch:
                 rm tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta
             fi
         fi
-        touch {output}
+        touch {output:q}
         """
 
 
@@ -243,8 +243,8 @@ rule tree_reference_sequences:
         "tmp_files/logs/tree_reference_sequences.log"
     shell:
         """
-        exec 2> {log}
-        zcat -f {params.database} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat {input}) - > {output}
+        exec 2> {log:q}
+        zcat -f {params.database:q} | awk 'NR == FNR {{ids[$1]; next}} /^>/ {{keep = (substr($1, 2) in ids)}} keep' <(cat {input:q}) - > {output:q}
         """
 
 rule tree_input_sequences:
@@ -257,10 +257,10 @@ rule tree_input_sequences:
         "tmp_files/logs/tree_input_sequences.log"
     shell:
         """
-        exec 2> {log}
-        cp {input.reference_sequences} {output}
+        exec 2> {log:q}
+        cp {input.reference_sequences:q} {output:q}
         if [[ -e "tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta" ]]; then
-            cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> {output}
+            cat tmp_files/07_unknown_sequences_clustering/Consensus_seq_OTU.fasta >> {output:q}
         fi
         """
 
@@ -274,8 +274,8 @@ rule align_sequences:
         "tmp_files/logs/align_sequences.log"
     shell:
         """
-        exec 2> {log}
-        mafft --thread {threads} {input} > {output}
+        exec 2> {log:q}
+        mafft --thread {threads} {input:q} > {output:q}
         """
 
 rule build_tree:
@@ -289,8 +289,8 @@ rule build_tree:
         "tmp_files/logs/build_tree.log"
     shell:
         """
-        exec 2> {log}
-        FastTree -nt -{params.fasttree_model} {input} > {output}
+        exec 2> {log:q}
+        FastTree -nt -{params.fasttree_model} {input:q} > {output:q}
         """
 
 
@@ -310,19 +310,19 @@ rule export_results:
         "tmp_files/logs/export_results.log"
     shell:
         """
-        exec 2> {log}
-        mkdir -p {params.out}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
-        cp {input.abundance_files} {params.out}/Results/ASV/
-        cp {input.taxonomy_files} {params.out}/Results/Tax/
-        cp {input.exact_affiliations_files} {params.out}/Results/Exact_affiliations/
+        exec 2> {log:q}
+        mkdir -p {params.out:q}/Results/{{ASV,Tax,Unknown_clusters,Phylogeny,Exact_affiliations,CSV,Rdata}}
+        cp {input.abundance_files:q} {params.out:q}/Results/ASV/
+        cp {input.taxonomy_files:q} {params.out:q}/Results/Tax/
+        cp {input.exact_affiliations_files:q} {params.out:q}/Results/Exact_affiliations/
         if [ -n "{input.tree}" ]; then
-            cp {input.tree} {params.out}/Results/Phylogeny/
+            cp {input.tree:q} {params.out:q}/Results/Phylogeny/
         fi
         if [ -e "tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv" ]; then
-            cp tmp_files/07_unknown_sequences_clustering/{{unknown_clusters.tsv,Consensus_seq_OTU.fasta}} {params.out}/Results/Unknown_clusters/
+            cp tmp_files/07_unknown_sequences_clustering/{{unknown_clusters.tsv,Consensus_seq_OTU.fasta}} {params.out:q}/Results/Unknown_clusters/
         fi
 
-        touch {output}
+        touch {output:q}
         """
 
 # Phyloseq
@@ -342,6 +342,6 @@ rule phyloseq:
         "tmp_files/logs/phyloseq.log"
     shell:
         """
-        Rscript {params.script} {params.input_dir} {params.out} {params.r_cleaning} {params.tree} {params.metadata} 2>&1 | tee {log}
-        touch {output}
+        Rscript {params.script:q} {params.input_dir:q} {params.out:q} {params.r_cleaning} {params.tree} {params.metadata:q} 2>&1 | tee {log:q}
+        touch {output:q}
         """
