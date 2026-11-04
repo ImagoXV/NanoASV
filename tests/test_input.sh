@@ -119,6 +119,22 @@ printf "@r1\nACGT\n+\nIIII\n" > input/barcode01/reads.fastq
         failure "${DESCRIPTION}"
 
 
+for SAMPLE in soilA soilB ; do
+    DESCRIPTION="uncompressed fastq files elsewhere: sample ${SAMPLE}, not named barcode*, is kept"
+    new_workdir
+    make_input_dir input
+    gunzip input/barcode01/reads.fastq.gz
+    mkdir input/soilA input/soilB
+    printf "@r1\nACGT\n+\nIIII\n" > input/soilA/reads.fastq
+    printf "@r1\nACGT\n+\nIIII\n" | gzip > input/soilB/reads.fastq.gz
+    printf "soilA,3,C\nsoilB,4,D\n" >> input/metadata.csv
+    "${NANOASV}" --dry-run -d input 2>&1 | \
+        rule_jobs concatenate_fastq_files | \
+        grep -q "input: tmp_files/tmp_seq_dir/${SAMPLE}" && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+done
+
 ## ----------------------------------------------------------- metadata.csv
 
 # usage: metadata_rejected DESCRIPTION MESSAGE_REGEX METADATA_CONTENT

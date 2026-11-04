@@ -123,28 +123,29 @@ linearize_reference () {
     DATABASE="tmp_files/SINGLELINE_reference.fasta"
 }
 
-# usage: gzip_fastq_in_barcode_dirs (updates DIR and METADATA)
-# barcode directories holding uncompressed fastq files are copied to
-# tmp_files/tmp_seq_dir/, with every fastq file gzipped
-gzip_fastq_in_barcode_dirs () {
+# usage: gzip_fastq_in_sample_dirs (updates DIR and METADATA)
+# when sample directories hold uncompressed fastq files, all sample
+# directories are copied to tmp_files/tmp_seq_dir/, with every fastq
+# file gzipped
+gzip_fastq_in_sample_dirs () {
     find "${DIR}" -mindepth 2 -name "*.fastq" | grep -q . || return 0
     echo "NanoASV found flat fastq files. Compressing temporary files for compatibility"
     local -r tmp_seq_dir="tmp_files/tmp_seq_dir"
     mkdir -p "${tmp_seq_dir}"
-    local barcode_dir
-    local tmp_barcode_dir
+    local sample_dir
+    local tmp_sample_dir
     local file
-    for barcode_dir in "${DIR}"/barcode*/; do
-        [[ -d "${barcode_dir}" ]] || continue
-        tmp_barcode_dir="${tmp_seq_dir}/$(basename "${barcode_dir}")"
-        mkdir -p "${tmp_barcode_dir}"
-        echo "${tmp_barcode_dir}"
-        for file in "${barcode_dir}"/*; do
+    for sample_dir in "${DIR}"/*/; do
+        compgen -G "${sample_dir}*.fastq*" > /dev/null || continue
+        tmp_sample_dir="${tmp_seq_dir}/$(basename "${sample_dir}")"
+        mkdir -p "${tmp_sample_dir}"
+        echo "${tmp_sample_dir}"
+        for file in "${sample_dir}"/*; do
             if [[ -f "${file}" ]]; then
                 if [[ "${file}" == *.fastq.gz ]]; then
-                    ln -s "$(realpath "${file}")" "${tmp_barcode_dir}/"
+                    ln -s "$(realpath "${file}")" "${tmp_sample_dir}/"
                 elif [[ "${file}" == *.fastq ]]; then
-                    gzip -c "${file}" > "${tmp_barcode_dir}/$(basename "${file}").gz"
+                    gzip -c "${file}" > "${tmp_sample_dir}/$(basename "${file}").gz"
                 fi
             fi
         done
@@ -466,7 +467,7 @@ main () {
     mkdir -p tmp_files
     check_required_options
 
-    gzip_fastq_in_barcode_dirs
+    gzip_fastq_in_sample_dirs
     prepare_input_layout
     check_metadata "${DIR}" "${METADATA}" || exit 1
 
