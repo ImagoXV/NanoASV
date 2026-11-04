@@ -54,7 +54,7 @@ DESCRIPTION="fastq files without barcode directories trigger a warning"
 new_workdir
 mkdir input
 printf "@r1\nACGT\n+\nIIII\n" | gzip > input/reads.fastq.gz
-"${NANOASV}" --dry-run -d input 2> /dev/null | \
+"${NANOASV}" --dry-run -d input 2>&1 > /dev/null | \
     grep -q "^WARNING - Found fastq files in input" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -76,6 +76,15 @@ printf "@r1\nACGT\n+\nIIII\n" > input/reads.fastq
 "${NANOASV}" --dry-run -d input 2>&1 | \
     rule_jobs concatenate_fastq_files | \
     grep -q "barcode01" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="without metadata.csv, a warning is printed"
+new_workdir
+mkdir input
+printf "@r1\nACGT\n+\nIIII\n" | gzip > input/reads.fastq.gz
+"${NANOASV}" --dry-run -d input 2>&1 > /dev/null | \
+    grep -q "^WARNING - No metadata file provided" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
@@ -391,7 +400,7 @@ done
 DESCRIPTION="reference headers without IDs are reported"
 new_workdir
 printf ">Bacteria;Phylum;Class;Order;Family;Genus;Species\nACGT\n" > ref.fasta
-"${NANOASV}" --dry-run -db ref.fasta 2> /dev/null | \
+"${NANOASV}" --dry-run -db ref.fasta 2>&1 > /dev/null | \
     grep -q "^Invalid reference file fasta header" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
