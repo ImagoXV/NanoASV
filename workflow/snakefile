@@ -48,7 +48,7 @@ rule database_indexing:
         """
         exec 2> {log:q}
         minimap2 -x {params.model} -t {threads} -d {output.index:q} {input:q}
-        zcat -f {input:q} | awk '/^>/ {{printf("%s%s\\n",(NR==1)?"":RS,$0);next;}} {{printf("%s",$0);}} END {{printf("\\n");}}' | grep "^>" | tr -d ">" > {output.taxonomy:q}
+        zcat -f {input:q} | grep "^>" | tr -d ">" > {output.taxonomy:q}
         """
 
 # Step 2/9 : Concatenation of fastq files
