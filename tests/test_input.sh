@@ -331,7 +331,7 @@ new_workdir
 DESCRIPTION="an unknown FastTree model: the available models are listed"
 new_workdir
 "${NANOASV}" --dry-run --fasttree-model unknown 2>&1 > /dev/null | \
-    grep -q "^Available models are gtr gamma wag lg fastest$" && \
+    grep -q "^Available models are gtr gamma fastest$" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
@@ -348,10 +348,19 @@ new_workdir
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-for MODEL in gtr gamma wag lg fastest ; do
+for MODEL in gtr gamma fastest ; do
     DESCRIPTION="FastTree model ${MODEL} is accepted"
     new_workdir
     "${NANOASV}" --dry-run --fasttree-model "${MODEL}" > /dev/null 2>&1 && \
+        success "${DESCRIPTION}" || \
+            failure "${DESCRIPTION}"
+done
+
+# protein models: no effect on nucleotide sequences (FastTree -nt)
+for MODEL in wag lg ; do
+    DESCRIPTION="FastTree protein model ${MODEL} is rejected"
+    new_workdir
+    exits_with 1 "${NANOASV}" --dry-run --fasttree-model "${MODEL}" && \
         success "${DESCRIPTION}" || \
             failure "${DESCRIPTION}"
 done

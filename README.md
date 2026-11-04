@@ -37,7 +37,7 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | `--notree`           | Flag - To remove phylogeny step and tree from phyloseq object        |
 | `--sam-qual`         | To tune samtools filtering quality threshold, default: 0             |
 | `--model`            | minimap2 alignment model (see Alignment below), default: map-ont     |
-| `--fasttree-model`   | FastTree model: gtr, gamma, wag, lg or fastest, default: fastest     |
+| `--fasttree-model`   | FastTree model: gtr, gamma or fastest, default: fastest              |
 | `--requirements`     | Flag - To display personal reference fasta requirements              |
 | `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
 | `--mock`             | Flag - Run mock dataset with NanoASV                                 |
