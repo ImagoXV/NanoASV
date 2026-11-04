@@ -30,7 +30,7 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | `-i`, `--id-vsearch` | Identity threshold for vsearch clustering step, default: 0.7         |
 | `-ab`, `--minab`     | Minimum unknown cluster total abundance to be kept, default: 5       |
 | `-p`, `--num-process`| Number of cores for parallelization, default: 1                      |
-| `--subsampling`      | Max number of sequences per barcode, default: 50,000                 |
+| `--subsampling`      | Reads kept per barcode (the first ones), default: 50,000             |
 | `--no-r-cleaning`    | Flag - to keep Eukaryota, Chloroplast, and Mitochondria sequences    |
 |                      | from phyloseq object                                                 |
 | `--metadata`         | Specify metadata.csv file directory, default is --dir                |
@@ -43,6 +43,11 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | `--mock`             | Flag - Run mock dataset with NanoASV                                 |
 | `--remove-tmp`       | Remove tmp data after execution. No snakemake resume option if set.  |
 ```
+
+NanoASV writes its intermediate files to `tmp_files/` in the current
+working directory, and keeps them (unless `--remove-tmp`) so that
+Snakemake can resume an interrupted run. Run one analysis at a time per
+working directory.
 
 
 # Installation with Conda
@@ -149,6 +154,10 @@ Is executed in parallel (default `--num-process 1`)
 50 000 sequences per barcode is enough for most common questions.
 Default is set to 50 000 sequences per barcode.
 Can be modified with `--subsampling int`
+
+NanoASV keeps the first reads of each barcode, after quality filtering
+and adapter trimming (fastq files are read in file name order): it is
+not a random sample.
 
 ## Alignment
 
