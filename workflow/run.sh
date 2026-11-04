@@ -83,12 +83,12 @@ check_reference_headers () {
 # headers without a unique ID before the taxonomy get a random uuid
 add_reference_ids () {
     zgrep -qE '^>[^ ;]+ [^ ]' "${DATABASE}" && return 0
-    cat "${NANOASV_PATH}/config/requirements.txt"
+    cat "${NANOASV_PATH}/config/requirements.txt" >&2
         echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
         Keep in mind that those uniq ID will not be consistent from one run to another.\n\
         If you like your reference dataset this way, save it from tmp_files before deleting:'tmp_files/CORRECT_HEADER_reference.fasta'\n\
         For better practice, we advise you to add one yourself.\n\
-        Formatting will take a while ..."
+        Formatting will take a while ..." >&2
 
     # random uuid v4 in awk: one uuidgen call per header takes ~20 min on SILVA
     zcat -f "${DATABASE}" | \
@@ -167,7 +167,7 @@ prepare_input_layout () {
         echo "ABORTING" >&2
         exit 1
     fi
-    echo "WARNING - Found fastq files in ${DIR} - Formatting tmp file structure. Please prefer a barcodeXX directory structure"
+    echo "WARNING - Found fastq files in ${DIR} - Formatting tmp file structure. Please prefer a barcodeXX directory structure" >&2
 
     local -r tmp_barcodes="tmp_files/barcodes"
     mkdir -p "${tmp_barcodes}/barcode01"
@@ -186,7 +186,7 @@ prepare_input_layout () {
     done
 
     if [[ ! -s "${METADATA}/metadata.csv" ]]; then
-        echo "WARNING - No metadata file provided. NanoASV will generate a dummy one. Please prefer using your own metadata file"
+        echo "WARNING - No metadata file provided. NanoASV will generate a dummy one. Please prefer using your own metadata file" >&2
         head -n2 "${MOCK_DIR}/metadata.csv" > "${tmp_barcodes}/metadata.csv"
     else
         cp "${METADATA}/metadata.csv" "${tmp_barcodes}/metadata.csv"
