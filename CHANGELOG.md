@@ -21,6 +21,8 @@ Earlier versions are described in the
   FastTree...) go to log files in `tmp_files/logs/` instead of the
   terminal; when a step fails, Snakemake prints the path of its log.
   The R step still writes to the terminal (and to its log)
+- Error messages of `nanoasv` (and the help or requirements text printed
+  with them) go to stderr instead of stdout
 
 ### Removed
 

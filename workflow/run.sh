@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #This script is a wrapper to launch NanoASV snakemake version with ease
-trap 'echo "ERROR: Something went wrong - Carefully read the above message to understand how to fix it. If you think this is a bug, please reach us out on github"' ERR
+trap 'echo "ERROR: Something went wrong - Carefully read the above message to understand how to fix it. If you think this is a bug, please reach us out on github" >&2' ERR
 set -e
 # functions inherit the ERR trap
 set -E
@@ -42,34 +42,40 @@ is_one_of () {
 
 check_minimap2_model () {
     is_one_of "${MOD}" "${MINIMAP2_MODELS[@]}" && return 0
-    echo 'ERROR: --model invalid specification.'
-    echo "Minimap2 default model is ${DEFAULT_MOD}."
-    echo "Available models are ${MINIMAP2_MODELS[*]}"
-    echo 'WARNING, changing minimap2 alignment model will have strong repercussion on data treatment.'
-    echo 'Use this option carefully. Please read minimap2 documentation.'
+    {
+        echo 'ERROR: --model invalid specification.'
+        echo "Minimap2 default model is ${DEFAULT_MOD}."
+        echo "Available models are ${MINIMAP2_MODELS[*]}"
+        echo 'WARNING, changing minimap2 alignment model will have strong repercussion on data treatment.'
+        echo 'Use this option carefully. Please read minimap2 documentation.'
+    } >&2
     exit 1
 }
 
 check_fasttree_model () {
     is_one_of "${FASTTREE_MOD}" "${FASTTREE_MODELS[@]}" && return 0
-    echo 'ERROR: --fasttree-model invalid specification.'
-    echo "FastTree default model is \"${DEFAULT_FASTTREE_MOD}\"."
-    echo "Available models are ${FASTTREE_MODELS[*]}"
+    {
+        echo 'ERROR: --fasttree-model invalid specification.'
+        echo "FastTree default model is \"${DEFAULT_FASTTREE_MOD}\"."
+        echo "Available models are ${FASTTREE_MODELS[*]}"
+    } >&2
     exit 1
 }
 
 check_reference_exists () {
     [[ -s "${DATABASE}" ]] && return 0
-    echo "No reference file found at ${DATABASE}. If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location."
+    echo "No reference file found at ${DATABASE}. If you don't want to use a personal database, ensure you already downloaded and formated SILVA in correct location." >&2
     exit 1
 }
 
 check_reference_headers () {
     # minimap2 gives an empty name to a sequence whose header starts with '> '
     zgrep -q '^> ' "${DATABASE}" || return 0
-    cat "${NANOASV_PATH}/config/requirements.txt"
-    echo "ERROR: reference fasta headers must not have a space after '>'. First one found:"
-    zcat -f "${DATABASE}" | grep -m 1 '^> '
+    {
+        cat "${NANOASV_PATH}/config/requirements.txt"
+        echo "ERROR: reference fasta headers must not have a space after '>'. First one found:"
+        zcat -f "${DATABASE}" | grep -m 1 '^> '
+    } >&2
     exit 1
 }
 
@@ -157,8 +163,8 @@ prepare_input_layout () {
         return 0
     fi
     if ! find "${DIR}" -maxdepth 1 -type f \( -name "*.fastq.gz" -o -name "*.fastq" \) | grep -q .; then
-        echo "ERROR - No barcode directories or fastq files found in ${DIR} - Please fix your input data path."
-        echo "ABORTING"
+        echo "ERROR - No barcode directories or fastq files found in ${DIR} - Please fix your input data path." >&2
+        echo "ABORTING" >&2
         exit 1
     fi
     echo "WARNING - Found fastq files in ${DIR} - Formatting tmp file structure. Please prefer a barcodeXX directory structure"
@@ -192,8 +198,8 @@ prepare_input_layout () {
 
 # usage: reject_metadata MESSAGE
 reject_metadata () {
-    echo "${1}"
-    cat "${NANOASV_PATH}/config/requirements.txt"
+    echo "${1}" >&2
+    cat "${NANOASV_PATH}/config/requirements.txt" >&2
     exit 1
 }
 
@@ -206,7 +212,7 @@ check_metadata () (
     cd "${2}" || exit 1
 
     [[ -s metadata.csv ]] || \
-        { cowpy -e dead "Error : Please provide a metadata.csv" >&2 ; cat "${NANOASV_PATH}/config/requirements.txt" ; exit 1 ; }
+        { cowpy -e dead "Error : Please provide a metadata.csv" >&2 ; cat "${NANOASV_PATH}/config/requirements.txt" >&2 ; exit 1 ; }
 
     # at least 3 columns: row names and two data columns
     awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
@@ -365,8 +371,8 @@ parse_options () {
                 shift
                 ;;
             *)
-                echo 'Unknown option:' "$1"
-                cat "${NANOASV_PATH}/config/help.txt"
+                echo 'Unknown option:' "$1" >&2
+                cat "${NANOASV_PATH}/config/help.txt" >&2
                 exit 1
                 ;;
         esac
@@ -401,7 +407,7 @@ set_defaults () {
 
 check_subsampling () {
     if [[ ! "${SUBSAMPLING}" =~ ^[1-9][0-9]*$ ]]; then
-        echo "ERROR: --subsampling must be a positive integer (number of reads per sample), not '${SUBSAMPLING}'."
+        echo "ERROR: --subsampling must be a positive integer (number of reads per sample), not '${SUBSAMPLING}'." >&2
         exit 1
     fi
 }
@@ -409,7 +415,7 @@ check_subsampling () {
 check_required_options () {
     if [[ -z "${DIR}" ]]; then
         cowpy -e dead "Error: -d needs an argument, I don't know where your sequences are." >&2
-        cat "${NANOASV_PATH}/config/help.txt"
+        cat "${NANOASV_PATH}/config/help.txt" >&2
         exit 1
     fi
     if [[ -z "${OUT}" ]]; then

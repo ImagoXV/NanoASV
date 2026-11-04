@@ -14,7 +14,7 @@ readonly MOCK_REFERENCE="${NANOASV_PATH}/config/MOCK/mock_references/complete-re
 
 DESCRIPTION="a missing input directory is reported"
 new_workdir
-"${NANOASV}" -d missing -o out 2> /dev/null | \
+"${NANOASV}" -d missing -o out 2>&1 > /dev/null | \
     grep -q "^ERROR - No barcode directories or fastq files found in missing" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -28,7 +28,7 @@ exits_with 1 "${NANOASV}" -d missing -o out && \
 DESCRIPTION="an empty input directory is reported"
 new_workdir
 mkdir empty
-"${NANOASV}" -d empty -o out 2> /dev/null | \
+"${NANOASV}" -d empty -o out 2>&1 > /dev/null | \
     grep -q "^ERROR - No barcode directories or fastq files found in empty" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -129,7 +129,7 @@ metadata_rejected () {
     new_workdir
     make_input_dir input
     printf "%b" "${content}" > input/metadata.csv
-    "${NANOASV}" --dry-run -d input 2> /dev/null | \
+    "${NANOASV}" --dry-run -d input 2>&1 > /dev/null | \
         grep -qE -- "${regex}" && \
         success "${description}" || \
             failure "${description}"
@@ -171,7 +171,7 @@ DESCRIPTION="a missing metadata.csv prints config/requirements.txt"
 new_workdir
 make_input_dir input
 rm input/metadata.csv
-"${NANOASV}" --dry-run -d input 2> /dev/null | \
+"${NANOASV}" --dry-run -d input 2>&1 > /dev/null | \
     grep -qF "$(head -n 1 "${NANOASV_PATH}/config/requirements.txt")" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -246,7 +246,7 @@ mv input/metadata.csv metadata/
 
 DESCRIPTION="an unknown minimap2 model is reported"
 new_workdir
-"${NANOASV}" --dry-run --model unknown 2> /dev/null | \
+"${NANOASV}" --dry-run --model unknown 2>&1 > /dev/null | \
     grep -q "^ERROR: --model invalid specification" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -259,14 +259,14 @@ exits_with 1 "${NANOASV}" --dry-run --model unknown && \
 
 DESCRIPTION="an unknown minimap2 model: the default model is shown"
 new_workdir
-"${NANOASV}" --dry-run --model unknown 2> /dev/null | \
+"${NANOASV}" --dry-run --model unknown 2>&1 > /dev/null | \
     grep -q "^Minimap2 default model is map-ont\.$" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
 DESCRIPTION="an unknown minimap2 model: the available models are listed"
 new_workdir
-"${NANOASV}" --dry-run --model unknown 2> /dev/null | \
+"${NANOASV}" --dry-run --model unknown 2>&1 > /dev/null | \
     grep -q "^Available models are map-ont map-hifi map-pb asm5 " && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -276,7 +276,7 @@ new_workdir
 
 DESCRIPTION="an unknown FastTree model is reported"
 new_workdir
-"${NANOASV}" --dry-run --fasttree-model unknown 2> /dev/null | \
+"${NANOASV}" --dry-run --fasttree-model unknown 2>&1 > /dev/null | \
     grep -q "^ERROR: --fasttree-model invalid specification" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -289,14 +289,14 @@ exits_with 1 "${NANOASV}" --dry-run --fasttree-model unknown && \
 
 DESCRIPTION="an unknown FastTree model: the default model is shown"
 new_workdir
-"${NANOASV}" --dry-run --fasttree-model unknown 2> /dev/null | \
+"${NANOASV}" --dry-run --fasttree-model unknown 2>&1 > /dev/null | \
     grep -q '^FastTree default model is "fastest"\.$' && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
 DESCRIPTION="an unknown FastTree model: the available models are listed"
 new_workdir
-"${NANOASV}" --dry-run --fasttree-model unknown 2> /dev/null | \
+"${NANOASV}" --dry-run --fasttree-model unknown 2>&1 > /dev/null | \
     grep -q "^Available models are gtr gamma wag lg fastest$" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -309,7 +309,7 @@ exits_with 1 "${NANOASV}" --dry-run --fasttree-model map-pb && \
 
 DESCRIPTION="the minimap2 preset map-pb is reported as an invalid FastTree model"
 new_workdir
-"${NANOASV}" --dry-run --fasttree-model map-pb 2> /dev/null | \
+"${NANOASV}" --dry-run --fasttree-model map-pb 2>&1 > /dev/null | \
     grep -q "^ERROR: --fasttree-model invalid specification" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -327,7 +327,7 @@ done
 
 DESCRIPTION="a missing reference file is reported"
 new_workdir
-"${NANOASV}" --dry-run -db missing.fasta 2> /dev/null | \
+"${NANOASV}" --dry-run -db missing.fasta 2>&1 > /dev/null | \
     grep -q "^No reference file found at missing.fasta" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -348,7 +348,7 @@ exits_with 1 "${NANOASV}" --dry-run -db empty.fasta && \
 DESCRIPTION="an empty reference file is reported"
 new_workdir
 touch empty.fasta
-"${NANOASV}" --dry-run -db empty.fasta 2> /dev/null | \
+"${NANOASV}" --dry-run -db empty.fasta 2>&1 > /dev/null | \
     grep -q "^No reference file found at empty.fasta" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
@@ -361,7 +361,7 @@ for CASE in plain gzipped no_id ; do
         gzipped) printf "> s1 Bacteria;P;C;O;F;G;S\nACGT\n" | gzip > ref.fasta ;;
         no_id) printf "> Bacteria;P;C;O;F;G;S\nACGT\n" > ref.fasta ;;
     esac
-    "${NANOASV}" --dry-run -db ref.fasta 2> /dev/null | \
+    "${NANOASV}" --dry-run -db ref.fasta 2>&1 > /dev/null | \
         grep -q "^ERROR: reference fasta headers must not have a space after '>'" && \
         success "${DESCRIPTION}" || \
             failure "${DESCRIPTION}"
