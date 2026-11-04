@@ -5,6 +5,7 @@
 ./Exact_affiliations/barcode02_Exact_affiliations.tsv
 ./Phylogeny/ASV.tree
 ./Rdata/NanoASV.rdata
+./Read_counts.tsv
 ./Tax/Taxonomy_barcode01.csv
 ./Tax/Taxonomy_barcode02.csv
 ./Unknown_clusters/Consensus_seq_OTU.fasta

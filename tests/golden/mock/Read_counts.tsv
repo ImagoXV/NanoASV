@@ -1,0 +1,3 @@
+sample	input	after_quality_filter	after_adapter_trimming	subsampled	unmapped	low_mapq	assigned	in_unknown_clusters
+barcode01	4000	3218	3218	3218	117	0	3101	0
+barcode02	4000	3067	3066	3066	124	0	2942	0
