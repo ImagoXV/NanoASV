@@ -27,6 +27,9 @@ Earlier versions are described in the
   with vsearch: same result for valid files, but alignment characters
   (`-`, `.`) now stop the run with an error, and entries without a
   sequence are dropped
+- `--fasttree-model` no longer accepts `wag` and `lg`: these protein
+  models had no effect on nucleotide sequences (same tree as the
+  default model)
 
 ### Removed
 
