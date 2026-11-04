@@ -89,9 +89,24 @@ new_workdir
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+DESCRIPTION="missing -d is reported when stdin is not a terminal (cowpy)"
+new_workdir
+"${NANOASV}" -o out 2>&1 > /dev/null | \
+    grep -q -- "-d needs an argument" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="missing -d exits with status 1"
 new_workdir
 exits_with 1 "${NANOASV}" -o out && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="missing -o is reported when stdin is not a terminal (cowpy)"
+new_workdir
+make_input_dir input
+"${NANOASV}" -d input 2>&1 > /dev/null | \
+    grep -q -- "-o needs an argument" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 

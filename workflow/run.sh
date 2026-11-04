@@ -29,6 +29,12 @@ readonly LINES_PER_FASTQ_ENTRY=4
 readonly -a MINIMAP2_MODELS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
 readonly -a FASTTREE_MODELS=("gtr" "gamma" "wag" "lg" "fastest")
 
+# usage: cow_error MESSAGE
+# cowpy reads its message from stdin when stdin is not a terminal
+cow_error () {
+    printf '%s\n' "${1}" | cowpy -e dead >&2
+}
+
 # usage: is_one_of VALUE ITEM...
 is_one_of () {
     local -r value="${1}"
@@ -218,7 +224,7 @@ check_metadata () (
     cd "${2}" || exit 1
 
     [[ -s metadata.csv ]] || \
-        { cowpy -e dead "Error : Please provide a metadata.csv" >&2 ; cat "${NANOASV_PATH}/config/requirements.txt" >&2 ; exit 1 ; }
+        { cow_error "Error : Please provide a metadata.csv" ; cat "${NANOASV_PATH}/config/requirements.txt" >&2 ; exit 1 ; }
 
     # at least 3 columns: row names and two data columns
     awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
@@ -420,12 +426,12 @@ check_subsampling () {
 
 check_required_options () {
     if [[ -z "${DIR}" ]]; then
-        cowpy -e dead "Error: -d needs an argument, I don't know where your sequences are." >&2
+        cow_error "Error: -d needs an argument, I don't know where your sequences are."
         cat "${NANOASV_PATH}/config/help.txt" >&2
         exit 1
     fi
     if [[ -z "${OUT}" ]]; then
-        cowpy -e dead "Error: -o needs an argument. You don't want me to print to stdout" >&2
+        cow_error "Error: -o needs an argument. You don't want me to print to stdout"
         exit 1
     fi
 }

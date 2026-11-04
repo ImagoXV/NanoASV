@@ -12,11 +12,4 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 print_header "Pending fixes"
 
 
-DESCRIPTION="missing -d is reported when stdin is not a terminal (cowpy)"
-new_workdir
-"${NANOASV}" -o out 2>&1 | \
-    grep -q -- "-d needs an argument" && \
-    success "${DESCRIPTION}" || \
-        failure "${DESCRIPTION}"
-
 exit_with_failure_count

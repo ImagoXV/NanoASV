@@ -62,6 +62,9 @@ Earlier versions are described in the
   made the run fail
 - When some fastq files were uncompressed, samples whose directory is
   not named `barcode*` were lost ("sequences not found")
+- In scripts, cluster jobs and CI (stdin not a terminal), the error
+  messages for a missing `-d`, `-o` or `metadata.csv` were lost, and
+  `nanoasv` could wait as long as stdin stayed open
 
 
 ## [1.2.3] - 2026-10-27
