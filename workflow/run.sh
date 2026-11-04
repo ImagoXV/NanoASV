@@ -27,7 +27,7 @@ readonly DEFAULT_FASTTREE_MOD="fastest"
 readonly DEFAULT_SAMQ=0
 readonly LINES_PER_FASTQ_ENTRY=4
 readonly -a MINIMAP2_MODELS=("map-ont" "map-hifi" "map-pb" "asm5" "asm10" "asm20" "splice" "splice:hq" "ava-pb" "ava-ont")
-readonly -a FASTTREE_MODELS=("gtr" "gamma" "wag" "lg" "fastest")
+readonly -a FASTTREE_MODELS=("gtr" "gamma" "fastest")
 
 # usage: cow_error MESSAGE
 # cowpy reads its message from stdin when stdin is not a terminal

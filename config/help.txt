@@ -21,7 +21,7 @@
    --notree              To remove phylogeny step and subsequent tree from phyloseq object
    --sam-qual            To tune samtools filtering mapQ threshold, default : 0 
    --model               minimap2 alignment model (see README), default: map-ont
-   --fasttree-model      FastTree model: gtr, gamma, wag, lg or fastest, default: fastest
+   --fasttree-model      FastTree model: gtr, gamma or fastest, default: fastest
    --requirements        To display personal reference fasta requirements
    --dry-run             Perform a snakemake dry run
    --mock                Run NanoASV with Mock dataset
