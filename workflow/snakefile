@@ -25,6 +25,11 @@ DATABASE_NAME = re.sub(r"\.fasta(\.gz)?$", "", os.path.basename(DATABASE))
 DATABASE_INDEX = f"tmp_files/00_database_indexing/{DATABASE_NAME}.mmi"
 DATABASE_TAXONOMY = f"tmp_files/00_database_indexing/TAXONOMY_{DATABASE_NAME}"
 
+SAMPLES = sorted(set(INPUT.barcode))
+# tmp_files/read_counts/{barcode}/{step}: number of reads after each step
+READ_COUNT_STEPS = ["input", "after_quality_filter", "after_adapter_trimming",
+                    "subsampled", "unmapped", "low_mapq", "assigned"]
+
 rule all:
     input:
         expand("tmp_files/06_sam_to_bam_format/Taxonomy_{BARCODE}.csv", BARCODE=INPUT.barcode),
@@ -56,17 +61,19 @@ rule concatenate_fastq_files:
     input:
         os.path.join(INPUT_DIR, "{barcode}", "")
     output:
-        temporary("tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz")
+        fastq=temporary("tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"),
+        read_count="tmp_files/read_counts/{barcode}/input"
     log:
         "tmp_files/logs/concatenate_fastq_files/{barcode}.log"
     shell:
         """
         exec 2> {log:q}
         if ls {input:q}/*.fastq 1> /dev/null 2>&1; then
-            (gzip -c {input:q}/*.fastq 2>/dev/null; cat {input:q}/*.fastq.gz 2>/dev/null) > {output:q}
+            (gzip -c {input:q}/*.fastq 2>/dev/null; cat {input:q}/*.fastq.gz 2>/dev/null) > {output.fastq:q}
         else
-            cat {input:q}/*.fastq.gz > {output:q}
+            cat {input:q}/*.fastq.gz > {output.fastq:q}
         fi
+        zcat {output.fastq:q} | awk 'END {{print NR / 4}}' > {output.read_count:q}
         """
 
 
@@ -75,7 +82,8 @@ rule sequence_quality_filtering:
     input:
         "tmp_files/01_concatenate_fastq_files/{barcode}.fastq.gz"
     output:
-        temporary("tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz")
+        fastq=temporary("tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"),
+        read_count="tmp_files/read_counts/{barcode}/after_quality_filter"
     params:
         quality=QUAL,
         min_length=MINL,
@@ -86,7 +94,8 @@ rule sequence_quality_filtering:
     shell:
         """
         exec 2> {log:q}
-        chopper -q {params.quality} -l {params.min_length} --maxlength {params.max_length} --threads {threads} -i {input:q} | gzip > {output:q}
+        chopper -q {params.quality} -l {params.min_length} --maxlength {params.max_length} --threads {threads} -i {input:q} | gzip > {output.fastq:q}
+        zcat {output.fastq:q} | awk 'END {{print NR / 4}}' > {output.read_count:q}
         """
 
 
@@ -95,14 +104,16 @@ rule adapters_trimming:
     input:
         "tmp_files/02_sequence_quality_filtering/FILTERED_{barcode}.fastq.gz"
     output:
-        temporary("tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz")
+        fastq=temporary("tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz"),
+        read_count="tmp_files/read_counts/{barcode}/after_adapter_trimming"
     threads: NUM_PROCESSES
     log:
         "tmp_files/logs/adapters_trimming/{barcode}.log"
     shell:
         """
         exec 2> {log:q}
-        porechop --verbosity 0 --threads {threads} -i {input:q} -o {output:q}
+        porechop --verbosity 0 --threads {threads} -i {input:q} -o {output.fastq:q}
+        zcat {output.fastq:q} | awk 'END {{print NR / 4}}' > {output.read_count:q}
         """
 
 
@@ -111,7 +122,8 @@ rule subsampling:
     input:
         "tmp_files/03_adapters_trimming/CHOPED_{barcode}.fastq.gz"
     output:
-        "tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq"
+        fastq="tmp_files/04_subsampling/SUBSAMPLED_{barcode}.fastq",
+        read_count="tmp_files/read_counts/{barcode}/subsampled"
     params:
         lines=SUBSAMPLING
     log:
@@ -119,7 +131,8 @@ rule subsampling:
     shell:
         """
         exec 2> {log:q}
-        head -n {params.lines} < <(zcat {input:q}) > {output:q}
+        head -n {params.lines} < <(zcat {input:q}) > {output.fastq:q}
+        awk 'END {{print NR / 4}}' {output.fastq:q} > {output.read_count:q}
         """
 
 rule minimap2:
@@ -149,7 +162,10 @@ rule sam_to_bam_format:
         ASV_list="tmp_files/06_sam_to_bam_format/{barcode}_ASV_list.tsv",
         unmatched_fastq="tmp_files/06_sam_to_bam_format/{barcode}_unmatched.fastq",
         abundance="tmp_files/06_sam_to_bam_format/{barcode}_abundance.tsv",
-        exact_affiliations="tmp_files/06_sam_to_bam_format/{barcode}_Exact_affiliations.tsv"
+        exact_affiliations="tmp_files/06_sam_to_bam_format/{barcode}_Exact_affiliations.tsv",
+        unmapped_count="tmp_files/read_counts/{barcode}/unmapped",
+        low_mapq_count="tmp_files/read_counts/{barcode}/low_mapq",
+        assigned_count="tmp_files/read_counts/{barcode}/assigned"
     params:
         min_mapping_quality=SAMQ
     log:
@@ -171,6 +187,12 @@ rule sam_to_bam_format:
             grep -Eo "[^ ]+$" {output.abundance:q} > {output.ASV_list:q}
             awk 'NR == FNR {{ids[$1]; next}} $1 in ids' {output.ASV_list:q} {input.taxonomy:q} > {output.taxonomy_file:q}
         fi
+
+        samtools view -c -f UNMAP {input.sam_file:q} > {output.unmapped_count:q}
+        primary=$(samtools view -c -F UNMAP,SECONDARY,SUPPLEMENTARY {input.sam_file:q})
+        assigned=$(samtools view -c -F UNMAP,SECONDARY,SUPPLEMENTARY -q {params.min_mapping_quality} {input.sam_file:q})
+        echo "${{assigned}}" > {output.assigned_count:q}
+        echo "$((primary - assigned))" > {output.low_mapq_count:q}
         """
 
 # Step 7/9 : Unknown sequences clustering with vsearch
@@ -294,6 +316,24 @@ rule build_tree:
         """
 
 
+rule read_counts:
+    input:
+        counts=expand("tmp_files/read_counts/{barcode}/{step}", barcode=SAMPLES, step=READ_COUNT_STEPS),
+        vsearch_done_file="tmp_files/07_unknown_sequences_clustering/.vsearch.done"
+    output:
+        "tmp_files/read_counts.tsv"
+    params:
+        script=os.path.join(NANOASV_PATH, "workflow", "scripts", "read_counts.sh"),
+        samples=SAMPLES
+    log:
+        "tmp_files/logs/read_counts.log"
+    shell:
+        """
+        exec 2> {log:q}
+        bash {params.script:q} tmp_files/read_counts tmp_files/07_unknown_sequences_clustering/unknown_clusters.tsv {params.samples:q} > {output:q}
+        """
+
+
 # Export results
 rule export_results:
     input:
@@ -301,6 +341,7 @@ rule export_results:
         abundance_files=expand("tmp_files/06_sam_to_bam_format/{barcode}_abundance.tsv", barcode=INPUT.barcode),
         exact_affiliations_files=expand("tmp_files/06_sam_to_bam_format/{barcode}_Exact_affiliations.tsv", barcode=INPUT.barcode),
         vsearch_done_file="tmp_files/07_unknown_sequences_clustering/.vsearch.done",
+        read_counts="tmp_files/read_counts.tsv",
         tree=["tmp_files/08_phylogeny/ASV.tree"] if TREE == 1 else []
     output:
         "tmp_files/.export.done"
@@ -315,6 +356,7 @@ rule export_results:
         cp {input.abundance_files:q} {params.out:q}/Results/ASV/
         cp {input.taxonomy_files:q} {params.out:q}/Results/Tax/
         cp {input.exact_affiliations_files:q} {params.out:q}/Results/Exact_affiliations/
+        cp {input.read_counts:q} {params.out:q}/Results/Read_counts.tsv
         if [ -n "{input.tree}" ]; then
             cp {input.tree:q} {params.out:q}/Results/Phylogeny/
         fi

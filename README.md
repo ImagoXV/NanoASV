@@ -204,6 +204,7 @@ OUTPUT/
     │   └── ASV.tree
     ├── Rdata
     │   └── NanoASV.rdata
+    ├── Read_counts.tsv
     ├── Tax
     │   ├── Taxonomy_barcode01.csv
     │   └── Taxonomy_barcode02.csv
@@ -223,6 +224,16 @@ Exact affiliations files are encompassing individual reads assignments, associat
 This file is useful if you suspect strange assignment with your dataset. It allows you to have an idea of the confidence behind assignment. Both in term of alignment sam flag and MapQ. **Please note that MapQ is not an average nucleotide identity (ANI)**. 
 
 `Results/Phylogeny/ASV.tree` is the FastTree newick format generated full length 16S tree.
+
+`Results/Read_counts.tsv` follows the reads of each sample (one row per
+sample) through the pipeline: `input`, `after_quality_filter`
+(chopper), `after_adapter_trimming` (porechop, which may split or drop reads),
+`subsampled` (`--subsampling`), then the subsampled reads split into
+`unmapped` (sent to the unknown sequences clustering), `low_mapq`
+(mapped with a mapping quality below `--sam-qual`, discarded) and
+`assigned` (counted in the abundance tables), and finally
+`in_unknown_clusters` (unmapped reads in the clusters kept with
+`--minab`).
 
 `Results/ASV/` and `Results/Tax/` are intermediate, individual barcode abundances and taxonomy tables. Those files are not meant to be used directly but are phyloseq basis to produce the `Rdata` formatted object. Those files are useful only if you have to rebuild the phyloseq object by yourself. In any case, they do not hide data that would be absent from nor phyloseq object nor the CSV file.
 

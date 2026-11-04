@@ -36,6 +36,8 @@ if compgen -G "${RESULTS}/Unknown_clusters/*" > /dev/null ; then
     done
 fi
 
+cp "${RESULTS}/Read_counts.tsv" "${OUTPUT}/"
+
 for file in "${RESULTS}"/Exact_affiliations/*.tsv ; do
     LC_ALL=C sort "${file}" > "${OUTPUT}/Exact_affiliations/$(basename "${file}")"
 done

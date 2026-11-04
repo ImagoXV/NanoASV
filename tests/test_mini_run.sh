@@ -53,6 +53,12 @@ grep -q "Exporting results" tmp_files/logs/phyloseq.log && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+DESCRIPTION="read counts: subsampled = unmapped + low_mapq + assigned, for each sample"
+awk -F "\t" 'NR > 1 && $5 != $6 + $7 + $8 { bad = 1 } END { exit NR > 1 && ! bad ? 0 : 1 }' \
+    "${RESULTS}/Read_counts.tsv" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="issue #154 --- reverse-strand reads are kept"
 grep -qx "2 REV1\.1\.1500" "${RESULTS}/ASV/barcode01_abundance.tsv" && \
     success "${DESCRIPTION}" || \
@@ -105,6 +111,17 @@ mv "my input/reference.fasta" "my reference.fasta"
 "${NANOASV}" -d "my input" -o "my output" -db "my reference.fasta" > /dev/null 2>&1 && \
     bash "${TESTS_DIR}/normalize_results.sh" "my output/Results" "my normalized results" && \
     diff -r "${TESTS_DIR}/golden/mini" "my normalized results" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+
+## ------------------------------------------------- reads below --sam-qual
+
+DESCRIPTION="issue #145 --- reads below --sam-qual are counted as low_mapq"
+new_workdir
+mini_run "${DATASET}" out --sam-qual 61
+printf "barcode01\t9\t0\nbarcode02\t4\t0\n" | \
+    cmp -s - <(cut -f 1,7,8 out/Results/Read_counts.tsv | tail -n +2) && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 

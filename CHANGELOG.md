@@ -15,6 +15,12 @@ Earlier versions are described in the
   so abundances roughly double. On the mock dataset, assigned reads go
   from 3,000 to 6,043 and taxa from 1,700 to 2,714.
 
+### Added
+
+- `Results/Read_counts.tsv`: number of reads of each sample after each
+  step, including the reads discarded because their mapping quality is
+  below `--sam-qual` (#145)
+
 ### Changed
 
 - Messages of the pipeline tools (minimap2, chopper, vsearch, mafft,
