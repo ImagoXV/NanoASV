@@ -192,6 +192,15 @@ rm input/metadata.csv
     failure "${DESCRIPTION}" || \
         success "${DESCRIPTION}"
 
+DESCRIPTION="a missing metadata.csv is reported when stdin is not a terminal (cowpy)"
+new_workdir
+make_input_dir input
+rm input/metadata.csv
+"${NANOASV}" --dry-run -d input 2>&1 > /dev/null | \
+    grep -q "Please provide a metadata.csv" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="a missing metadata.csv prints config/requirements.txt"
 new_workdir
 make_input_dir input
