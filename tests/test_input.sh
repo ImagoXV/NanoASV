@@ -484,5 +484,21 @@ printf ">s1 Bacteria;P;C;O;F;G;S\nACGTACGT\n" | \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+DESCRIPTION="an interleaved reference is linearized: headers, case, U and IUPAC codes kept"
+new_workdir
+printf ">s1 Bacteria;P;C;O;F;G;Escherichia coli\nACGUacgu\nNNRY\nAC\n>s2 Bacteria;P\nACGT\n" > ref.fasta
+"${NANOASV}" --dry-run -db ref.fasta > /dev/null 2>&1
+printf ">s1 Bacteria;P;C;O;F;G;Escherichia coli\nACGUacguNNRYAC\n>s2 Bacteria;P\nACGT\n" | \
+    cmp -s - tmp_files/SINGLELINE_reference.fasta && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="an interleaved reference with alignment gaps is rejected"
+new_workdir
+printf ">s1 Bacteria;P;C\nAC-G\nA.GT\n" > ref.fasta
+exits_with 1 "${NANOASV}" --dry-run -db ref.fasta && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 
 exit_with_failure_count
