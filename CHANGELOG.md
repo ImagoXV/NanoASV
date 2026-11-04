@@ -23,6 +23,10 @@ Earlier versions are described in the
   The R step still writes to the terminal (and to its log)
 - Error and warning messages of `nanoasv` (and the help or requirements
   text printed with them) go to stderr instead of stdout
+- Interleaved reference files are converted to one line per sequence
+  with vsearch: same result for valid files, but alignment characters
+  (`-`, `.`) now stop the run with an error, and entries without a
+  sequence are dropped
 
 ### Removed
 
