@@ -119,7 +119,12 @@ linearize_reference () {
     sequences="$(zgrep -c "^>" "${DATABASE}")"
     (( lines == sequences * 2 )) && return 0
     echo 'Interleaved reference fasta file - Formating.'
-    zcat -f "${DATABASE}" | awk '/^>/ {printf("%s%s\n",(NR==1)?"":RS,$0);next;} {printf("%s",$0);} END {printf("\n");}' > tmp_files/SINGLELINE_reference.fasta
+    vsearch \
+        --fastx_filter "${DATABASE}" \
+        --fasta_width 0 \
+        --notrunclabels \
+        --quiet \
+        --fastaout tmp_files/SINGLELINE_reference.fasta
     DATABASE="tmp_files/SINGLELINE_reference.fasta"
 }
 
