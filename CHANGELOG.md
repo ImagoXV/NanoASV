@@ -56,6 +56,8 @@ Earlier versions are described in the
   `nanoasv --requirements` no longer shows one as a valid example
 - Input, output, reference and installation paths containing spaces
   made the run fail
+- When some fastq files were uncompressed, samples whose directory is
+  not named `barcode*` were lost ("sequences not found")
 
 
 ## [1.2.3] - 2026-10-27
