@@ -14,6 +14,12 @@ Earlier versions are described in the
 - Results change: reads aligned to the reverse strand are now counted,
   so abundances roughly double. On the mock dataset, assigned reads go
   from 3,000 to 6,043 and taxa from 1,700 to 2,714.
+- Runs take longer: the extra taxa (above) make the phylogeny larger,
+  and FastTree runs on a single thread whatever `--num-process`. On the
+  mock dataset (12-core computer), FastTree goes from 44 s to 85 s, and
+  the whole run from 174 s to 224 s with `nanoasv --mock` (2 cores),
+  from 122 s to 168 s with `--num-process 12` (#213). `--notree` skips
+  the phylogeny
 
 ### Added
 
