@@ -41,6 +41,32 @@ make_input_dir input
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+DESCRIPTION="sample directories not named barcode* are processed"
+new_workdir
+mkdir -p input/soilA input/soilB
+printf "@r1\nACGT\n+\nIIII\n" | gzip > input/soilA/reads.fastq.gz
+printf "@r1\nACGT\n+\nIIII\n" | gzip > input/soilB/reads.fastq.gz
+printf ",ID,Origin\nsoilA,1,A\nsoilB,2,B\n" > input/metadata.csv
+"${NANOASV}" --dry-run -d input 2>&1 | \
+    rule_jobs concatenate_fastq_files > jobs.txt
+grep -q "soilA" jobs.txt && \
+    grep -q "soilB" jobs.txt && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="uncompressed fastq files in sample directories not named barcode* are processed"
+new_workdir
+mkdir -p input/soilA input/soilB
+printf "@r1\nACGT\n+\nIIII\n" | gzip > input/soilA/reads.fastq.gz
+printf "@r1\nACGT\n+\nIIII\n" > input/soilB/reads.fastq
+printf ",ID,Origin\nsoilA,1,A\nsoilB,2,B\n" > input/metadata.csv
+"${NANOASV}" --dry-run -d input 2>&1 | \
+    rule_jobs concatenate_fastq_files > jobs.txt
+grep -q "soilA" jobs.txt && \
+    grep -q "soilB" jobs.txt && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="fastq files without barcode directories are moved to barcode01"
 new_workdir
 mkdir input
