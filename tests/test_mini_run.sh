@@ -215,4 +215,16 @@ head -n 1 out/Results/Unknown_clusters/unknown_clusters.tsv | \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+DESCRIPTION="input without any barcode* directory: samples are kept in the CSV header"
+new_workdir
+cp -r "${DATASET}" input
+mv input/barcode01 input/2soil
+mv input/barcode02 input/soil-A
+sed -i -e "s/^barcode01,/2soil,/" -e "s/^barcode02,/soil-A,/" input/metadata.csv
+mini_run input out && \
+    head -n 1 out/Results/CSV/Taxonomy-Abundance_table.csv | \
+    grep -q '"2soil","soil-A"$' && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 exit_with_failure_count

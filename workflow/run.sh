@@ -167,13 +167,17 @@ gzip_fastq_in_sample_dirs () {
 }
 
 # usage: prepare_input_layout (updates DIR and METADATA)
-# expects barcode directories; fastq files given without barcode
-# directories become barcode01 in tmp_files/barcodes/
+# expects sample directories (subdirectories holding fastq files);
+# fastq files given without sample directories become barcode01 in
+# tmp_files/barcodes/
 prepare_input_layout () {
-    if find "${DIR}" -mindepth 1 -maxdepth 1 -type d -name "barcode*" | grep -q .; then
-        echo "Found barcode directories in ${DIR}"
-        return 0
-    fi
+    local sample_dir
+    for sample_dir in "${DIR}"/*/; do
+        if compgen -G "${sample_dir}*.fastq*" > /dev/null; then
+            echo "Found barcode directories in ${DIR}"
+            return 0
+        fi
+    done
     if ! find "${DIR}" -maxdepth 1 -type f \( -name "*.fastq.gz" -o -name "*.fastq" \) | grep -q .; then
         echo "ERROR - No barcode directories or fastq files found in ${DIR} - Please fix your input data path." >&2
         echo "ABORTING" >&2
