@@ -33,7 +33,8 @@ read_unknown_clusters <- function(results_dir) {
   if (!file.exists(file)) {
     return(NULL)
   }
-  abundances <- read.csv(file, sep = "\t", header = TRUE, row.names = 1)
+  abundances <- read.csv(file, sep = "\t", header = TRUE, row.names = 1,
+                         check.names = FALSE)
   taxonomy <- as.data.frame(matrix("Unknown",
                                    nrow = nrow(abundances),
                                    ncol = length(STANDARD_RANKS),
@@ -109,5 +110,6 @@ if (r_cleaning) {
 print("Exporting results")
 save(NanoASV, file = file.path(results_dir, "Rdata", "NanoASV.rdata"))
 
-write.csv(data.frame(phyloseq::tax_table(NanoASV), phyloseq::otu_table(NanoASV)),
+write.csv(data.frame(phyloseq::tax_table(NanoASV), phyloseq::otu_table(NanoASV),
+                     check.names = FALSE),
           file = file.path(results_dir, "CSV", "Taxonomy-Abundance_table.csv"))
