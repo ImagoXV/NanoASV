@@ -227,12 +227,43 @@ rm input/metadata.csv
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="a missing metadata.csv prints config/requirements.txt"
+DESCRIPTION="a missing metadata.csv prints the metadata requirements"
 new_workdir
 make_input_dir input
 rm input/metadata.csv
 "${NANOASV}" --dry-run -d input 2>&1 > /dev/null | \
-    grep -qF "$(head -n 1 "${NANOASV_PATH}/config/requirements.txt")" && \
+    grep -qF "Metadata requirements :" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="issue #144 --- a missing metadata.csv does not print the reference requirements"
+new_workdir
+make_input_dir input
+rm input/metadata.csv
+! "${NANOASV}" --dry-run -d input 2>&1 > /dev/null | \
+    grep -qF "Reference file requirements :" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="issue #144 --- a missing metadata.csv is reported after the metadata requirements"
+new_workdir
+make_input_dir input
+rm input/metadata.csv
+"${NANOASV}" --dry-run -d input 2>&1 > /dev/null | \
+    sed -n '/Metadata requirements :/,$p' | \
+    grep -q "Please provide a metadata.csv" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="issue #144 --- a metadata.csv error is printed last, after the metadata requirements only"
+new_workdir
+make_input_dir input
+printf ",ID\nbarcode01,1\nbarcode02,2\n" > input/metadata.csv
+"${NANOASV}" --dry-run -d input 2> stderr.txt > /dev/null
+grep -qF "Metadata requirements :" stderr.txt && \
+    ! grep -qF "Reference file requirements :" stderr.txt && \
+    ! grep -q "metadata and or reference" stderr.txt && \
+    tail -n 1 stderr.txt | grep -q "^ERROR: Check metadata.csv: it does not look like a csv file" && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
@@ -440,6 +471,17 @@ for CASE in plain gzipped no_id ; do
         success "${DESCRIPTION}" || \
             failure "${DESCRIPTION}"
 done
+
+DESCRIPTION="issue #144 --- a reference header error is printed after the reference requirements only"
+new_workdir
+printf "> s1 Bacteria;P;C;O;F;G;S\nACGT\n" > ref.fasta
+"${NANOASV}" --dry-run -db ref.fasta 2> stderr.txt > /dev/null
+grep -qF "Reference file requirements :" stderr.txt && \
+    ! grep -qF "Metadata requirements :" stderr.txt && \
+    ! grep -q "metadata and or reference" stderr.txt && \
+    tail -n 2 stderr.txt | head -n 1 | grep -q "^ERROR: reference fasta headers must not have a space after '>'" && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
 
 DESCRIPTION="reference headers without IDs are reported"
 new_workdir

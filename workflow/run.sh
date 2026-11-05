@@ -6,6 +6,8 @@ set -e
 # functions inherit the ERR trap
 set -E
 
+readonly METADATA_REQUIREMENTS="${NANOASV_PATH}/config/requirements_metadata.txt"
+readonly REFERENCE_REQUIREMENTS="${NANOASV_PATH}/config/requirements_reference.txt"
 readonly MOCK_DIR="${NANOASV_PATH}/config/MOCK"
 readonly MOCK_OUT="${NANOASV_PATH}/Mock_run_OUTPUT"
 readonly MOCK_DATABASE="${MOCK_DIR}/mock_references/complete-reference.fasta"
@@ -78,7 +80,7 @@ check_reference_headers () {
     # minimap2 gives an empty name to a sequence whose header starts with '> '
     zgrep -q '^> ' "${DATABASE}" || return 0
     {
-        cat "${NANOASV_PATH}/config/requirements.txt"
+        cat "${REFERENCE_REQUIREMENTS}"
         echo "ERROR: reference fasta headers must not have a space after '>'. First one found:"
         zcat -f "${DATABASE}" | grep -m 1 '^> '
     } >&2
@@ -89,7 +91,7 @@ check_reference_headers () {
 # headers without a unique ID before the taxonomy get a random uuid
 add_reference_ids () {
     zgrep -qE '^>[^ ;]+ [^ ]' "${DATABASE}" && return 0
-    cat "${NANOASV_PATH}/config/requirements.txt" >&2
+    cat "${REFERENCE_REQUIREMENTS}" >&2
         echo -e "Invalid reference file fasta header.\nNanoASV will add one for you.\n\
         Keep in mind that those uniq ID will not be consistent from one run to another.\n\
         If you like your reference dataset this way, save it from tmp_files before deleting:'tmp_files/CORRECT_HEADER_reference.fasta'\n\
@@ -214,8 +216,8 @@ prepare_input_layout () {
 
 # usage: reject_metadata MESSAGE
 reject_metadata () {
+    cat "${METADATA_REQUIREMENTS}" >&2
     echo "${1}" >&2
-    cat "${NANOASV_PATH}/config/requirements.txt" >&2
     exit 1
 }
 
@@ -228,7 +230,7 @@ check_metadata () (
     cd "${2}" || exit 1
 
     [[ -s metadata.csv ]] || \
-        { cow_error "Error : Please provide a metadata.csv" ; cat "${NANOASV_PATH}/config/requirements.txt" >&2 ; exit 1 ; }
+        { cat "${METADATA_REQUIREMENTS}" >&2 ; cow_error "Error : Please provide a metadata.csv" ; exit 1 ; }
 
     # at least 3 columns: row names and two data columns
     awk -F "," 'NR == 1 { exit NF > 2 ? 0 : 1}' metadata.csv || \
@@ -348,7 +350,9 @@ parse_options () {
                 shift
                 ;;
             --requirements)
-                cat "${NANOASV_PATH}/config/requirements.txt"
+                echo "NanoASV file format requirements :"
+                echo
+                cat "${METADATA_REQUIREMENTS}" "${REFERENCE_REQUIREMENTS}"
                 exit
                 ;;
             --dry-run)

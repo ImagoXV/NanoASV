@@ -44,10 +44,12 @@ new_workdir
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
-DESCRIPTION="--requirements prints config/requirements.txt"
+DESCRIPTION="--requirements prints a title, then the metadata and reference requirements"
 new_workdir
 "${NANOASV}" --requirements 2> /dev/null | \
-    cmp -s - "${NANOASV_PATH}/config/requirements.txt" && \
+    cmp -s - <(printf "NanoASV file format requirements :\n\n"
+               cat "${NANOASV_PATH}/config/requirements_metadata.txt" \
+                   "${NANOASV_PATH}/config/requirements_reference.txt") && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 

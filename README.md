@@ -38,7 +38,7 @@ Usage: `nanoasv -d path/to/dir -o path/to/output [--options]`
 | `--sam-qual`         | To tune samtools filtering quality threshold, default: 0             |
 | `--model`            | minimap2 alignment model (see Alignment below), default: map-ont     |
 | `--fasttree-model`   | FastTree model: gtr, gamma or fastest, default: fastest              |
-| `--requirements`     | Flag - To display personal reference fasta requirements              |
+| `--requirements`     | Flag - To display metadata.csv and reference fasta requirements      |
 | `--dry-run`          | Flag - NanoASV Snakemake dry run                                     |
 | `--mock`             | Flag - Run mock dataset with NanoASV                                 |
 | `--remove-tmp`       | Remove tmp data after execution. No snakemake resume option if set.  |
