@@ -71,7 +71,7 @@ read_taxonomy <- function(results_dir, sample, unknown) {
 }
 
 sample_phyloseq <- function(results_dir, file, metadata, unknown) {
-  sample <- strsplit(file, split = "_")[[1]][1]
+  sample <- sub("_abundance\\.tsv$", "", file)
   abundances <- read_abundances(results_dir, file, sample, unknown)
   taxonomy <- read_taxonomy(results_dir, sample, unknown)
   phyloseq::phyloseq(phyloseq::otu_table(abundances, taxa_are_rows = TRUE),

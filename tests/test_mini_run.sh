@@ -174,6 +174,17 @@ DESCRIPTION="results have no unknown clusters from an earlier run"
 
 ## ------------------------------------------------ sample names
 
+DESCRIPTION="a sample name with an underscore (soil_A) is kept"
+new_workdir
+cp -r "${DATASET}" input
+mv input/barcode02 input/soil_A
+sed -i "s/^barcode02,/soil_A,/" input/metadata.csv
+mini_run input out && \
+    head -n 1 out/Results/CSV/Taxonomy-Abundance_table.csv | \
+    grep -q '"barcode01","soil_A"$' && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="unmatched reads of a sample not named barcode* are clustered"
 new_workdir
 cp -r "${DATASET}" input

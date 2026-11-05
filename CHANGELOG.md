@@ -80,6 +80,8 @@ Earlier versions are described in the
 - In scripts, cluster jobs and CI (stdin not a terminal), the error
   messages for a missing `-d`, `-o` or `metadata.csv` were lost, and
   `nanoasv` could wait as long as stdin stayed open
+- A sample name containing an underscore (e.g. `soil_A`) made the final
+  R step fail
 
 
 ## [1.2.3] - 2026-10-27
