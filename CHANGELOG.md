@@ -85,6 +85,8 @@ Earlier versions are described in the
 - A sample name with a dash or a leading digit (e.g. `soil-A`, `2soil`)
   lost its unknown-cluster counts, and was renamed in the CSV header
   (`soil.A`, `X2soil`)
+- Input made only of sample directories not named `barcode*` was
+  rejected ("No barcode directories or fastq files found")
 
 
 ## [1.2.3] - 2026-10-27
