@@ -42,6 +42,10 @@ Earlier versions are described in the
 - `--fasttree-model` no longer accepts `wag` and `lg`: these protein
   models had no effect on nucleotide sequences (same tree as the
   default model)
+- A `metadata.csv` error prints only the metadata requirements, a
+  reference error only the reference requirements, and the error
+  message comes last. `--requirements` no longer ends with an "ERROR"
+  line (#144)
 
 ### Removed
 
