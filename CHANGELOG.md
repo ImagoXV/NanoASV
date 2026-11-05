@@ -82,6 +82,9 @@ Earlier versions are described in the
   `nanoasv` could wait as long as stdin stayed open
 - A sample name containing an underscore (e.g. `soil_A`) made the final
   R step fail
+- A sample name with a dash or a leading digit (e.g. `soil-A`, `2soil`)
+  lost its unknown-cluster counts, and was renamed in the CSV header
+  (`soil.A`, `X2soil`)
 
 
 ## [1.2.3] - 2026-10-27
