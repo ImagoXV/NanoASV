@@ -185,6 +185,24 @@ mini_run input out && \
     success "${DESCRIPTION}" || \
         failure "${DESCRIPTION}"
 
+new_workdir
+cp -r "${DATASET}" input
+mv input/barcode02 input/2soil-A
+sed -i "s/^barcode02,/2soil-A,/" input/metadata.csv
+mini_run input out
+
+DESCRIPTION="a sample name with a leading digit and a dash is kept in the CSV header"
+head -n 1 out/Results/CSV/Taxonomy-Abundance_table.csv | \
+    grep -q '"2soil-A","barcode01"$' && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
+DESCRIPTION="a sample name with a leading digit and a dash keeps its unknown-cluster reads"
+grep -q '^"UUID_Unknown_cluster_1",.*,5,0$' \
+     <(sed -E 's/[0-9a-f-]{36}_Unknown_cluster_/UUID_Unknown_cluster_/' out/Results/CSV/Taxonomy-Abundance_table.csv) && \
+    success "${DESCRIPTION}" || \
+        failure "${DESCRIPTION}"
+
 DESCRIPTION="unmatched reads of a sample not named barcode* are clustered"
 new_workdir
 cp -r "${DATASET}" input
